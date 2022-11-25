@@ -7,8 +7,8 @@ navbar_entries:
 
 project_entries:
   - title: Project 1
-    url: overview-post
-    desc: This is an example project, configured in _data/home.yml
+    url: c-main-post
+    desc: c main함수
 
   - title: Project 2
     url: overview-post
