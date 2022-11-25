@@ -3,6 +3,6 @@ layout: post
 title: About
 ---
 
-This is an example page!
+## ‧ 전주온빛중학교 인공지능부 1기 프로그래밍 담당  
 
-Actually, it has the same layout of a post...
+## ‧ 2022 미래교육 해커톤 SW·AI교육 창의캠프 고등부 1위

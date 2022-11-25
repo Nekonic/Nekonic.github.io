@@ -5,9 +5,6 @@ navbar_entries:
   - title: blog
     url: blog
 
-  - title: website
-    url: https://www.abhinav.co
-
 project_entries:
   - title: Project 1
     url: overview-post
@@ -49,19 +46,18 @@ old_project_entries:
     url: https://github.com/abhinavs/moonwalk
     desc: A fast and minimalist Jekyll blog theme with clean dark mode
 
-  - title: Humangous
-    url: https://www.humangous.co
-    desc: The better people know you, the better they collaborate
-
 footer_entries:
-  - title: abhinav's homepage
-    url: https://www.abhinav.co
+  - title: solved.ac
+    url: https://solved.ac/profile/funiculi_funicula
 
   - title: twitter
-    url: https://twitter.com/abhinav
+    url: https://twitter.com/Nekonic31307
 
   - title: github
-    url: https://github.com/abhinavs
+    url: https://github.com/Nekonic
+
+  - title: codeup
+    url: https://codeup.kr/userinfo.php?user=kybplay1234
 
   - title: feed
     url: feed.xml
@@ -79,23 +75,3 @@ misc_entries:
   - title: Blog posts
     post_list: true
     url: false
-
-  - title: moonwalk on the Internet
-    url: false
-    entries:
-      - title: on Github
-        url: https://github.com/abhinavs/moonwalk
-
-      - title: originally built for abhinav's homepage
-        url: https://www.abhinav.co
-
-      - title: this list is scalable and can be nested
-        url: false
-        entries:
-          - title: this is nested inside a nested list
-            url: false
-
-          - title: it is easy to use, see _data/home.yml to see how to configure it.
-            url: false
-
-
