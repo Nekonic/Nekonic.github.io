@@ -2,7 +2,7 @@ title: Nekonic's blog
 author: Nekonic
 url: https://nekonic.github.io # root address of the site
 description: > # description of the site (multiple lines allowed)
-  Moonwalk is a fast and elegant Jekyll theme with a clean dark mode. It comes with horizontal list (for navbar and footer), card list (for portfolio), and a generic vertical list. It is very easy to modify in case you want to build over it - please see _layouts/home.html to do that.
+  프로그래밍 문제풀이, 자료구조와 알고리즘 공부, 여러 프로그래밍 이야기들을 쓰는 일기장
 
 permalink: /:slug
 

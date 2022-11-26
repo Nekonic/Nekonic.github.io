@@ -7,7 +7,7 @@ layout: post
 Visual Studio에서는 실행이 안된다는 것이였다.
 
 ## 목차
-- [main 함수?](#main-함수?)
+- [main 함수](#main-함수)
 - [int main 함수와 main 함수의 차이점](#int-main-함수와-main-함수의-차이점)
 - [오류가 일어나는 원인](#오류가-일어나는-원인)
 - [글을 마치며](#글을-마치며)
@@ -15,7 +15,7 @@ Visual Studio에서는 실행이 안된다는 것이였다.
 실행이 안된 이유는 int main을 쓰지 않았기 때문이다.
 왜 main을 쓰면 Visual Studio에서 오류가 생길까?
 
-## [main 함수?](#main-함수?)
+## [main 함수](#main-함수)
 
 main 함수는 C에서 미리 정의된 키워드이자 함수다. 프로그램의 실행시작 및 종료를 담당하는 모든 C프로그램의 첫 번째 함수다.
 
