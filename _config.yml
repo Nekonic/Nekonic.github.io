@@ -134,8 +134,8 @@ yat:
 #
 # night_mode: "auto"
 
-Code badge setting
-You can enable or disable the code badge and so on
+# Code badge setting
+# You can enable or disable the code badge and so on
 code_badge:
   enabled: "true"
   color: "#fff"
