@@ -1,6 +1,16 @@
 <head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-3SSN3ZRPLQ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'G-3SSN3ZRPLQ');
+  </script>
+  
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7370034285651087"
-     crossorigin="anonymous"></script>
+    crossorigin="anonymous"></script>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,8 +19,8 @@
   <link rel="icon" href="{{ site.favicon }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-noto-sans@0.0.72/index.min.css">
-  <link rel="stylesheet" href="{{ "/assets/css/main.css" | relative_url }}">
-  <script src="{{ "/assets/js/main.js" | relative_url }}"></script>
+  <link rel="stylesheet" href="{{ " /assets/css/main.css" | relative_url }}">
+  <script src="{{ " /assets/js/main.js" | relative_url }}"></script>
   {%- feed_meta -%}
   {%- if jekyll.environment == 'production' and site.google_analytics -%}
   {%- include extensions/google-analytics.html -%}
