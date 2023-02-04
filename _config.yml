@@ -185,11 +185,11 @@ code_badge:
 #   shortname: "Your Disqus username"
 
 # Gitment comments
-# gitment:
-#   username: "Your GitHub username"
-#   repo: "The repo to store comments"
-#   client_id: "Your client ID"
-#   client_secret: "Your client secret"
+gitment:
+  username: "Your GitHub username"
+  repo: "The repo to store comments"
+  client_id: "Your client ID"
+  client_secret: "Your client secret"
 #   redirect_uri: "Your redirect url"   # If you use a custom domain name
 
 # Utterances comments
