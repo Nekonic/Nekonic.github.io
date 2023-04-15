@@ -22,7 +22,7 @@ A 라는 알고리즘과 B 라는 알고리즘을 비교하는 방법은 어떤 
 빅오 표기법은 알고리즘의 시간복잡도를 나타내는 표기법으로, 입력 데이터의 크기에 따라 알고리즘의 수행시간이 어떻게 증가하는지를 나타냅니다. 빅오 표기법은 최악의 경우를 가정하여 알고리즘의 수행시간을 분석합니다. 이를 통해 알고리즘의 성능을 분석할 수 있습니다. 빅오 표기법은 O(빅오)로 표기하며, $O(1)$, $O(\log_2 n)$, $O(n)$, $O(n \log_2 n)$, $O(n^2)$, $O(2^n)$ 등으로 나타낼 수 있습니다.  
 
 수학적 정의는 다음과 같습니다.  
-$$\displaystyle\lim_{n \to \infty}\left|{\frac {f(n)}{g(n)}}\right|<\infty$$
+$\displaystyle\lim_{n \to \infty}\left|{\frac {f(n)}{g(n)}}\right|<\infty$
 
 ### Big Omega(Ω) notation
 빅오메가 표기법은 최선의 경우를 가정하여 알고리즘의 수행시간을 분석합니다. 이를 통해 알고리즘의 하한값을 분석할 수 있습니다.  
@@ -30,14 +30,14 @@ $$\displaystyle\lim_{n \to \infty}\left|{\frac {f(n)}{g(n)}}\right|<\infty$$
 예를 들어, 정렬 알고리즘 중 병합 정렬은 최선의 경우와 최악의 경우 모두 $O(n\log_2 n)$의 시간복잡도를 가집니다. 하지만 병합 정렬은 이미 정렬된 배열을 다시 정렬할 때는 $O(n)$의 시간복잡도를 가집니다. 이때 빅오메가 표기법을 사용하면 병합 정렬의 최선의 경우인 $O(n)$을 나타낼 수 있습니다.  
 
 수학적 정의는 다음과 같습니다.  
-$$\displaystyle \lim _{n\to \infty }\left|{\frac {f(n)}{g(n)}}\right|>0$$
+$\displaystyle \lim _{n\to \infty }\left|{\frac {f(n)}{g(n)}}\right|>0$
 ### Big Theta(θ) notations
 빅세타 표기법은 최선의 경우와 최악의 경우를 모두 고려하여 알고리즘의 수행시간을 분석합니다. 이를 통해 알고리즘의 평균적인 성능을 분석할 수 있습니다.  
 
 예를 들어, 삽입 정렬 알고리즘은 최선의 경우에는 $O(n)$의 시간복잡도를 가지며, 최악의 경우에는 $O(n^2)$의 시간복잡도를 가집니다. 이때 빅세타 표기법을 사용하면 삽입 정렬 알고리즘의 평균적인 성능인 $O(n^2)$을 나타낼 수 있습니다.
 
 수학적 정의는 다음과 같습니다.  
-$$\displaystyle 0<\lim _{n\to \infty }\left|{\frac {f(n)}{g(n)}}\right|<\infty$$
+$\displaystyle 0<\lim _{n\to \infty }\left|{\frac {f(n)}{g(n)}}\right|<\infty$
 
 ## 공간복잡도
 공간복잡도는 알고리즘의 메모리 사용량을 분석하는 방법 중 하나입니다. 알고리즘의 메모리 사용량은 입력 크기에 따라 달라질 수 있습니다. 공간복잡도는 입력 크기에 따른 알고리즘의 메모리 사용량의 증가율을 나타냅니다. 이를 통해 알고리즘의 성능을 분석할 수 있습니다.<br>
@@ -49,7 +49,7 @@ $$\displaystyle 0<\lim _{n\to \infty }\left|{\frac {f(n)}{g(n)}}\right|<\infty$$
 ## 연습문제
 1. 다음 계산시간(t)을 Big O표기법으로 나타내라.(입력크기는 n)
 - t(n) = $2023^n+n!$  
-- t(n) = $n^{2023} + 2^n$
+- t(n) = $n^{2023} + {2023}^n$
 - t(n) = $1000000$
 
 [참고자료1](https://www.geeksforgeeks.org/analysis-algorithms-big-o-analysis/)  
