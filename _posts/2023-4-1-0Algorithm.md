@@ -18,24 +18,24 @@ KOI 준비를 하면서 알고리즘에 대한 복습의 필요성을 느꼈다.
 배열, 연결리스트, 스택, 큐, 덱 등의 자료구조의 복잡도와 쿼리 설명
 ### 3. 알고리즘의 정당성과 증명
 알고리즘을 증명하는 방법
-### 4. 정렬
-### 5. 이진 탐색(Binary Search)
-### 6. 재귀(Recursion)
-### 7. 분할 정복(Divide and conquer)
-### 8. 정수론
+### 4. 재귀(Recursion)
+### 5. 정렬(Sort)
+### 6. 이진 탐색(Binary Search)
+### 7. 분할 정복(Divide and Conquer)
+### 8. 정수론(Number Theory)
 유클리드 호제법, 모듈러 연산을 알아보자
-### 9. 그래프
+### 9. 그래프(Graph Theory)
 그래프 이론에 대해 알아보자
 ### 10. 트리
 ### 11. 탐욕법 (Greedy)
 ### 12. DP (Dynamic Programming)
 ### 13. DFS (Depth First Search)
 ### 14. BFS (Breadth First Search)
-### 15. 백트래킹
+### 15. 백트래킹(Backtracking)
 ### 16. 위상정렬 (Topological Sorting)
-### 17. 세그먼트 트리
-### 18. 수치 해석
-### 19. 계산 기하
+### 17. 트리 심화
+### 18. 수치 해석(Numerical Analysis)
+### 19. 계산 기하(Computational Geometry)
 ### 20. 네트워크 흐름
-### 21. FFT (Fast Fourier transform)
+### 21. FFT (Fast Fourier Transform)
 ### 번외(문자열,비트마스킹,구현,에라토스테네스의 체)
