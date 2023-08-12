@@ -1,6 +1,7 @@
 ---
 layout: post
 title: 알고리즘 강의 - 3 [알고리즘의 정당성과 증명]
+highlight: /assets/css/syntax.css
 categories: Algorithm
 tags: ps Algorithm
 ---

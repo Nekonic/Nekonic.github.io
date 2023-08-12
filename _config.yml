@@ -206,7 +206,6 @@ utterances:
 
 # Build settings
 highlighter: rouge
-highlighter-theme: base16.dark
 markdown: kramdown
 kmarkdown:
   input: GFM
