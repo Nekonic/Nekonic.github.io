@@ -13,7 +13,7 @@ tags: arduino music
 중3때 졸업작품으로 만들었는데 버튼에 저항값이 달라서 힘들었던 기억이 생각난다.
 
 시연 : 
-![video](/assets/images/My_Arduino_Project/IMG_0192.mov)
+![](/assets/images/My_Arduino_Project/IMG_0192.mov)
 
 ## 2. 미세먼지 측정기
 
@@ -24,7 +24,7 @@ tags: arduino music
 이건 고1때 만들었다.
 
 시연 : 
-![video](/assets/images/My_Arduino_Project/IMG_0190.mov)
+![](/assets/images/My_Arduino_Project/IMG_0190.mov)
 
 ## 3. MP3 플레이어
 
@@ -35,4 +35,4 @@ tags: arduino music
 이거 만드느라 라이브러리를 뜯어봤던 기억이 난다..  
 
 시연 :
-![video](/assets/images/My_Arduino_Project/IMG_0193.mov)
+![](/assets/images/My_Arduino_Project/IMG_0193.mov)
