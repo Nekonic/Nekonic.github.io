@@ -12,7 +12,7 @@ tags: arduino music
 
 중3때 졸업작품으로 만들었는데 버튼에 저항값이 달라서 힘들었던 기억이 생각난다.
 
-[영상](/assets/images/My_Arduino_Project/IMG_0192.mp4)
+[![enigma](https://i9.ytimg.com/vi/Y5Yil3jj_QU/mqdefault.jpg?sqp=CKyL36kG-oaymwEmCMACELQB8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGH8gVigrMA8=&rs=AOn4CLDMVUcKpib_BomtWG-Lw73Xcgr-WA)](https://youtu.be/Y5Yil3jj_QU)
 
 ## 2. 미세먼지 측정기
 
@@ -22,7 +22,7 @@ tags: arduino music
 
 이건 고1때 만들었다.
 
-[영상](/assets/images/My_Arduino_Project/IMG_0190.mov)
+[![영상](https://i9.ytimg.com/vi/k5umogDvpzc/mqdefault.jpg?sqp=CKyL36kG-oaymwEoCMACELQB8quKqQMcGADwAQH4Ac4FgAKACooCDAgAEAEYZSBTKEUwDw==&rs=AOn4CLBKWWYwUoQUgzz2PY12PFyX30MG-w)](https://youtube.com/shorts/k5umogDvpzc?feature=share)
 
 ## 3. MP3 플레이어
 
@@ -32,4 +32,4 @@ tags: arduino music
 볼륨조절기능이랑 이전곡,다음곡,멈추기 같은 기능을 만들었다.  
 이거 만드느라 라이브러리를 뜯어봤던 기억이 난다..  
 
-[영상](/assets/images/My_Arduino_Project/IMG_0193.mov)
+[![mp3](https://i9.ytimg.com/vi_webp/lhbccTwHw3o/mq2.webp?sqp=CKyL36kG-oaymwEmCMACELQB8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGHIgUCg-MA8=&rs=AOn4CLDtQF8LZUkPMAOG8mxHcr7DXBqMog)](https://youtu.be/lhbccTwHw3o)
