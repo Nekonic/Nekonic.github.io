@@ -1,7 +1,6 @@
 ---
 layout: post
 title: 내가 만들었던 아두이노 프로젝트들 모음
-highlight: /assets/css/syntax.css
 categories: arduino
 tags: arduino music
 ---

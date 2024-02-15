@@ -205,10 +205,7 @@ utterances:
   follow_site_theme: true
 
 # Build settings
-highlighter: rouge
 markdown: kramdown
-kmarkdown:
-  input: GFM
 
 plugins:
   - jekyll-feed

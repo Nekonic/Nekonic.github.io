@@ -167,7 +167,7 @@ pre {
     border: 0;
   }
 
-  table, pre {
+  > table, pre {
     margin-bottom: 0;
 
     .gutter, .code {
@@ -205,7 +205,7 @@ pre {
 /**
  * Tables
  */
-table {
+> table {
   display: block;
   margin-bottom: $spacing-unit;
   width: 100%;
@@ -214,23 +214,23 @@ table {
   border-collapse: collapse;
   overflow: auto;
 
-  tr {
+  > tr {
     &:nth-child(even) {
       background-color: lighten($grey-color-light, 6%);
     }
   }
 
-  th, td {
+  > th, td {
     padding: ($spacing-unit / 3) ($spacing-unit / 2);
   }
 
-  th {
+  > th {
     background-color: lighten($grey-color-light, 3%);
     border: 1px solid darken($grey-color-light, 4%);
     border-bottom-color: darken($grey-color-light, 12%);
   }
 
-  td {
+  > td {
     border: 1px solid $grey-color-light;
   }
 }

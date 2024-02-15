@@ -1,7 +1,6 @@
 ---
 layout: post
 title: main function error in c
-highlight: /assets/css/syntax.css
 categories: error
 tags: error
 ---

@@ -1,7 +1,6 @@
 ---
 layout: post
 title: 겨울 숲의 초대
-highlight: /assets/css/syntax.css
 categories: ps Programming_Contest
 tags: ps boj Programming_Contest greedy ad_hoc
 ---

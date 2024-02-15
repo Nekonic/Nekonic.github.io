@@ -1,7 +1,6 @@
 ---
 layout: post
 title: 알고리즘 강의 - 2 [자료구조]
-highlight: /assets/css/syntax.css
 categories: Algorithm
 tags: ps Algorithm
 ---
