@@ -1,0 +1,21 @@
+/* Line Number CSS */
+/* for block of numbers */
+.hljs-ln-numbers {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+ 
+	text-align: center;
+	color: #ccc;
+	border-right: 1px solid #CCC;
+	vertical-align: top;
+	width: 25px;
+}
+ 
+/* your custom style here */
+.hljs-ln td.hljs-ln-code {
+	padding-left: 5px;
+}
