@@ -51,6 +51,8 @@ $\displaystyle 0<\lim _{n\to \infty }\left|{\frac {f(n)}{g(n)}}\right|<\infty$
 - t(n) = $2023^n+n!$  
 - t(n) = $n^{2023} + {2023}^n$
 - t(n) = $1000000$
+  
+
 
 [참고자료1](https://www.geeksforgeeks.org/analysis-algorithms-big-o-analysis/)  
 [참고자료2](https://ko.wikipedia.org/wiki/%EC%8B%9C%EA%B0%84_%EB%B3%B5%EC%9E%A1%EB%8F%84)
