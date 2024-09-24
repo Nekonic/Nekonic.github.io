@@ -1,6 +1,8 @@
 ---
-layout: essay
+layout: post
 title: 자본주의와 독점
+categories: essay
+tags : essay capitalism
 ---
 
 ## 자본주의는 무한경쟁일까?
