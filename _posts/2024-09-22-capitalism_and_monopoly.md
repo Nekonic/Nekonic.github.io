@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: essay
 title: 자본주의와 독점
 categories: essay
 tags : essay capitalism

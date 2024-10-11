@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: essay
 title: 日本電産
 categories: essay
 tags : essay
