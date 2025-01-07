@@ -43,7 +43,7 @@ $ sudo pacman -S nvidia nvidia-utils nvidia-settings
 ### GPU가 다른 프로세서(예: 게임)를 인식하지 못하는 오류.
 예를들어 마인크래프트가 켜지지 않거나, OSU!를 켠 상태가 원래 200프레임이였는데, 13프레임으로 떨어진다거나 하는 상황이 되었다.  
 
-![참고](https://www.reddit.com/r/Fedora/comments/w2z92o/glfw_error_65542_glx_no_glxfbconfigs_returned/?rdt=52776)..
+[참고](https://www.reddit.com/r/Fedora/comments/w2z92o/glfw_error_65542_glx_no_glxfbconfigs_returned/?rdt=52776)..
 
 간단하게 이것을 설치해주면 해결된다.  
 ```bash
