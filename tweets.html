@@ -1,0 +1,18 @@
+---
+layout: page
+title: Tweets
+permalink: /tweets/
+---
+
+<div class="tweets-list">
+  {% for tweet in site.tweets reversed %}
+    <div class="tweet-card" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 8px;">
+      <div class="tweet-date" style="color: #888; font-size: 0.9em; margin-bottom: 10px;">
+        {{ tweet.date | date: "%Y-%m-%d %H:%M" }}
+      </div>
+      <div class="tweet-content">
+        {{ tweet.content }}
+      </div>
+    </div>
+  {% endfor %}
+</div>

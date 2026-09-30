@@ -216,3 +216,8 @@ plugins:
 
 # theme: owner/name --> Don't forget to remove/comment the gem-based theme option
 remote_theme: "jeffreytse/jekyll-theme-yat"
+# Collections for custom content (Tweets)
+collections:
+  tweets:
+    output: true
+    permalink: /tweets/:title/

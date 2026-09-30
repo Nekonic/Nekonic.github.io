@@ -1,0 +1,38 @@
+backend:
+  name: github
+  repo: Nekonic/Nekonic.github.io.data
+  branch: main
+
+media_folder: "assets/images"
+public_folder: "/assets/images"
+
+collections:
+  - name: "posts"
+    label: "블로그 글 (Posts)"
+    folder: "_posts"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - {label: "제목", name: "title", widget: "string"}
+      - {label: "날짜", name: "date", widget: "datetime"}
+      - {label: "내용", name: "body", widget: "markdown"}
+
+  - name: "tweets"
+    label: "공개 트위터 (Tweets)"
+    folder: "_tweets"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - {label: "제목", name: "title", widget: "string"}
+      - {label: "날짜", name: "date", widget: "datetime"}
+      - {label: "내용", name: "body", widget: "markdown"}
+
+  - name: "memos"
+    label: "비밀 메모장 (Private Memos)"
+    folder: "_memos"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - {label: "제목", name: "title", widget: "string"}
+      - {label: "날짜", name: "date", widget: "datetime"}
+      - {label: "내용", name: "body", widget: "markdown"}
