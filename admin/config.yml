@@ -1,38 +1,21 @@
 backend:
   name: github
-  repo: Nekonic/Nekonic.github.io.data
+  repo: Nekonic/Nekonic.github.io
   branch: main
 
-media_folder: "assets/images"
-public_folder: "/assets/images"
+media_folder: "assets/images/uploads"
+public_folder: "/assets/images/uploads"
 
 collections:
   - name: "posts"
-    label: "블로그 글 (Posts)"
+    label: "블로그 포스트"
     folder: "_posts"
     create: true
     slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
     fields:
-      - {label: "제목", name: "title", widget: "string"}
-      - {label: "날짜", name: "date", widget: "datetime"}
-      - {label: "내용", name: "body", widget: "markdown"}
-
-  - name: "tweets"
-    label: "공개 트위터 (Tweets)"
-    folder: "_tweets"
-    create: true
-    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
-    fields:
-      - {label: "제목", name: "title", widget: "string"}
-      - {label: "날짜", name: "date", widget: "datetime"}
-      - {label: "내용", name: "body", widget: "markdown"}
-
-  - name: "memos"
-    label: "비밀 메모장 (Private Memos)"
-    folder: "_memos"
-    create: true
-    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
-    fields:
-      - {label: "제목", name: "title", widget: "string"}
-      - {label: "날짜", name: "date", widget: "datetime"}
-      - {label: "내용", name: "body", widget: "markdown"}
+      - {label: "Layout", name: "layout", widget: "hidden", default: "post"}
+      - {label: "Title", name: "title", widget: "string"}
+      - {label: "Date", name: "date", widget: "datetime"}
+      - {label: "Categories", name: "categories", widget: "list", required: false}
+      - {label: "Tags", name: "tags", widget: "list", required: false}
+      - {label: "Body", name: "body", widget: "markdown"}
