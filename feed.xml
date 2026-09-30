@@ -1,0 +1,844 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2026-09-30T14:06:06+00:00</updated><id>/feed.xml</id><title type="html">Nekonic’s blog</title><subtitle>C++ programmer</subtitle><author><name>Nekonic</name></author><entry><title type="html">대학 실습실 PC를 관리해보자 - 0</title><link href="/college_life/2026/07/06/Univ_PC0.html" rel="alternate" type="text/html" title="대학 실습실 PC를 관리해보자 - 0" /><published>2026-07-06T00:00:00+00:00</published><updated>2026-07-06T00:00:00+00:00</updated><id>/college_life/2026/07/06/Univ_PC0</id><content type="html" xml:base="/college_life/2026/07/06/Univ_PC0.html"><![CDATA[<p>실습실의 근로를 맡고 있다. 교수님의 지시사항으로, 외국인 대학생들을 위한 PC 관리를 해야한다.<br />
+PC 배경화면, 프로그램 설치 및 동일한 환경 구성 등등 여러가지 있는데, 그걸 어떻게 해결할 수 있을까?</p>
+
+<h2 id="ad-dsactive-directory-domain-services">AD DS(Active Directory Domain Services)</h2>
+<p>Windows 네트워크 환경에서 사용자, 컴퓨터, 그룹, 정책 등을 중앙에서 관리하는 디렉터리 서비스</p>
+
+<h2 id="wdswindows-deployment-services">WDS(Windows Deployment Services)</h2>
+<p>Windows 설치 파일을 네트워크를 통해 제공하는 서비스<br />
+윈도우 설치를 위한 서버</p>
+
+<h2 id="mdtmicrosoft-deployment-toolkit">MDT(Microsoft Deployment Toolkit)</h2>
+<p>Windows를 자동으로 설치하고 설정하는 배포 도구</p>
+
+<h2 id="pxe-preboot-execution-environment">PXE (Preboot Execution Environment)</h2>
+<p>네트워크를 통해 부팅하는 기술</p>
+
+<h2 id="실습환경-준비">실습환경 준비</h2>
+
+<h3 id="vmware">Vmware</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th> </th>
+      <th>역할</th>
+      <th>OS</th>
+      <th>사양</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>win2022</td>
+      <td>AD DS, DHCP, WDS, MDT</td>
+      <td>Windows Server 2022</td>
+      <td>CPU 2, RAM 4GB Disk 50GB</td>
+    </tr>
+    <tr>
+      <td>RefPC</td>
+      <td>레퍼런스 이미지 빌드 및 캡쳐</td>
+      <td>Windows 11 Pro</td>
+      <td>CPU 2, RAM 4GB Disk 50GB</td>
+    </tr>
+    <tr>
+      <td>ClientPC</td>
+      <td>캡처된 이미지 배포 테스트</td>
+      <td>빈 디스크</td>
+      <td>CPU 2, RAM 4GB Disk 50GB</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="네트워크-구성">네트워크 구성</h2>
+<h3 id="vmware-1">VMware</h3>
+<p><img src="/assets/images\Univ_PC0/Network.png" alt="img" /></p>
+<h3 id="윈도우서버-2022">윈도우서버 2022</h3>
+<p><img src="/assets/images\Univ_PC0/win2022_net.png" alt="img" /></p>
+
+<h3 id="윈도우서버-기능-추가">윈도우서버 기능 추가</h3>
+<p><img src="/assets/images\Univ_PC0/Features.png" alt="img" /></p>
+
+<h3 id="ad-세팅">AD 세팅</h3>
+<p><img src="/assets/images\Univ_PC0/AD0.png" alt="img" /><br />
+<img src="/assets/images\Univ_PC0/AD1.png" alt="img" /></p>
+
+<h3 id="dhcp-세팅">DHCP 세팅</h3>
+<p><img src="/assets/images\Univ_PC0/DHCP0.png" alt="img" /><br />
+<img src="/assets/images\Univ_PC0/DHCP1.png" alt="img" /><br />
+<img src="/assets/images\Univ_PC0/DHCP2.png" alt="img" /><br />
+<img src="/assets/images\Univ_PC0/DHCP3.png" alt="img" /></p>
+
+<h3 id="wds-세팅">WDS 세팅</h3>
+<p><img src="/assets/images\Univ_PC0/WDS0.png" alt="img" /><br />
+<img src="/assets/images\Univ_PC0/WDS1.png" alt="img" /><br />
+<img src="/assets/images\Univ_PC0/WDS2.png" alt="img" /><br />
+<img src="/assets/images\Univ_PC0/WDS3.png" alt="img" /><br />
+<img src="/assets/images\Univ_PC0/WDS4.png" alt="img" /><br />
+<img src="/assets/images\Univ_PC0/WDS5.png" alt="img" /><br />
+<img src="/assets/images\Univ_PC0/WDS6.png" alt="img" /><br />
+<img src="/assets/images\Univ_PC0/WDS7.png" alt="img" /><br />
+<img src="/assets/images\Univ_PC0/WDS8.png" alt="img" /></p>
+
+<p>###</p>]]></content><author><name>Nekonic</name></author><category term="College_Life" /><category term="College_Life" /><summary type="html"><![CDATA[실습실의 근로를 맡고 있다. 교수님의 지시사항으로, 외국인 대학생들을 위한 PC 관리를 해야한다. PC 배경화면, 프로그램 설치 및 동일한 환경 구성 등등 여러가지 있는데, 그걸 어떻게 해결할 수 있을까?]]></summary></entry><entry><title type="html">무료로 플레이 할 수 있는 오목</title><link href="/trojan/2026/05/14/omok.html" rel="alternate" type="text/html" title="무료로 플레이 할 수 있는 오목" /><published>2026-05-14T00:00:00+00:00</published><updated>2026-05-14T00:00:00+00:00</updated><id>/trojan/2026/05/14/omok</id><content type="html" xml:base="/trojan/2026/05/14/omok.html"><![CDATA[<h2 id="다운로드"><a href="/assets/file/오목.exe">다운로드</a></h2>
+
+<h2 id="오목---클래식-전략-게임의-진정한-재미">오목 - 클래식 전략 게임의 진정한 재미</h2>
+
+<h3 id="오목을-소개합니다">오목을 소개합니다</h3>
+
+<p>오목은 한국에서 사랑받는 전통 전략 게임으로, 15x15 격자판에서 검은 돌과 흰 돌을 번갈아 놓으면서 자신의 돌 5개가 일직선상으로 먼저 놓이는 사람이 승리하는 게임입니다. 단순하지만 깊이 있는 전략이 필요한 오목의 매력에 빠져보세요.</p>
+
+<hr />
+
+<h3 id="주요-특징">주요 특징</h3>
+
+<p>🎮 <strong>클래식하면서도 중독성 있는 게임플레이</strong></p>
+<ul>
+  <li>배우기는 쉽지만 마스터하기는 어려운 오목의 참맛을 경험하세요</li>
+  <li>자신의 전략을 발전시키고 실력을 높일 수 있는 완벽한 게임</li>
+</ul>
+
+<p>🏆 <strong>강력한 AI 상대와의 대전</strong></p>
+<ul>
+  <li>다양한 난이도의 AI 상대와 대전할 수 있습니다</li>
+  <li>초보자부터 고수까지 즐길 수 있는 난이도 조절</li>
+</ul>
+
+<p>⚡ <strong>빠르고 가볍운 성능</strong></p>
+<ul>
+  <li>깔끔한 인터페이스로 누구나 쉽게 조작할 수 있습니다</li>
+  <li>가볍고 빠른 실행 속도로 언제 어디서나 즐길 수 있습니다</li>
+</ul>
+
+<p>🎯 <strong>정확한 게임 규칙 구현</strong></p>
+<ul>
+  <li>오목의 정확한 규칙을 완벽하게 구현했습니다</li>
+  <li>공정하고 균형 잡힌 게임플레이를 보장합니다</li>
+</ul>
+
+<hr />
+
+<h3 id="오목-게임의-규칙">오목 게임의 규칙</h3>
+
+<h4 id="기본-규칙">기본 규칙</h4>
+<ul>
+  <li><strong>목표</strong>: 자신의 돌 5개가 수직, 수평, 또는 대각선으로 일직선상에 놓이는 것이 목표입니다</li>
+  <li><strong>순서</strong>: 검은 돌이 먼저 시작하고, 흰 돌과 번갈아 가며 돌을 놓습니다</li>
+  <li><strong>승리</strong>: 가장 먼저 자신의 돌 5개를 일직선상으로 배치하는 플레이어가 승리합니다</li>
+</ul>
+
+<h4 id="게임의-깊이">게임의 깊이</h4>
+<p>오목은 단순한 규칙 뒤에 무궁무진한 전략이 숨어있습니다. 각 수 마다 신중하게 생각하고 상대방의 움직임을 예측해야 합니다. 오목 마스터가 되기 위해서는 열린 광장, 공격, 방어, 그리고 중원 장악 등 다양한 전술을 익혀야 합니다.</p>
+
+<hr />
+
+<h3 id="왜-오목을-선택해야-할까요">왜 오목을 선택해야 할까요?</h3>
+
+<p>📚 <strong>두뇌 발달에 도움이 됩니다</strong></p>
+<ul>
+  <li>논리적 사고력과 문제 해결 능력을 키울 수 있습니다</li>
+  <li>전략적 사고와 계획 능력을 향상시킵니다</li>
+  <li>집중력과 인내심을 강화합니다</li>
+</ul>
+
+<p>👥 <strong>전 세계에서 사랑받는 게임</strong></p>
+<ul>
+  <li>아시아를 넘어 전 세계에서 즐기는 게임입니다</li>
+  <li>온라인 대회와 토너먼트가 열리는 경쟁적인 게임입니다</li>
+  <li>국내외 오목 커뮤니티에서 활발히 활동할 수 있습니다</li>
+</ul>
+
+<p>🎓 <strong>모든 연령대가 즐길 수 있습니다</strong></p>
+<ul>
+  <li>아이부터 성인까지 함께 즐길 수 있는 게임입니다</li>
+  <li>가족이나 친구들과 함께하기에 좋습니다</li>
+  <li>매력적이고 접근성이 높은 게임입니다</li>
+</ul>
+
+<p>💪 <strong>실력 향상의 재미</strong></p>
+<ul>
+  <li>게임을 할수록 실력이 늘어나는 성취감을 느낄 수 있습니다</li>
+  <li>다양한 전략을 시도하고 실험할 수 있습니다</li>
+  <li>자신의 실력을 객관적으로 평가할 수 있습니다</li>
+</ul>
+
+<hr />
+
+<h3 id="게임-모드">게임 모드</h3>
+
+<h4 id="싱글플레이-모드">싱글플레이 모드</h4>
+<p>AI 상대와 1대1로 대전하는 모드입니다. 난이도를 선택하여 자신의 실력에 맞게 즐길 수 있습니다.</p>
+
+<h4 id="멀티플레이-모드">멀티플레이 모드</h4>
+<p>친구나 가족과 같은 PC에서 대전할 수 있습니다. 흰 돌과 검은 돌을 번갈아 가며 놓으면서 승부를 겨룹니다.</p>
+
+<hr />
+
+<h3 id="시스템-요구사항">시스템 요구사항</h3>
+
+<ul>
+  <li><strong>운영체제</strong>: Windows 10 이상</li>
+  <li><strong>메모리</strong>: 최소 512MB</li>
+  <li><strong>저장공간</strong>: 50MB 이상의 여유 공간</li>
+  <li><strong>기타</strong>: 특별한 추가 프로그램이 필요하지 않습니다</li>
+</ul>
+
+<hr />
+
+<h3 id="자주-묻는-질문-faq">자주 묻는 질문 (FAQ)</h3>
+
+<p><strong>Q: 오목과 바둑의 차이점은 무엇인가요?</strong>
+A: 오목은 5개의 돌을 일직선상에 놓으면 이기고, 바둑은 더 넓은 판 위에서 영역을 차지하는 게임입니다. 오목은 바둑보다 더 빠르고 간단하면서도 전략적입니다.</p>
+
+<p><strong>Q: 초보자도 쉽게 배울 수 있나요?</strong>
+A: 네, 오목의 규칙은 매우 단순하여 몇 분 안에 배울 수 있습니다. 쉽게 시작하고 계속 즐기며 실력을 키워나갈 수 있습니다.</p>
+
+<p><strong>Q: AI의 난이도는 조절할 수 있나요?</strong>
+A: 네, 난이도를 쉬움, 보통, 어려움으로 선택할 수 있습니다. 자신의 실력에 맞게 선택하세요.</p>
+
+<p><strong>Q: 게임을 저장할 수 있나요?</strong>
+A: 네, 진행 중인 게임을 저장하고 나중에 이어서 할 수 있습니다.</p>
+
+<hr />
+
+<h3 id="다운로드-및-설치">다운로드 및 설치</h3>
+
+<p>오목.exe는 간단한 설치 과정을 거칩니다:</p>
+
+<ol>
+  <li>파일을 다운로드합니다</li>
+  <li>설치 마법사를 따릅니다</li>
+  <li>게임을 실행하고 즐깁니다</li>
+</ol>
+
+<p>별도의 복잡한 설정이 필요하지 않으며, 다운로드 후 바로 게임을 시작할 수 있습니다.</p>
+
+<hr />
+
+<h3 id="커뮤니티와-함께하세요">커뮤니티와 함께하세요</h3>
+
+<p>오목은 단순한 게임이 아닌 하나의 문화입니다. 전 세계의 오목 애호가들과 연결되고 전략을 공유하세요. 우리 커뮤니티에 가입하여 다른 플레이어들과 경험을 나누고, 새로운 전략을 배우고, 친구를 사귀세요.</p>
+
+<hr />
+
+<h3 id="최신-업데이트-및-뉴스">최신 업데이트 및 뉴스</h3>
+
+<p>저희는 지속적으로 게임을 개선하고 있습니다. 버그 수정, 성능 최적화, 새로운 기능 추가 등이 정기적으로 이루어집니다. 항상 최신 버전을 다운로드하여 최고의 게임 경험을 즐기세요.</p>
+
+<hr />
+
+<h3 id="오목의-역사">오목의 역사</h3>
+
+<p>오목은 고대에서 비롯된 게임으로, 동양에서 수천 년 동안 즐겨온 게임입니다. 간단하면서도 깊이 있는 전략 게임으로 현대에도 많은 사람들에게 사랑받고 있습니다. 오목의 오래된 전통을 이어가며 현대적으로 구현한 이 게임을 플레이해보세요.</p>
+
+<hr />
+
+<h3 id="게임-플레이-팁">게임 플레이 팁</h3>
+
+<p><strong>초보자를 위한 팁:</strong></p>
+<ul>
+  <li>중앙의 넓은 공간부터 시작하세요</li>
+  <li>상대방의 위협을 먼저 방어하세요</li>
+  <li>자신의 두 개 이상의 돌을 연결하려고 노력하세요</li>
+</ul>
+
+<p><strong>중급자를 위한 팁:</strong></p>
+<ul>
+  <li>공격과 방어의 균형을 맞추세요</li>
+  <li>여러 선택지를 만들어 상대방을 혼란스럽게 하세요</li>
+  <li>장기적인 계획을 세우세요</li>
+</ul>
+
+<p><strong>고급자를 위한 팁:</strong></p>
+<ul>
+  <li>정석적인 오프닝을 학습하세요</li>
+  <li>미드게임에서의 위치싸움을 이해하세요</li>
+  <li>엔드게임에서의 정확한 계산이 중요합니다</li>
+</ul>
+
+<hr />
+
+<h3 id="지금-바로-시작하세요">지금 바로 시작하세요!</h3>
+
+<p>오목.exe를 다운로드하고 클래식 전략 게임의 매력에 빠져보세요. 간단한 규칙이지만 무한한 가능성이 숨어있는 오목, 지금 바로 경험해보세요!</p>
+
+<p><strong>지금 다운로드하고 마스터가 되세요!</strong></p>]]></content><author><name>Nekonic</name></author><category term="Trojan" /><category term="Trojan" /><summary type="html"><![CDATA[다운로드]]></summary></entry><entry><title type="html">2025년 회고록</title><link href="/retrospective/essay/2026/01/01/NewYear.html" rel="alternate" type="text/html" title="2025년 회고록" /><published>2026-01-01T00:00:00+00:00</published><updated>2026-01-01T00:00:00+00:00</updated><id>/retrospective/essay/2026/01/01/NewYear</id><content type="html" xml:base="/retrospective/essay/2026/01/01/NewYear.html"><![CDATA[<h2 id="kucis-활동">KUCIS 활동</h2>
+<h3 id="20250516금-kucis-네트워킹-데이">2025/05/16(금) KUCIS 네트워킹 데이</h3>
+<p>| 일시: 2025년 5월 16일(금), 14:00~17:30
+| 장소: 로얄호텔서울(서울 중구)
+커피가 맛있었다. 
+쿠키도 먹었는데 옆자리 성심여대분들이 가져온걸 몰라서 뺏어먹은(?)게 되어버렸다…</p>
+
+<p>행사 내용은 AI 보안 강연 1시간 정도 하고 2시간정도 레크레이션을 해서 옆의 성심여대 분들과 조금 친해지는 시간을 가졌다.</p>
+
+<h3 id="2025071820-kucis-ctf">2025/07/18~20 KUCIS CTF</h3>
+<p>| 대회기간: 2025.07.18 12:00 ~ 2025.07.20 23:59 (60시간)
+학생이 낸 문제중에 DOM XSS를 활용하는 문제가 기억에 많이 남았다.</p>
+
+<p>당시에는 못 풀었지만, 문제를 받고 열자마자 호시노 아이가..</p>
+
+<h3 id="20250729화-안랩-기업견학">2025/07/29(화) 안랩 기업견학</h3>
+<p>| 일시: 2025년 7월 29일(화), 10:00~17:00
+| 장소: 한국정보보호산업협회(서울 송파구), 안랩(경기도 성남)
+아이스크림 잘먹었습니다~</p>
+
+<p>안랩 좋다. 둘러보면서 안랩 악성코드 분석쪽에 취업하고 싶어졌다.</p>
+
+<h3 id="20250825월-동신대-합동-세미나">2025/08/25(월) 동신대 합동 세미나</h3>
+<p>| 일시: 2025년 8월 25일(월) ~ 26일(화)
+| 장소: 지리산 풀빌라?
+KUCIS 공식은 아니고 동아리 회장님들이 친해져서 성사되었다.
+즐기고 왔다.</p>
+
+<h3 id="20250906토-영남-권역-세미나">2025/09/06(토) 영남 권역 세미나</h3>
+<p>| 일시: 2025년 9월 6일(토), 14:00~16:00
+| 장소: 대구가톨릭대학교(경북 경산시)
+기억나는건 AWS 부분을 엄청 복잡하게 실제 기업 그 이상으로 서비스를 구축하신거 보고, AWS 한달에 40만원정도 나온다는 것을 들었다.</p>
+
+<h2 id="업적">업적</h2>
+
+<h3 id="네트워크-관리사-2급">네트워크 관리사 2급</h3>
+<ul>
+  <li>필기: 78점</li>
+  <li>실기: 83.5점
+공부를 엄청 열심히 하지는 않았다.</li>
+</ul>
+
+<h3 id="wcmswoosuk-computer-management-system">WCMS(Woosuk Computer Management System)</h3>
+<p><a href="https://github.com/Nekonic/WCMS">WCMS</a></p>
+
+<p>만들기 너무 빡세다..</p>
+
+<p>이거 일단 2026년 1월 초까지 리팩토링 해야지..</p>
+
+<h2 id="2026년-목표">2026년 목표</h2>
+<h3 id="wcms-리팩토링">WCMS 리팩토링</h3>
+<ul>
+  <li>0.7.0: 스파게티 코드 정리와 ORM, 클라이언트 자동 업데이트
+이후 바로 1.0.0 안정화 버전을 최대한 3월 안에 하고 싶지만, 메인 리팩토링은 1월 초까지 마치고, 안정화 버전 배포는 리팩토링이 끝나면 그때 계획을 다시 세울 예정이다.</li>
+</ul>
+
+<h3 id="자격증리눅스마스터-1급-인터넷보안전문가-2급">자격증(리눅스마스터 1급, 인터넷보안전문가 2급)</h3>
+
+<h3 id="웹해킹-공부">웹해킹 공부</h3>
+<p>인프런에서 강의를 듣고있다.</p>
+
+<h3 id="개인-프로젝트">개인 프로젝트</h3>
+<ul>
+  <li>RDBMS를 C언어로 만들어보기(최소한의 기능만)</li>
+  <li>웹 하츠오브아이언4. 플라스크로 호이를 만들어보자</li>
+  <li>라즈베리파이4 몇대 연결해서 DEV Stack 만들기</li>
+</ul>
+
+<h2 id="진로에-대해서">진로에 대해서</h2>
+<p>임베디드 시스템 보안쪽으로 가고싶다.</p>
+
+<p>그 외에 관심있는건 IT 인프라, 웹해킹도 관심이 생겼다.</p>
+
+<p>포렌식은… 공부를 해봤는데, 내 성향에 안 맞는거 같다.</p>]]></content><author><name>Nekonic</name></author><category term="Retrospective" /><category term="Essay" /><category term="Growth," /><category term="College_Life" /><summary type="html"><![CDATA[KUCIS 활동 2025/05/16(금) KUCIS 네트워킹 데이 | 일시: 2025년 5월 16일(금), 14:00~17:30 | 장소: 로얄호텔서울(서울 중구) 커피가 맛있었다. 쿠키도 먹었는데 옆자리 성심여대분들이 가져온걸 몰라서 뺏어먹은(?)게 되어버렸다…]]></summary></entry><entry><title type="html">davinci resolve GPU initialization error</title><link href="/davinci_resolve/2025/01/07/davinci_resolve1.html" rel="alternate" type="text/html" title="davinci resolve GPU initialization error" /><published>2025-01-07T00:00:00+00:00</published><updated>2025-01-07T00:00:00+00:00</updated><id>/davinci_resolve/2025/01/07/davinci_resolve1</id><content type="html" xml:base="/davinci_resolve/2025/01/07/davinci_resolve1.html"><![CDATA[<h2 id="설치부터-오류가-일어났다">설치부터 오류가 일어났다..</h2>
+<p>다빈치 리졸브를 설치하려는데, 설치부터 해쉬값이 안맞아서 설치 자체가 안되는 오류가 발생했지만 얼마 지나고 해결됨.<br />
+소스를 까보니 누군가가 해쉬값을 포함한 설정값을 베타버전것을 업데이트 안하고 넣어버림..</p>
+
+<p>설치 후, 열어보니 GPU initialization Error가 발생함.</p>
+
+<h2 id="현재-상황">현재 상황.</h2>
+<ul>
+  <li>davinci-resolve 19.1.2-1</li>
+  <li>opencl-nvidia 565.77-3</li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>python davinci-resolve-checker.py
+Using locale en_US
+DaVinci Resolve checker 5.2.8
+Installed DaVinci Resolve package: davinci-resolve 19.1.2-1
+Chassis <span class="nb">type</span>: desktop
+Installed OpenCL drivers:
+        opencl-nvidia 565.77-3
+Presented GPUs:
+        TU116 <span class="o">[</span>GeForce GTX 1660] <span class="o">(</span>kernel driver <span class="k">in </span>use: nouveau<span class="o">)</span>
+OpenGL vendor string: Mesa
+OpenGL renderer string: NV168
+clinfo detected platforms and devices:
+        Warning: could not parse clinfo data!
+
+Not found opencl platforms with appropriate GPUs. Check that you have installed corresponding driver. Otherwise you cannot run DR.
+You are not using nvidia as kernel driver. Use proprietary nvidia driver, otherwise you could not use DaVinci Resolve.
+</code></pre></div></div>
+
+<h2 id="troubleshooting">Troubleshooting</h2>
+<p>간단하게 nvidia 드라이버 설치로 해결할 수 있다!</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">sudo </span>pacman <span class="nt">-S</span> nvidia nvidia-utils nvidia-settings
+</code></pre></div></div>
+
+<h3 id="gpu가-다른-프로세서예-게임를-인식하지-못하는-오류">GPU가 다른 프로세서(예: 게임)를 인식하지 못하는 오류.</h3>
+<p>예를들어 마인크래프트가 켜지지 않거나, OSU!를 켠 상태가 원래 200프레임이였는데, 13프레임으로 떨어진다거나 하는 상황이 되었다.</p>
+
+<p><a href="https://www.reddit.com/r/Fedora/comments/w2z92o/glfw_error_65542_glx_no_glxfbconfigs_returned/?rdt=52776">참고</a></p>
+
+<p>간단하게 이것을 설치해주면 해결된다.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">sudo </span>pacman <span class="nt">-S</span> glfw
+</code></pre></div></div>
+
+<h3 id="패키지-설치중-오류sha1">패키지 설치중 오류(sha1)</h3>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">==&gt;</span> Validating <span class="nb">source </span>files with sha256sums...
+    DaVinci_Resolve_19.1.2_Linux.zip ... FAILED
+<span class="o">==&gt;</span> ERROR: One or more files did not pass the validity check!
+ -&gt; error making: davinci-resolve-exit status 1
+ -&gt; Failed to <span class="nb">install </span>the following packages. Manual intervention is required:
+davinci-resolve - <span class="nb">exit </span>status 1
+</code></pre></div></div>
+
+<p>말 그대로 검증과정에서 생긴 오류다.<br />
+해쉬값이 맞지 않기 때문에 벌어지는데,</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>yay <span class="nt">-S</span> <span class="nt">--mflags</span> <span class="nt">--skipinteg</span> davinci-resolve
+</code></pre></div></div>
+
+<p>이런식으로 우회할 수 있다.</p>
+
+<p>물론 해쉬값을 안다면 PKGBUILD 파일에서 간단하게 바꾸기만 하면 설치가 가능하다.</p>
+
+<h3 id="패키지-설치중-오류">패키지 설치중 오류</h3>
+
+<p>업데이트 또는 재설치를 하려고 하면,</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">chmod</span>: cannot access <span class="s1">'/home/nekonic/.cache/yay/davinci-resolve/src/DaVinci_Resolve_19.1.2_Linux.run'</span>: No such file or directory
+</code></pre></div></div>
+<p>이런 말이 뜰 때가 있다.</p>
+
+<p>직접 .cache/yay/davinci-resolve 로 가보자.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nano PKGBUILD
+</code></pre></div></div>
+
+<pre><code class="language-PKGBUILD">pkgname=davinci-resolve
+pkgver=19.1.3
+pkgrel=1
+
+_product="DaVinci Resolve"
+_referid='ee1da4f13df74d72b6da783ead2ed875'
+_siteurl="https://www.blackmagicdesign.com/api/support/latest-stable-version/davinci-resolve/linux"
+sha256sums=('74c1fbab2eebdd5458ab7147e74527346504a7b208912a6c74cc5ec489378ce0')
+pkgdesc='Professional A/V post-production software suite from Blackmagic Design'
+_archive_name=DaVinci_Resolve_${pkgver}_Linux
+_archive_run_name=DaVinci_Resolve_${pkgver}_Linux
+conflicts=('davinci-resolve-studio' 'davinci-resolve-beta' 'davinci-resolve-studio-beta')
+
+</code></pre>
+
+<p>이런식으로 <strong>pkgver=19.1.3</strong>만 바꿔주면 된다.<br />
+물론 해쉬값도 바꿔주면 더 좋다.</p>]]></content><author><name>Nekonic</name></author><category term="davinci_resolve" /><category term="davinci_resolve" /><category term="error" /><summary type="html"><![CDATA[설치부터 오류가 일어났다.. 다빈치 리졸브를 설치하려는데, 설치부터 해쉬값이 안맞아서 설치 자체가 안되는 오류가 발생했지만 얼마 지나고 해결됨. 소스를 까보니 누군가가 해쉬값을 포함한 설정값을 베타버전것을 업데이트 안하고 넣어버림.. 설치 후, 열어보니 GPU initialization Error가 발생함.]]></summary></entry><entry><title type="html">intel이 망할 수 없는 이유</title><link href="/opinion/2024/12/22/intel_opinion.html" rel="alternate" type="text/html" title="intel이 망할 수 없는 이유" /><published>2024-12-22T00:00:00+00:00</published><updated>2024-12-22T00:00:00+00:00</updated><id>/opinion/2024/12/22/intel_opinion</id><content type="html" xml:base="/opinion/2024/12/22/intel_opinion.html"><![CDATA[<h2 id="인텔은-삼성과-다르다">인텔은 삼성과 다르다.</h2>
+<p>인텔은 미국기업 이라는 것을 잊지 말자.<br />
+트럼프 정책을 한 단어로 요약하자면 <strong>자국우선주의</strong> 라고 볼 수 있다.<br />
+현재 파운더리 시장의 점유율에서 미국의 비중은 매우 낮다. 따라서 인텔에 대한 지원이 더 늘 것으로 본다.</p>
+
+<h2 id="루나레이크로-보는-인텔의-전략">루나레이크로 보는 인텔의 전략.</h2>
+<p>노트북에 들어가는 루나레이크는 애플의 M시리즈의 칩셋과 유사하게 메모리통합형이다.</p>
+
+<p>퀄컴이 노트북시장을 노릴다는 것은 누구나 알고있다. 그래서 실제 arm으로 칩을 설계해서, 마이크로소프트사의 서피스 등의 제품에 들어갔지만 배터리타임 이외의 장점은 없었다.<br />
+애플만큼의 호환성, 애플만큼의 전성비, 애플만큼의 GPU는 전혀 나오지 않고 출시를 해서 누구도 사용하지 않을 칩이라고 생각한다.</p>
+
+<p>물론 나도 기존의 x86 노트북시장에서 배터리타임을 거의 신경쓰지 않아서 큰 메리트가 있다고 생각했다.<br />
+하지만 루나레이크의 탄생이 모든걸 바꿔놓았다.<br />
+루나레이크는 x86이면서 전성비가 퀄컴칩과 거의 비슷하기 때문에 퀄컴의 유일한 장점인 배터리타임마저 사라져버린 것이다.</p>
+
+<p>그리고 퀄컴은 ARM과의 소송에서 거의 이겼다고 봐도 무방하기 때문에 ARM이 라이센스를 끊을 수도 있다.<br />
+이렇게 ARM에 대해서 논란이 많은데, 차세대 아키텍쳐는 ARM이 아니라 RISC-V가 될 것이라고 예상한다.</p>
+
+<p>인텔의 앞으로의 방향성은 PC시장이 아닌, 지금까지 잘 해오던 노트북, 서버시장에서 점유율을 지키는 방식으로 운영을 할 것이다.</p>
+
+<h2 id="파운더리-매각">파운더리 매각?</h2>
+<p>난 개인적으로 파운더리를 매각할 수 없다고 생각한다. 아니, 매각하지 말아야 한다.</p>]]></content><author><name>Nekonic</name></author><category term="opinion" /><category term="Intel" /><summary type="html"><![CDATA[인텔은 삼성과 다르다. 인텔은 미국기업 이라는 것을 잊지 말자. 트럼프 정책을 한 단어로 요약하자면 자국우선주의 라고 볼 수 있다. 현재 파운더리 시장의 점유율에서 미국의 비중은 매우 낮다. 따라서 인텔에 대한 지원이 더 늘 것으로 본다.]]></summary></entry><entry><title type="html">-3- 인공지능을 활용한 개발 (Minecraft Stock Plugin)</title><link href="/minecraft_plugin/2024/11/10/3Stock_Plugin.html" rel="alternate" type="text/html" title="-3- 인공지능을 활용한 개발 (Minecraft Stock Plugin)" /><published>2024-11-10T00:00:00+00:00</published><updated>2024-11-10T00:00:00+00:00</updated><id>/minecraft_plugin/2024/11/10/3Stock_Plugin</id><content type="html" xml:base="/minecraft_plugin/2024/11/10/3Stock_Plugin.html"><![CDATA[<h2 id="인공지능을-활용한-개발에-대한-나의-생각">인공지능을 활용한 개발에 대한 나의 생각</h2>
+<p>난 실무에서 인공지능<strong>만</strong> 사용하는 사람은 없다고 생각한다.<br />
+인공지능만 사용하면 프로그래밍이 <strong>불가능</strong> 하기 때문이다.<br />
+<em>실제로 게임을 만들어보면, 버그 투성이다.</em><br />
+결국, 프로그래밍 언어는 인간이 만들어낸 것이고, 인간의 생각을 프로그래밍 언어라는 도구를 빌려서 쓴 것이다.<br />
+따라서 휴먼에러가 인공지능도 있을 수 있다고 생각한다.</p>
+
+<h2 id="인공지능의-사용방법">인공지능의 사용방법</h2>
+<p>그렇다면 어떻게 인공지능을 쓸 것인가?<br />
+난 <strong>생각하지 못한 아이디어를 확인해보기 위해서</strong> 사용한다.</p>
+
+<h3 id="예시1">예시1</h3>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>생각을 해보니, 주식을 사고 팔 때, 가격의 변동이 생기게 하고 싶은데, 
+주식 100개를 100 mark 로 상장을 했을 때,
+시스템을 어떻게 해야 변동성을 낼 수 있을까?
+일단 랜덤시스템은 절대 안돼.
+최대한 유저와 유저가 거래를 통해 주식의 가격이 바뀌었으면 좋겠어.
+거래를 하지 않으면 그대로 있는거야.
+
+
+내 제안은,
+
+1. 100mark 짜리 주식 하나에 거래소 비용, 수수료를 추가한다.
+예를 들어서 주식을 거래할 때 n% 로 수수료 비용이 나가서 주식을 사면 주식의 가격이 n-x%오르고, 판매할 때 n% 수수료 비용이 나가면 주식의 가격이 n-x% 내려가는 것이지.
+
+2. 기업이 주식을 상장했을 때, 지분율에 따라서 가격이 오르는 방식.
+100mark 짜리 주식 1000개를 상장했을 때, 창업자 및 경영진, 임원이 600주, 초기 투자자,기관이 150주, 나머지는 거래소가 가진다고 했을 때, 거래소의 지분이 떨어지면, 희소성이 높아지는 거니까, 가격이 올라가고, 거래소의 지분이 늘어나면 희소성이 낮아지니까 가격이 내려가는 방식.
+
+내 제안을 평가하고, 더 좋은 제안이 있으면 알려줘.
+</code></pre></div></div>
+<h3 id="답변1">답변1</h3>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>현재 제안하신 두 가지 방법은 유저 거래를 통해 가격 변동성을 자연스럽게 만들기 위한 좋은 접근 방식입니다. 각각의 제안과 함께 몇 가지 개선 아이디어를 추가로 제안해보겠습니다.
+
+제안 1: 수수료에 따른 가격 변동
+    개요: 주식을 매매할 때마다 특정 수수료를 부과하고, 이 수수료의 일정 비율에 따라 주식 가격이 변동하는 방식입니다. 수수료로 인해 주식의 가격이 매수 시 상승하고, 매도 시 하락하는 메커니즘을 통해 거래에 따른 가격 변동성을 반영합니다.
+    장점: 유저의 매매 활동이 있을 때마다 가격이 일정하게 변동하므로, 거래가 활발해질수록 가격이 더 많이 변동합니다.
+    한계: 수수료만으로 변동성을 조절하면 가격 상승과 하락이 일정 비율로 제한될 수 있어, 큰 변동을 만들어내기 어렵습니다.
+개선 방안
+    수량 기반 가격 변화: 거래된 주식의 양에 따라 가격 변동폭을 다르게 설정하는 방법입니다. 예를 들어, 소량 거래 시에는 가격 변화가 작지만, 대량 거래 시 더 큰 변화가 발생하게끔 합니다.
+    구매자 및 판매자 간의 경쟁 반영: 매도와 매수 요청의 비율에 따라 수수료가 변동되도록 하여 매수 또는 매도 수요에 따라 가격이 추가로 변화하게 합니다.
+제안 2: 지분율에 따른 가격 변동
+    개요: 주식을 상장한 기업의 지분율에 따라 주식 가격이 변동하는 방식입니다. 예를 들어, 시장에 유통된 지분이 줄어들수록 희소성이 높아져 가격이 상승하고, 반대로 유통 지분이 많아지면 가격이 하락합니다.
+    장점: 이 방식은 유통량을 기반으로 자연스럽게 가격이 조정되므로, 거래가 활발할수록 희소성이 반영된 가격 변동을 얻을 수 있습니다.
+    한계: 유통 지분이 매우 높은 경우나 낮은 경우에는 변동폭이 제한될 수 있어, 유동적인 가격 변화가 어려울 수 있습니다.
+개선 방안
+    유통 주식 수에 따른 자동 보정: 일정 수준 이상 유통된 주식이 매도되면 일정 비율로 자동 회수되는 방식으로 유통량을 제한하여, 극단적인 가격 하락을 방지할 수 있습니다.
+    보유 주식 기간에 따른 보너스 및 페널티: 장기 보유자에게는 보너스를, 단기 매도자에게는 소량의 페널티를 부과하여 주식을 오래 보유할수록 가격 안정성에 기여할 수 있도록 유도합니다.
+추가 제안: 매수 및 매도 오더북 시스템
+    거래소 시스템처럼 매수와 매도 요청이 쌓여서 서로의 가격에 따라 거래가 성사되는 오더북(order book) 시스템을 도입할 수 있습니다. 매수와 매도 요청의 수요와 공급 차이에 따라 가격 변동성을 조절할 수 있습니다.
+
+    작동 방식: 매수 요청은 현재 주가 이상, 매도 요청은 주가 이하로 제안할 수 있으며, 가격이 맞을 때만 거래가 성사됩니다.
+    장점: 매수자와 매도자의 경쟁이 반영되어 가격이 유연하게 변동하며, 유저가 직접 가격에 영향을 미칠 수 있습니다.
+    예시: 매도자가 가격을 낮춰 빠르게 팔려고 할 경우 하락 압력이 작용하고, 매수자가 높은 가격을 제시하면 상승 압력이 작용하게 됩니다.
+이 방식은 실제 주식 거래의 수요와 공급에 따라 유저가 더 직접적으로 가격에 영향을 미칠 수 있게 합니다.
+
+결론
+기본적으로는 제안하신 두 가지 시스템을 기반으로 하되, 오더북 시스템을 추가하여 수요와 공급에 따라 가격이 더욱 유연하게 변동되도록 하면 거래 활성을 더욱 자연스럽게 유도할 수 있습니다.
+</code></pre></div></div>
+<h3 id="질문2">질문2</h3>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>원클릭 구매 방식으로 할꺼니까 오더북 시스템은 어려울 것 같아.
+그리고 거래소는 서버를 운영하는 운영자가 운영을 해서 수수료나, 선물거래소를 통해서 mark를 벌고 싶어.
+거래소가 돈을 벌 수 있는 방법도 생각했으면 좋겠어
+</code></pre></div></div>
+<h3 id="답변2">답변2</h3>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>원클릭 구매 방식을 고려하고, 서버 운영자가 운영하는 거래소가 수익을 낼 수 있는 다양한 방안을 제안하겠습니다.
+
+1. 거래 수수료
+    구매 및 판매 수수료: 유저가 주식을 거래할 때 일정 비율의 수수료를 부과합니다. 예를 들어, 매수할 때는 주식 가격의 2%가 수수료로 부과되며, 매도할 때도 동일하게 적용할 수 있습니다.
+    수수료 변동 시스템: 거래량에 따라 수수료를 조정하여 거래소가 활발한 시기에 더 많은 수수료를 확보할 수 있게 설정합니다.
+2. 스프레드 방식 도입
+    매수-매도 가격 차이: 주식의 매수가격과 매도가격에 차이를 둬서, 거래할 때마다 거래소가 스프레드(spread) 차이로 수익을 얻도록 합니다. 예를 들어, 주식의 매수가격이 102 mark라면 매도가격은 98 mark로 설정하여, 거래소가 수익을 얻을 수 있게 합니다.
+    자동 스프레드 조정: 거래량이 높을 때는 스프레드를 조금 줄이고, 거래량이 낮을 때는 스프레드를 넓히는 방식으로 유동성을 조절할 수 있습니다.
+3. 선물 거래
+    레버리지 수수료: 유저가 선물 거래에 참여할 때 레버리지를 제공하고, 레버리지에 따른 수수료를 부과합니다. 예를 들어, 2배 레버리지를 사용할 경우 1%의 추가 수수료를 붙이며, 3배 레버리지에는 1.5% 등으로 차등 부과할 수 있습니다.
+    청산 시 손익 차액 확보: 유저가 레버리지 거래 중 청산되는 상황에서 손익 차액을 거래소가 확보할 수 있습니다. 청산될 경우 거래소가 거래 손실을 매입하거나 수익을 확보하는 방식입니다.
+    선물 계약 비용: 선물 계약의 유지 비용으로 시간당 작은 수수료를 부과하여 장기 계약을 유지할 경우 거래소가 추가 수익을 얻도록 설정합니다.
+4. 정기적인 배당금 지급 기능
+    거래소 수익 배분: 거래소가 얻은 수수료 수익의 일부를 주주들에게 배당금으로 지급합니다. 배당금 지급으로 인해 주식 보유에 대한 매력이 증가하고, 거래소에 대한 신뢰도도 올라갈 수 있습니다.
+    특정 조건 달성 시 보너스 지급: 특정 거래량을 달성하면 추가 보너스 지급을 통해 더 많은 거래를 유도할 수 있습니다.
+5. 프리미엄 계정 시스템
+    프리미엄 거래 혜택: 프리미엄 계정을 구독하면 더 낮은 수수료를 적용받고, 선물 거래 시 더 높은 레버리지 사용이 가능하도록 합니다.
+    구독료: 프리미엄 계정을 일정 금액으로 판매하여 거래소의 고정 수익원으로 활용할 수 있습니다. 구독자는 거래소의 수수료가 낮아지고, 일반 유저보다 높은 수익률을 기대할 수 있게 됩니다.
+6. 거래소 주식 발행
+    거래소의 주식을 발행하여 투자: 거래소 자체를 주식으로 발행하여 유저들이 거래소 주식을 구매하게 함으로써 거래소가 초기 자금을 확보할 수 있습니다.
+    거래소 수익에 따른 배당금 지급: 거래소 수익에 따라 거래소 주주들에게 배당금을 지급함으로써, 유저들이 거래소에 투자할 수 있는 동기를 부여합니다. 이를 통해 유저들은 거래소의 성과에 따른 보상을 기대할 수 있습니다.
+종합 평가
+이 방안들은 모두 유저의 거래를 기반으로 거래소가 수익을 창출할 수 있게 해 주며, 특히 프리미엄 계정과 레버리지, 스프레드 시스템은 거래소의 주요 수익원으로 작용할 수 있습니다.
+</code></pre></div></div>
+
+<h2 id="결론">결론</h2>
+<p>이런식으로 아이디어를 얻고, 간단하게 프로토타입을 만들때 인공지능을 유용하게 쓸 수 있다고 생각한다.</p>]]></content><author><name>Nekonic</name></author><category term="Minecraft_Plugin" /><category term="Minecraft_Plugin" /><category term="Minecraft" /><summary type="html"><![CDATA[인공지능을 활용한 개발에 대한 나의 생각 난 실무에서 인공지능만 사용하는 사람은 없다고 생각한다. 인공지능만 사용하면 프로그래밍이 불가능 하기 때문이다. 실제로 게임을 만들어보면, 버그 투성이다. 결국, 프로그래밍 언어는 인간이 만들어낸 것이고, 인간의 생각을 프로그래밍 언어라는 도구를 빌려서 쓴 것이다. 따라서 휴먼에러가 인공지능도 있을 수 있다고 생각한다.]]></summary></entry><entry><title type="html">-1- 러스트를 배우자 (1Learn_Rust)</title><link href="/rust/2024/11/07/1Learn_Rust.html" rel="alternate" type="text/html" title="-1- 러스트를 배우자 (1Learn_Rust)" /><published>2024-11-07T00:00:00+00:00</published><updated>2024-11-07T00:00:00+00:00</updated><id>/rust/2024/11/07/1Learn_Rust</id><content type="html" xml:base="/rust/2024/11/07/1Learn_Rust.html"><![CDATA[<h2 id="1-소유권과-빌림ownership-and-borrowing">1. 소유권과 빌림(Ownership and Borrowing)</h2>
+<h3 id="--소유권ownership">- 소유권(Ownership)</h3>
+<p>Rust의 모든 변수(value)는 단일 소유자가 있다.<br />
+소유자가 범위를 벗어나면 Rust는 자동으로 연관된 메모리를 할당 해제한다.</p>
+<h3 id="--빌림borrowing">- 빌림(Borrowing)</h3>
+<p>소유권을 이전하는 대신, Rust는 값에 대한 참조를 허용.<br />
+<code class="language-plaintext highlighter-rouge">&amp;T</code>로 사용가능(읽기전용)</p>
+<h4 id="--가변참조mutable-reference">- 가변참조(mutable reference)</h4>
+<p>가변참조는 읽기 - 쓰기 권한을 가짐.
+<code class="language-plaintext highlighter-rouge">&amp;mut T</code>로 사용가능</p>
+<h3 id="--수명lifetimes">- 수명(Lifetimes)</h3>
+<p>수명은 compiler(borrow checker)가 모든 빌림이 유효한지 확인하는데 사용.</p>
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
+</span><span class="kt">void</span> <span class="nf">unsafe</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="o">*</span><span class="n">ptr</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">));</span>
+    <span class="o">*</span><span class="n">ptr</span> <span class="o">=</span> <span class="mi">42</span><span class="p">;</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"%d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="o">*</span><span class="n">ptr</span><span class="p">);</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">ptr</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"%d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="o">*</span><span class="n">ptr</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">unsafe</span><span class="p">();</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<pre><code class="language-out">42
+-720431971(더미값)
+</code></pre>
+<p>이런 결함을 컴파일 단계에서 막아준다는 것이다!..</p>
+
+<h2 id="2-기본구문">2. 기본구문</h2>
+<h3 id="--변수variables">- 변수(Variables)</h3>
+<div class="language-rust highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">let</span> <span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// 불변(Immutable)</span>
+<span class="k">let</span> <span class="k">mut</span> <span class="n">y</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="c1">// 가변(Mutable)</span>
+</code></pre></div></div>
+<h3 id="--제어흐름control-flow">- 제어흐름(Control Flow)</h3>
+<div class="language-rust highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">y</span> <span class="p">{</span>
+    <span class="nd">println!</span><span class="p">(</span><span class="s">"x is less than y"</span><span class="p">);</span>
+<span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="n">y</span> <span class="p">{</span>
+    <span class="nd">println!</span><span class="p">(</span><span class="s">"x is greater than y"</span><span class="p">);</span>
+<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="nd">println!</span><span class="p">(</span><span class="s">"x is equal to y"</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<h3 id="함수functions">함수(Functions)</h3>
+<p>a,b를 더한 값을 return 하는 함수 예시 :</p>
+<div class="language-rust highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">fn</span> <span class="nf">add</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="nb">i32</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">i32</span><span class="p">)</span> <span class="k">-&gt;</span> <span class="nb">i32</span> <span class="p">{</span>
+    <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
+<span class="p">}</span>
+</code></pre></div></div>]]></content><author><name>Nekonic</name></author><category term="Rust" /><category term="Rust" /><summary type="html"><![CDATA[1. 소유권과 빌림(Ownership and Borrowing) - 소유권(Ownership) Rust의 모든 변수(value)는 단일 소유자가 있다. 소유자가 범위를 벗어나면 Rust는 자동으로 연관된 메모리를 할당 해제한다. - 빌림(Borrowing) 소유권을 이전하는 대신, Rust는 값에 대한 참조를 허용. &amp;T로 사용가능(읽기전용) - 가변참조(mutable reference) 가변참조는 읽기 - 쓰기 권한을 가짐. &amp;mut T로 사용가능 - 수명(Lifetimes) 수명은 compiler(borrow checker)가 모든 빌림이 유효한지 확인하는데 사용. ```c #include #include void unsafe() { int *ptr = malloc(sizeof(int)); *ptr = 42; printf("%d\n", *ptr); free(ptr); printf("%d\n", *ptr); }]]></summary></entry><entry><title type="html">1. sql 명령어 정리</title><link href="/information_processing_license/2024/11/04/1.html" rel="alternate" type="text/html" title="1. sql 명령어 정리" /><published>2024-11-04T00:00:00+00:00</published><updated>2024-11-04T00:00:00+00:00</updated><id>/information_processing_license/2024/11/04/1</id><content type="html" xml:base="/information_processing_license/2024/11/04/1.html"><![CDATA[<h2 id="1-데이터-정의어ddl-data-definition-language">1. 데이터 정의어(DDL: Data Definition Language)</h2>
+
+<p>데이터베이스 구조를 정의하는 명령어</p>
+<h3 id="create">CREATE</h3>
+<p>객체를 생성</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="err">테이블명</span> <span class="p">(</span>
+    <span class="err">컬럼명</span><span class="mi">1</span> <span class="err">데이터타입</span> <span class="p">[</span><span class="err">제약조건</span><span class="p">],</span>
+    <span class="err">컬럼명</span><span class="mi">2</span> <span class="err">데이터타입</span> <span class="p">[</span><span class="err">제약조건</span><span class="p">],</span>
+    <span class="p">...</span>
+<span class="p">);</span>
+</code></pre></div></div>
+
+<h3 id="alter">ALTER</h3>
+<p>객체의 구조를 변경</p>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="err">테이블명</span> <span class="k">ADD</span> <span class="err">컬럼명</span> <span class="err">데이터타입</span><span class="p">;</span>
+<span class="k">ALTER</span> <span class="k">TABLE</span> <span class="err">테이블명</span> <span class="k">MODIFY</span> <span class="err">컬럼명</span> <span class="err">데이터타입</span><span class="p">;</span>
+<span class="k">ALTER</span> <span class="k">TABLE</span> <span class="err">테이블명</span> <span class="k">DROP</span> <span class="k">COLUMN</span> <span class="err">컬럼명</span><span class="p">;</span>
+</code></pre></div></div>
+
+<h3 id="drop">DROP</h3>
+<p>객체 삭제</p>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">DROP</span> <span class="k">TABLE</span> <span class="err">테이블명</span><span class="p">;</span>
+</code></pre></div></div>
+
+<h2 id="2-데이터-조작어dml-data-manipulation-language">2. 데이터 조작어(DML: Data Manipulation Language)</h2>
+<h3 id="select">SELECT</h3>
+<p>데이터를 조회</p>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="err">컬럼명</span><span class="mi">1</span><span class="p">,</span> <span class="err">컬럼명</span><span class="mi">2</span><span class="p">,</span> <span class="p">...</span> <span class="k">FROM</span> <span class="err">테이블명</span> <span class="k">WHERE</span> <span class="err">조건</span><span class="p">;</span>
+</code></pre></div></div>
+<h3 id="insert">INSERT</h3>
+<p>데이터를 삽입</p>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">INSERT</span> <span class="k">INTO</span> <span class="err">테이블명</span> <span class="p">(</span><span class="err">컬럼명</span><span class="mi">1</span><span class="p">,</span> <span class="err">컬럼명</span><span class="mi">2</span><span class="p">,</span> <span class="p">...)</span> <span class="k">VALUES</span> <span class="p">(</span><span class="err">값</span><span class="mi">1</span><span class="p">,</span> <span class="err">값</span><span class="mi">2</span><span class="p">,</span> <span class="p">...);</span>
+</code></pre></div></div>
+<h3 id="update">UPDATE</h3>
+<p>데이터 수정</p>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">UPDATE</span> <span class="err">테이블명</span> <span class="k">SET</span> <span class="err">컬럼명</span><span class="mi">1</span> <span class="o">=</span> <span class="err">값</span><span class="mi">1</span><span class="p">,</span> <span class="err">컬럼명</span><span class="mi">2</span> <span class="o">=</span> <span class="err">값</span><span class="mi">2</span><span class="p">,</span> <span class="p">...</span> <span class="k">WHERE</span> <span class="err">조건</span><span class="p">;</span>
+</code></pre></div></div>
+<h3 id="delete">DELETE</h3>
+<p>데이터를 삭제</p>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">DELETE</span> <span class="k">FROM</span> <span class="err">테이블명</span> <span class="k">WHERE</span> <span class="err">조건</span><span class="p">;</span>
+</code></pre></div></div>
+
+<h2 id="데이터-제어어dcl-data-control-language">데이터 제어어(DCL: Data Control Language)</h2>
+<p>권한을 제어하는 명령어</p>
+<h3 id="grant">GRANT</h3>
+<p>사용자에게 특정 권한을 부여</p>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">GRANT</span> <span class="err">권한</span> <span class="k">ON</span> <span class="err">객체</span> <span class="k">TO</span> <span class="err">사용자</span><span class="p">;</span>
+</code></pre></div></div>
+
+<h3 id="revoke">REVOKE</h3>
+<p>권한 회수</p>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">REVOKE</span> <span class="err">권한</span> <span class="k">ON</span> <span class="err">객체</span> <span class="k">FROM</span> <span class="err">사용자</span><span class="p">;</span>
+</code></pre></div></div>]]></content><author><name>Nekonic</name></author><category term="Information_Processing_License" /><category term="SQL" /><category term="license" /><summary type="html"><![CDATA[1. 데이터 정의어(DDL: Data Definition Language)]]></summary></entry><entry><title type="html">-2- Todo List (Minecraft Stock Plugin)</title><link href="/minecraft_plugin/2024/10/26/2Stock_Plugin.html" rel="alternate" type="text/html" title="-2- Todo List (Minecraft Stock Plugin)" /><published>2024-10-26T00:00:00+00:00</published><updated>2024-10-26T00:00:00+00:00</updated><id>/minecraft_plugin/2024/10/26/2Stock_Plugin</id><content type="html" xml:base="/minecraft_plugin/2024/10/26/2Stock_Plugin.html"><![CDATA[<h2 id="mineconomy-core-mark-시스템-todo-리스트">Mineconomy-Core Mark 시스템 TODO 리스트</h2>
+
+<h3 id="1-명령어-구현">1. 명령어 구현</h3>
+<ul class="task-list">
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" />개인 관련 명령어 작성
+    <ul class="task-list">
+      <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" /><code class="language-plaintext highlighter-rouge">/mark balance</code>: 플레이어의 현재 잔액 조회 기능</li>
+      <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" /><code class="language-plaintext highlighter-rouge">/mark deposit &lt;아이템&gt;</code>: 인벤토리에서 특정 아이템을 Mark로 변환하여 입금</li>
+      <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" /><code class="language-plaintext highlighter-rouge">/mark withdraw &lt;금액&gt;</code>: Mark를 아이템으로 출금하여 인벤토리에 추가</li>
+      <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" /><code class="language-plaintext highlighter-rouge">/mark send &lt;플레이어&gt; &lt;금액&gt;</code>: 플레이어 간의 Mark 송금 기능</li>
+    </ul>
+  </li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />회사 관련 명령어 작성
+    <ul class="task-list">
+      <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" /><code class="language-plaintext highlighter-rouge">/mark company balance</code>: 회사 잔액 조회</li>
+      <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" /><code class="language-plaintext highlighter-rouge">/mark company deposit &lt;금액&gt;</code>: 회사 계좌에 Mark 입금</li>
+      <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" /><code class="language-plaintext highlighter-rouge">/mark company withdraw &lt;금액&gt;</code>: 회사 계좌에서 출금하여 인벤토리에 아이템 추가</li>
+      <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" /><code class="language-plaintext highlighter-rouge">/mark company transfer &lt;목적지 회사&gt; &lt;금액&gt;</code>: 회사 간의 자본 이동</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="2-economymanagerjava">2. EconomyManager.java</h3>
+<ul class="task-list">
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Mark 초기화 및 관리 기능 구현</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />자원 공급과 수급에 따른 Mark 가치 변동 로직 구현</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Mark 선물 옵션 거래 기능
+    <ul class="task-list">
+      <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />자원 가격 예측 기능 구현</li>
+      <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />Mark 거래에 따른 리스크 및 수익 계산 로직 추가</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="3-데이터베이스-설계-및-연결">3. 데이터베이스 설계 및 연결</h3>
+<ul class="task-list">
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" /><strong>players</strong> 테이블 생성: 플레이어 잔액 정보 저장</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" /><strong>companies</strong> 테이블 생성: 회사 계좌 정보 저장</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" /><strong>transactions</strong> 테이블 생성: 거래 내역 저장</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />데이터베이스 트랜잭션 관리 로직 구현 (입출금 및 송금 시 데이터 무결성 보장)</li>
+</ul>
+
+<h3 id="4-캐시-시스템-도입-선택-사항">4. 캐시 시스템 도입 (선택 사항)</h3>
+<ul class="task-list">
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />빈번한 데이터 조회에 Redis 캐시 추가 (플레이어 잔액, 회사 잔액)</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />캐시 데이터와 데이터베이스의 주기적 동기화 로직 구현</li>
+</ul>
+
+<h3 id="5-테스트-코드-작성">5. 테스트 코드 작성</h3>
+<ul class="task-list">
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />EconomyManagerTest.java: 개인 및 회사의 입출금, 송금 기능 테스트</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />MarkCommandTest.java: 명령어 입력에 따른 처리 로직 테스트</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />DatabaseManagerTest.java: 대규모 트랜잭션 시 데이터 무결성 테스트</li>
+</ul>]]></content><author><name>Nekonic</name></author><category term="Minecraft_Plugin" /><category term="Minecraft_Plugin" /><category term="Minecraft" /><summary type="html"><![CDATA[Mineconomy-Core Mark 시스템 TODO 리스트]]></summary></entry><entry><title type="html">-1- 플러그인을 만들어보자! (Minecraft Stock Plugin)</title><link href="/minecraft_plugin/2024/10/23/1Stock_Plugin.html" rel="alternate" type="text/html" title="-1- 플러그인을 만들어보자! (Minecraft Stock Plugin)" /><published>2024-10-23T00:00:00+00:00</published><updated>2024-10-23T00:00:00+00:00</updated><id>/minecraft_plugin/2024/10/23/1Stock_Plugin</id><content type="html" xml:base="/minecraft_plugin/2024/10/23/1Stock_Plugin.html"><![CDATA[<h2 id="화폐-시스템">화폐 시스템</h2>
+
+<p>게임의 화폐단위를 추가하여 <strong>Mark</strong> 라는 화폐를 시스템상에 추가한다.<br />
+게임머니는 광물을 캐거나 잡템을 팔아서 얻을 수 있다.</p>
+<ul>
+  <li>다이아몬드 1 = 1000 Mark</li>
+  <li>에메랄드 1 = 2000 Mark</li>
+  <li>금 1 = 100</li>
+  <li>철 1 = 30</li>
+  <li>구리 1 = 10</li>
+  <li>구리블럭 1 = 90</li>
+  <li>녹슨구리블럭 1 = 135</li>
+  <li>석탄 1 = 20</li>
+</ul>
+
+<h3 id="mark-가치-변동-시스템">Mark 가치 변동 시스템</h3>
+<p>기존의 주기적 변동 시스템 대신 선물 옵션 거래 방식을 추가하여 플레이어들이 자원의 미래 가치를 예상하고 거래할 수 있도록 설계한다. 이 시스템은 현실의 옥수수, 원유 등의 거래 방식과 유사하게 선물 거래 시장에서 자원의 미래 가격을 예측해 거래할 수 있는 시스템을 추가하여 보다 전략적인 플레이가 가능하게 한다.</p>
+
+<ul>
+  <li>선물 옵션 개요: 자원(철, 금 등)의 가격 변동성을 활용해 미래에 자원의 가격이 오를지 내릴지를 예측하는 시스템. 플레이어는 자원의 미래 가격을 예측하여 선물 거래에 투자하고, 예상이 적중하면 수익을 얻는다.</li>
+  <li>거래 주기: 선물 옵션은 일정 주기(예: 1주)마다 청산되며, 자원의 실제 채굴량이나 서버 경제 상황에 따라 가격이 결정된다.</li>
+  <li>위험 관리: 선물 옵션은 시장 상황에 따라 큰 수익을 낼 수 있지만, 예측이 틀리면 손해를 볼 수도 있어 플레이어가 자원 거래 시 더 신중히 전략을 세워야 한다.<br />
+이러한 가치 변동 시스템과 선물 옵션 시장을 통해 플레이어는 자원을 전략적으로 활용하고 거래 타이밍을 고려할 수 있다.</li>
+</ul>
+
+<hr />
+
+<h2 id="경제-시스템">경제 시스템</h2>
+<h3 id="기준금리와-개별-금리-시스템">기준금리와 개별 금리 시스템</h3>
+<p>서버 경제의 기본 이자율은 기준금리로, 서버의 경제 상황에 따라 오르거나 내린다. 모든 은행은 기준금리를 바탕으로 개별 추가 금리를 더해 대출 이자율을 설정한다. 이를 통해 은행 간의 금리 경쟁이 가능하며, 기준금리는 최소 한도와 최대 한도 내에서 변동하게 된다.</p>
+
+<ul>
+  <li>기준금리 변동 한도: 기준금리가 지나치게 오르거나 내려 경제가 불안정해지는 것을 방지하기 위해, 기준금리의 최소 한도와 최대 한도를 설정한다.</li>
+  <li>개별 금리: 각 은행이 기준금리에 추가 금리를 더하여 최종 대출 금리를 결정한다. 이로 인해 각 은행 간의 금리 경쟁이 가능하다.</li>
+</ul>
+
+<h3 id="고정-금리와-변동-금리">고정 금리와 변동 금리</h3>
+<p>플레이어는 대출 시 고정 금리와 변동 금리 중 하나를 선택할 수 있다.</p>
+
+<ul>
+  <li>고정 금리: 대출 시 설정된 금리가 변동 없이 유지되는 방식.</li>
+  <li>변동 금리: 기준금리가 주기적으로 변동되며, 이에 따라 대출 금리가 변화하는 방식이다.</li>
+</ul>
+
+<h3 id="은행-시스템">은행 시스템</h3>
+
+<h4 id="은행-설립과-대출-서비스">은행 설립과 대출 서비스</h4>
+<p>플레이어는 일정 자본금을 투자해 은행을 설립할 수 있으며, 은행은 회사 형태로 운영된다. 각 은행은 자체적인 대출 서비스를 제공하며, <strong>신용 등급</strong> 관리와 <strong>투자 기능</strong>을 통해 경제 활동에 참여한다.</p>
+
+<ul>
+  <li><strong>대출 금리 설정</strong>: 각 은행은 기준금리를 바탕으로 개별 금리를 설정해 대출 이자율을 설정하고, 이를 통해 다른 은행과 경쟁할 수 있다.</li>
+  <li><strong>신용 등급 관리</strong>: 은행은 플레이어의 대출 이력과 상환 기록을 바탕으로 신용 등급을 평가하고 관리한다. 상환 기록이 좋으면 신용 등급이 상승하며, 높은 신용 등급은 낮은 이자율 혜택으로 이어진다.
+    <ul>
+      <li><strong>신용 등급 상승 조건</strong>: 정기 상환 완료, 조기 상환 등의 조건을 만족하면 신용 등급이 올라간다.</li>
+      <li><strong>신용 등급 하락 조건</strong>: 상환 불이행, 연체 등의 상황이 발생할 경우 신용 등급이 하락한다.</li>
+    </ul>
+  </li>
+  <li><strong>회사로서의 은행</strong>: 각 은행은 <strong>독립된 회사</strong>로 등록되며, 투자 유치를 통해 자본금을 확장하고 주식을 발행할 수 있다. 이는 다른 플레이어들이 은행에 투자하여 주식 배당을 받을 수 있게 하며, 은행이 더 많은 대출을 제공할 수 있도록 한다.</li>
+</ul>
+
+<h4 id="지분-투자와-배당-수익">지분 투자와 배당 수익</h4>
+<p>은행은 주식을 발행할 수 있으며, 플레이어는 이를 매수하여 <strong>배당 수익</strong>을 얻을 수 있다. 또한, 은행은 다른 회사의 주식을 최대 20%까지 소유할 수 있으며, 주식 소유 비율에 따라 해당 회사로부터 배당 수익을 받는다. 이를 통해 플레이어들은 은행을 활용해 투자 수익을 창출할 수 있다.</p>
+
+<h3 id="주식거래-시스템">주식거래 시스템</h3>
+<h4 id="주식-거래-시스템">주식 거래 시스템</h4>
+<p>주식은 플레이어와 은행이 매수할 수 있으며, 특정 주식을 매수할 때는 최저가 주식부터 자동으로 구매하도록 설정된다. 또한 플레이어는 특정 가격에만 매수하는 지정가 매매도 가능하다.</p>
+
+<h4 id="지분율-제한-시스템">지분율 제한 시스템</h4>
+<p>은행이 특정 회사의 주식을 매수할 때 최대 지분율 제한이 적용되어, 한 회사의 주식을 20% 이상 소유할 수 없다. 이를 통해 기업의 독립성을 유지하고 과도한 소유를 방지한다. 지분율 제한은 주식 시장의 균형을 지키고, 다양한 기업 간의 경쟁을 활성화하는 역할을 한다.</p>
+
+<h4 id="회사의-상장">회사의 상장</h4>
+<p>플레이어는 직접 회사를 설립하여 <strong><a href="#상장조건">상장조건</a></strong>을 만족하면 회사를 상장할 수 있다.<br />
+상장을 원하는 발행회사는 주식의 상장신청서를 증권거래소에 제출하여야 하며 증권거래소는 유가증권 상장규정에 의하여 상장적격여부를 심사한 후 적합하다고 인정되는 경우 증권관리위원회의 승인을 얻어 할 수 있다.</p>
+
+<h4 id="상장조건">상장조건</h4>
+<ol>
+  <li>주식의 발행회사가 설립 후 1주가 경과하고 지속적으로 영업을 하고 있을 것.</li>
+  <li>순자산 100K Mark 상장예정주식총수가 100만주 이상일 것.</li>
+  <li>매출액이 1주 평균 200K Mark 이상일 것.</li>
+  <li>소액주주가 소유하고 있는 주식의 총수 및 의결권있는 주식의 총수가 상장신청일 현재 발행주식총수의 30% 이상일 것.</li>
+</ol>
+
+<h4 id="상장폐지-조건">상장폐지 조건</h4>
+<ol>
+  <li>매출액 100K Mark 미만 2주 연속</li>
+  <li>분기별 재무제표 3일 내 미제출 및 왜곡,은폐를 할 경우.</li>
+  <li>소액주주 수 1인 미만(또는 지분 20% 미만)이 1달 연속될 경우</li>
+  <li>최종 부도, 횡령, 배임이 발생한 경우</li>
+</ol>
+
+<h3 id="회사">회사</h3>
+<h4 id="공장-회사">공장 회사</h4>
+<p>공장은 철공장, 금농장 등의 자원 생산 시설로, 무한으로 자원을 생산해 판매하여 수익을 얻는다. 예를 들어, 철공장은 주민과 좀비 매커니즘을 이용해 철을 무한히 생산한다. 이와 같은 공장 운영을 통해 자원 수집이 자동화되며, 정기적으로 자원이 상점에 등록되어 자동 판매된다.</p>
+
+<h4 id="환경-규제-시스템">환경 규제 시스템</h4>
+<p>1청크당 서버 자원 사용량을 모니터링하여, 엔티티 수나 블록 업데이트 빈도를 기준으로 규제를 적용한다. 예를 들어, 공장 청크에 엔티티가 과도하게 생성될 경우 서버 자원 과다 사용 경고가 뜨거나 생산이 자동으로 일시 중지된다. 규제를 초과할 경우 일정 벌금을 부과하거나 운영비가 증가한다.</p>
+
+<h4 id="철도-및-도로-건설-회사">철도 및 도로 건설 회사</h4>
+<p>이 회사는 오버월드와 네더월드에 철도와 도로를 깔아 이동 속도를 높이고, 플레이어가 이를 이용할 때 통행료를 부과한다. 플레이어는 철도나 도로에서 특정 구역에 도달할 때 자동으로 통행료를 지불하게 된다.</p>
+
+<h4 id="통행료-자동-결제-시스템">통행료 자동 결제 시스템</h4>
+<p>철도나 도로 구간에 도달할 때 플레이어의 자금에서 일정 금액이 자동으로 차감된다. 철도나 도로는 구역별로 요금을 다르게 설정할 수 있으며, 거리가 멀어질수록 통행료가 높아진다. 이를 통해 이동 서비스에 대한 수익을 창출할 수 있다.</p>
+
+<h2 id="길드-시스템">길드 시스템</h2>
+<h3 id="길드-창설과-전문-분야">길드 창설과 전문 분야</h3>
+<p>플레이어는 일정 조건을 충족하면 길드를 창설할 수 있으며, 창설 시 전투, 채굴, 탐험 등의 전문 분야를 선택할 수 있다. 길드의 전문 분야에 따라 보너스가 다르게 적용된다.</p>
+
+<ul>
+  <li>전투 길드: PvE 보너스 혜택과 공격력, 방어력 증가.</li>
+  <li>채굴 길드: 자원 채굴 보너스, 희귀 자원 획득 확률 증가.</li>
+  <li>탐험 길드: 던전 내 보물 발견 확률 증가와 생존 확률 강화.</li>
+</ul>
+
+<h3 id="길드-등급과-혜택">길드 등급과 혜택</h3>
+<p>길드 경험치가 쌓이면 길드의 등급이 상승하며, 등급이 오를수록 길드원은 체력, 공격력, 방어력 등의 추가 보너스를 얻는다. 상위 등급 길드는 고난이도의 던전에 입장 가능하며, 고유 상점을 이용할 수 있는 혜택을 제공받는다.</p>
+
+<h2 id="던전과-보스-몬스터">던전과 보스 몬스터</h2>
+<h3 id="던전-탐험">던전 탐험</h3>
+<p>길드는 일정 조건을 충족하면 던전 탐험을 통해 아이템과 경험치를 획득할 수 있다. 각 던전은 초급, 중급, 고급, 전설 등의 난이도로 나뉘며, 난이도에 따라 입장 조건과 보상이 다르다.</p>
+
+<h3 id="던전-보상">던전 보상</h3>
+<p>던전은 탐험을 통해 희귀한 자원, 특수 장비, 길드 경험치 등의 보상을 제공한다. 던전 난이도가 높을수록 보상이 커지며, 고급 던전은 길드의 성장에 큰 도움이 된다.</p>
+
+<h3 id="보스-몬스터와-토벌-퀘스트">보스 몬스터와 토벌 퀘스트</h3>
+<p>던전의 최종 보스로 강력한 몬스터가 등장하며, 보스를 처치할 경우 길드가 특별한 보상을 얻는다. 서버에서 정기적으로 토벌 퀘스트가 열리며, 보스 처치 시 길드에 명예와 보상이 주어진다.</p>
+
+<h2 id="퀘스트와-판타지-요소">퀘스트와 판타지 요소</h2>
+<h3 id="길드-퀘스트">길드 퀘스트</h3>
+<p>길드는 전용 퀘스트를 수행하여 경험치와 보상을 얻을 수 있다.</p>
+
+<ul>
+  <li>물자 수집 퀘스트: 특정 자원을 수집하여 보상을 얻는다.</li>
+  <li>몬스터 처치 퀘스트: 지정된 몬스터를 일정 수만큼 처치하고 보상을 획득한다.</li>
+  <li>보스 토벌 퀘스트: 보스를 처치하여 특수 장비나 자원을 얻는다.
+    <h3 id="길드-스킬과-마법">길드 스킬과 마법</h3>
+    <p>길드마다 고유한 스킬과 마법이 있어 던전 탐험이나 PvE에서 유리하게 작용한다.</p>
+  </li>
+  <li>회복의 축복: 일정 범위 내 아군의 체력을 회복하는 스킬.</li>
+  <li>전투의 분노: 일정 시간 동안 길드원들의 공격력을 증가시킨다.</li>
+  <li>보물 탐지: 던전 내 보물 획득 확률을 증가시킨다.</li>
+</ul>
+
+<h2 id="pvp-이벤트와-길드-전쟁">PvP 이벤트와 길드 전쟁</h2>
+<h3 id="pvp-이벤트">PvP 이벤트</h3>
+<p>전투 길드 간의 PvP 대결이 정기적으로 열리며, 승리 길드에게는 명예와 보상이 주어진다. PvP 대결은 길드의 힘을 시험할 수 있는 기회가 된다.</p>
+
+<h3 id="길드-전쟁">길드 전쟁</h3>
+<p>두 길드가 일정 기간 동안 경쟁하며, 더 많은 퀘스트를 수행한 길드가 승리한다. 길드 전쟁의 승리 길드에게는 특별 보너스와 명예 포인트가 주어지며, 서버 내에서 길드의 위상을 높일 수 있다.</p>]]></content><author><name>Nekonic</name></author><category term="Minecraft_Plugin" /><category term="Minecraft_Plugin" /><category term="Minecraft" /><summary type="html"><![CDATA[화폐 시스템]]></summary></entry></feed>
