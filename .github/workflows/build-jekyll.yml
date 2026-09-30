@@ -20,25 +20,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Sync ONLY tweets from data repo (Memos remain private)
-        uses: actions/checkout@v4
-        with:
-          repository: Nekonic/Nekonic.github.io.data
-          token: ${{ secrets.DATA_REPO_TOKEN }}
-          path: _data_repo
-          fetch-depth: 1
-          persist-credentials: false
-
-      - name: Copy tweets to main repo for building
-        run: |
-          set -euo pipefail
-
-          mkdir -p _tweets
-          # 블로그 글(_posts)은 메인 저장소에 직접 쓰므로 복사할 필요 없음!
-          # 비밀 메모(_memos)는 비공개 저장소에만 두고 절대 복사하지 않음!
-          cp -r _data_repo/_tweets/. _tweets/ 2>/dev/null || true
-          rm -rf _data_repo
-
       # Use GitHub Actions' cache to cache dependencies on servers
       - uses: actions/cache@v3
         with:
