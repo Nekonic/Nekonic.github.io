@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import TableOfContents from '../../components/TableOfContents.astro';
+import Giscus from '../../components/Giscus.astro';
 import { getDateFromId, formatDate, toArray } from '../../lib/utils';
 
 export async function getStaticPaths() {
@@ -58,6 +59,9 @@ const categories = toArray(post.data.categories);
       <div class="article-content">
         <Content />
       </div>
+
+      <!-- Comments Section (GitHub Discussions) -->
+      <Giscus mapping="pathname" />
     </article>
 
     <!-- Right-side Sticky TOC (Notion style) -->

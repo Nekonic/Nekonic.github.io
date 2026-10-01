@@ -17,7 +17,7 @@ const sortedTweets = allTweets.sort((a, b) => {
 
 <BaseLayout title="Tweets" description="Short thoughts and updates">
   <div class="max-w-2xl mx-auto">
-    <div class="mb-8 flex justify-between items-center pb-6 border-b border-border/70">
+    <div class="mb-8 flex justify-between items-center pb-6 border-b border-borderSubtle">
       <div>
         <h1 class="text-2xl lg:text-3xl font-bold text-white tracking-tight">Tweets</h1>
         <p class="text-xs font-mono text-text-muted mt-1">Short thoughts, quick updates, and micro-logs</p>
@@ -34,21 +34,22 @@ const sortedTweets = allTweets.sort((a, b) => {
     <div id="tweetsContainer" class="flex flex-col gap-4">
       {sortedTweets.map(tweet => (
         <TweetCard 
+          id={tweet.id}
           content={tweet.body}
           date={tweet.data?.date ? new Date(tweet.data.date) : undefined}
         />
       ))}
     </div>
 
-    <div id="emptyTweets" class:list={["text-center py-16 bg-card border border-border rounded-xl p-8", sortedTweets.length > 0 && "hidden"]}>
-      <div class="w-12 h-12 rounded-full bg-secondary border border-border flex items-center justify-center mx-auto mb-3 text-text-muted">
+    <div id="emptyTweets" class:list={["text-center py-16 bg-card border border-borderSubtle rounded-xl p-8", sortedTweets.length > 0 && "hidden"]}>
+      <div class="w-12 h-12 rounded-full bg-secondary border border-borderSubtle flex items-center justify-center mx-auto mb-3 text-text-muted">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       </div>
       <p class="text-sm text-text-secondary font-medium mb-1">아직 작성된 트윗이 없습니다.</p>
       <p class="text-xs text-text-muted mb-4 font-mono">새로운 소식이나 짧은 메모를 남겨보세요.</p>
       <a 
         href="/compose" 
-        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary border border-border hover:border-accent text-text-primary rounded-md text-xs font-medium transition-colors"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary border border-borderSubtle hover:border-accent text-text-primary rounded-md text-xs font-medium transition-colors"
       >
         첫 트윗 작성하기 &rarr;
       </a>
@@ -57,8 +58,60 @@ const sortedTweets = allTweets.sort((a, b) => {
 </BaseLayout>
 
 <script is:inline>
-  // 실시간 트윗 동기화 (GitHub API를 통해 방금 쓴 트윗 즉시 로딩)
+  // Giscus 댓글/하트 영역 동적 마운트 함수
+  function initTweetInteractions() {
+    function mountGiscus(slot, term) {
+      if (slot.getAttribute('data-loaded')) return;
+      slot.setAttribute('data-loaded', 'true');
+
+      var script = document.createElement('script');
+      script.src = 'https://giscus.app/client.js';
+      script.setAttribute('data-repo', 'Nekonic/Nekonic.github.io');
+      script.setAttribute('data-repo-id', 'R_kgDOIgGsMA');
+      script.setAttribute('data-category', 'General');
+      script.setAttribute('data-category-id', 'DIC_kwDOIgGsMM4DG0Di');
+      script.setAttribute('data-mapping', 'specific');
+      script.setAttribute('data-term', term);
+      script.setAttribute('data-strict', '0');
+      script.setAttribute('data-reactions-enabled', '1');
+      script.setAttribute('data-emit-metadata', '0');
+      script.setAttribute('data-input-position', 'bottom');
+      script.setAttribute('data-theme', 'transparent_dark');
+      script.setAttribute('data-lang', 'ko');
+      script.crossOrigin = 'anonymous';
+      script.async = true;
+      slot.appendChild(script);
+    }
+
+    document.querySelectorAll('.tweet-comment-btn, .tweet-heart-btn').forEach(function(btn) {
+      if (btn.getAttribute('data-bound')) return;
+      btn.setAttribute('data-bound', 'true');
+
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        var targetId = btn.getAttribute('data-target');
+        var term = btn.getAttribute('data-term');
+        var box = document.getElementById(targetId);
+        if (!box) return;
+
+        var isHidden = box.classList.contains('hidden');
+        if (isHidden) {
+          box.classList.remove('hidden');
+          var slot = box.querySelector('.giscus-slot');
+          if (slot && term) {
+            mountGiscus(slot, term);
+          }
+        } else {
+          box.classList.add('hidden');
+        }
+      });
+    });
+  }
+
+  // 실시간 트윗 동기화 (새로 등록된 파일 실시간 확인)
   (async function() {
+    initTweetInteractions();
+
     try {
       var pat = localStorage.getItem('github_pat');
       var headers = { 'Accept': 'application/vnd.github.v3+json' };
@@ -74,41 +127,10 @@ const sortedTweets = allTweets.sort((a, b) => {
       var emptyEl = document.getElementById('emptyTweets');
       if (emptyEl && files.length > 0) emptyEl.classList.add('hidden');
 
-      // Sort newest first
-      files.sort(function(a, b) { return b.name.localeCompare(a.name); });
-
-      // If client sees more files than statically rendered, re-render dynamically
       var renderedCount = container ? container.children.length : 0;
       if (files.length > renderedCount) {
-        container.innerHTML = '';
-        for (var i = 0; i < files.length; i++) {
-          var f = files[i];
-          if (!f.name.endsWith('.md')) continue;
-
-          var fHeaders = { 'Accept': 'application/vnd.github.raw' };
-          if (pat) fHeaders['Authorization'] = 'Bearer ' + pat;
-
-          var rawRes = await fetch(f.url, { headers: fHeaders });
-          if (!rawRes.ok) continue;
-          var text = await rawRes.text();
-
-          var body = text;
-          var dateStr = '';
-          var fm = text.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
-          if (fm) {
-            body = fm[2].trim();
-            var dMatch = fm[1].match(/date:\s*["']?(.*?)["']?$/m);
-            if (dMatch) {
-              var d = new Date(dMatch[1]);
-              dateStr = d.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
-            }
-          }
-
-          var card = document.createElement('article');
-          card.className = 'bg-card border border-border rounded-lg p-5 hover:border-accent transition-colors duration-200';
-          card.innerHTML = '<div class="flex items-start gap-4"><img src="https://github.com/Nekonic.png" alt="Nekonic Avatar" class="w-10 h-10 rounded-full border border-border flex-shrink-0 mt-1" /><div class="flex-1 min-w-0"><div class="flex items-center justify-between mb-1"><span class="font-semibold text-text-primary">Nekonic</span></div><div class="text-text-primary whitespace-pre-wrap text-sm leading-relaxed mb-3">' + body + '</div>' + (dateStr ? '<time class="text-xs text-text-secondary">' + dateStr + '</time>' : '') + '</div></div>';
-          container.appendChild(card);
-        }
+        // 새로 추가된 트윗이 있으면 새로고침 반영
+        window.location.reload();
       }
     } catch (e) {
       console.error(e);

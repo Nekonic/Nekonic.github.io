@@ -1,0 +1,381 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('blog');
+const postList = allPosts.map(p => ({
+  id: p.id,
+  title: p.data.title,
+  categories: p.data.categories,
+  tags: p.data.tags,
+  date: p.data.date ? new Date(p.data.date).toISOString().substring(0, 10) : '',
+  body: p.body || ''
+})).sort((a, b) => b.id.localeCompare(a.id));
+---
+
+<BaseLayout title="Post Editor" description="Write or edit blog posts" wide={true}>
+  <div class="max-w-6xl mx-auto py-2">
+    <!-- Editor Header Toolbar -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 mb-6 border-b border-borderSubtle">
+      <div class="flex items-center gap-3">
+        <span class="w-2.5 h-2.5 rounded-xs bg-gradient-to-tr from-[#f48924] via-[#f03a69] to-[#3574f0]"></span>
+        <h1 class="text-xl font-bold text-white tracking-tight">Blog Post Editor</h1>
+        <span class="text-xs font-mono text-text-muted px-2 py-0.5 rounded bg-secondary border border-borderSubtle">
+          Markdown
+        </span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Post Mode Selector -->
+        <select 
+          id="postSelector" 
+          class="bg-secondary border border-borderSubtle text-xs font-mono text-text-primary rounded-md px-3 py-1.5 focus:outline-none focus:border-accent max-w-xs"
+        >
+          <option value="__NEW__">✨ 새 글 작성</option>
+          <optgroup label="기존 글 수정">
+            {postList.map(p => (
+              <option value={p.id}>{p.id} ({p.title.substring(0, 24)}...)</option>
+            ))}
+          </optgroup>
+        </select>
+
+        <button 
+          id="publishBtn" 
+          class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-accent hover:bg-accent-hover text-white rounded-md text-xs font-semibold tracking-wide transition-colors shadow-xs"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span id="publishBtnText">발행하기</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Metadata Fields (JetBrains form panel) -->
+    <div class="bg-card border border-borderSubtle rounded-xl p-5 mb-6 shadow-xs">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Title -->
+        <div class="lg:col-span-2">
+          <label class="block text-xs font-mono text-text-muted mb-1.5">제목 (Title)</label>
+          <input 
+            type="text" 
+            id="postTitle" 
+            class="w-full bg-primary border border-borderSubtle rounded-md px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent"
+            placeholder="포스트 제목을 입력하세요"
+          />
+        </div>
+
+        <!-- Categories -->
+        <div>
+          <label class="block text-xs font-mono text-text-muted mb-1.5">카테고리 (Categories)</label>
+          <input 
+            type="text" 
+            id="postCategories" 
+            class="w-full bg-primary border border-borderSubtle rounded-md px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent"
+            placeholder="C++, Algorithm"
+          />
+        </div>
+
+        <!-- Tags -->
+        <div>
+          <label class="block text-xs font-mono text-text-muted mb-1.5">태그 (Tags)</label>
+          <input 
+            type="text" 
+            id="postTags" 
+            class="w-full bg-primary border border-borderSubtle rounded-md px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent"
+            placeholder="Linux, Network"
+          />
+        </div>
+
+        <!-- Filename / Slug -->
+        <div class="lg:col-span-4">
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-mono text-text-muted">파일명 (Filename)</label>
+            <span class="text-[11px] font-mono text-text-muted">저장 위치: src/content/blog/</span>
+          </div>
+          <input 
+            type="text" 
+            id="postSlug" 
+            class="w-full bg-primary border border-borderSubtle rounded-md px-3 py-2 text-xs font-mono text-text-primary focus:outline-none focus:border-accent"
+            placeholder="2026-10-01-my-first-post.md"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Alert Bar -->
+    <div id="statusAlert" class="hidden px-4 py-3 rounded-lg text-xs font-mono mb-6"></div>
+
+    <!-- Editor & Live Preview Toolbar -->
+    <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center gap-1 bg-secondary p-1 rounded-md border border-borderSubtle text-xs font-mono">
+        <button id="viewSplitBtn" class="px-2.5 py-1 rounded bg-card text-white font-medium">좌우 분할</button>
+        <button id="viewEditBtn" class="px-2.5 py-1 rounded text-text-muted hover:text-text-primary">에디터만</button>
+        <button id="viewPreviewBtn" class="px-2.5 py-1 rounded text-text-muted hover:text-text-primary">미리보기만</button>
+      </div>
+
+      <div class="text-xs font-mono text-text-muted flex items-center gap-3">
+        <span id="charCount">0 characters</span>
+      </div>
+    </div>
+
+    <!-- Main Workspace (Editor + Live Preview) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4" id="workspaceContainer">
+      <!-- Editor Column -->
+      <div id="editorCol" class="flex flex-col">
+        <div class="bg-secondary px-3 py-2 border border-b-0 border-borderSubtle rounded-t-lg text-xs font-mono text-text-muted flex items-center justify-between">
+          <span>Markdown Source</span>
+          <span class="text-[11px]">UTF-8</span>
+        </div>
+        <textarea 
+          id="postContent" 
+          class="w-full bg-[#1e1f22] border border-borderSubtle rounded-b-lg p-4 font-mono text-sm leading-relaxed text-[#dfe1e5] focus:outline-none focus:border-accent min-h-[500px] resize-y"
+          placeholder="여기에 마크다운 본문을 작성하세요...
+## 1. 개요
+내용을 입력하면 우측 미리보기에 실시간으로 렌더링됩니다."
+        ></textarea>
+      </div>
+
+      <!-- Live Preview Column -->
+      <div id="previewCol" class="flex flex-col">
+        <div class="bg-secondary px-3 py-2 border border-b-0 border-borderSubtle rounded-t-lg text-xs font-mono text-text-muted flex items-center justify-between">
+          <span>Live Preview</span>
+          <span class="text-[11px] text-accent">Real-time</span>
+        </div>
+        <div 
+          id="previewContent" 
+          class="w-full bg-card border border-borderSubtle rounded-b-lg p-6 min-h-[500px] overflow-y-auto article-content"
+        >
+          <div class="text-text-muted text-center py-20 font-mono text-xs">
+            마크다운을 입력하면 실시간 미리보기가 표시됩니다.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<!-- Lightweight Marked CDN for Live Markdown Parsing -->
+<script is:inline src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<!-- Embedded existing posts data -->
+<script is:inline id="postsData" type="application/json" set:html={JSON.stringify(postList)}></script>
+
+<script is:inline>
+  var posts = [];
+  try {
+    posts = JSON.parse(document.getElementById('postsData').textContent);
+  } catch(e) {}
+
+  var postSelector = document.getElementById('postSelector');
+  var postTitle = document.getElementById('postTitle');
+  var postCategories = document.getElementById('postCategories');
+  var postTags = document.getElementById('postTags');
+  var postSlug = document.getElementById('postSlug');
+  var postContent = document.getElementById('postContent');
+  var previewContent = document.getElementById('previewContent');
+  var publishBtn = document.getElementById('publishBtn');
+  var publishBtnText = document.getElementById('publishBtnText');
+  var statusAlert = document.getElementById('statusAlert');
+  var charCount = document.getElementById('charCount');
+
+  var viewSplitBtn = document.getElementById('viewSplitBtn');
+  var viewEditBtn = document.getElementById('viewEditBtn');
+  var viewPreviewBtn = document.getElementById('viewPreviewBtn');
+  var editorCol = document.getElementById('editorCol');
+  var previewCol = document.getElementById('previewCol');
+  var workspaceContainer = document.getElementById('workspaceContainer');
+
+  var currentEditingSha = null;
+
+  // Live Markdown Preview
+  function updatePreview() {
+    var raw = postContent.value;
+    charCount.textContent = raw.length + ' characters';
+
+    if (!raw.trim()) {
+      previewContent.innerHTML = '<div class="text-text-muted text-center py-20 font-mono text-xs">마크다운을 입력하면 실시간 미리보기가 표시됩니다.</div>';
+      return;
+    }
+
+    if (window.marked) {
+      previewContent.innerHTML = marked.parse(raw);
+    }
+  }
+
+  postContent.addEventListener('input', updatePreview);
+
+  // View switchers
+  viewSplitBtn.addEventListener('click', function() {
+    editorCol.classList.remove('hidden');
+    previewCol.classList.remove('hidden');
+    workspaceContainer.className = 'grid grid-cols-1 lg:grid-cols-2 gap-4';
+    setActiveViewBtn(viewSplitBtn);
+  });
+
+  viewEditBtn.addEventListener('click', function() {
+    editorCol.classList.remove('hidden');
+    previewCol.classList.add('hidden');
+    workspaceContainer.className = 'grid grid-cols-1 gap-4';
+    setActiveViewBtn(viewEditBtn);
+  });
+
+  viewPreviewBtn.addEventListener('click', function() {
+    editorCol.classList.add('hidden');
+    previewCol.classList.remove('hidden');
+    workspaceContainer.className = 'grid grid-cols-1 gap-4';
+    setActiveViewBtn(viewPreviewBtn);
+  });
+
+  function setActiveViewBtn(active) {
+    [viewSplitBtn, viewEditBtn, viewPreviewBtn].forEach(function(btn) {
+      btn.className = 'px-2.5 py-1 rounded text-text-muted hover:text-text-primary';
+    });
+    active.className = 'px-2.5 py-1 rounded bg-card text-white font-medium';
+  }
+
+  // Auto-generate slug when typing title for new posts
+  postTitle.addEventListener('input', function() {
+    if (postSelector.value === '__NEW__') {
+      var now = new Date();
+      var pad = function(n) { return n.toString().padStart(2, '0'); };
+      var dateStr = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate());
+      var cleanTitle = postTitle.value.trim().toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-');
+      postSlug.value = dateStr + (cleanTitle ? '-' + cleanTitle : '') + '.md';
+    }
+  });
+
+  // Post Selector change handler
+  postSelector.addEventListener('change', async function() {
+    var val = postSelector.value;
+    if (val === '__NEW__') {
+      currentEditingSha = null;
+      postTitle.value = '';
+      postCategories.value = '';
+      postTags.value = '';
+      postSlug.value = '';
+      postContent.value = '';
+      publishBtnText.textContent = '발행하기';
+      updatePreview();
+      return;
+    }
+
+    var selected = posts.find(function(p) { return p.id === val; });
+    if (selected) {
+      postTitle.value = selected.title || '';
+      postCategories.value = Array.isArray(selected.categories) ? selected.categories.join(', ') : (selected.categories || '');
+      postTags.value = Array.isArray(selected.tags) ? selected.tags.join(', ') : (selected.tags || '');
+      postSlug.value = selected.id + '.md';
+      postContent.value = selected.body || '';
+      publishBtnText.textContent = '수정 저장하기';
+      updatePreview();
+
+      // Fetch file SHA from GitHub API so we can update it
+      fetchFileSha(selected.id + '.md');
+    }
+  });
+
+  async function fetchFileSha(filename) {
+    var pat = localStorage.getItem('github_pat');
+    if (!pat) return;
+
+    try {
+      var res = await fetch('https://api.github.com/repos/Nekonic/Nekonic.github.io/contents/src/content/blog/' + filename, {
+        headers: { 'Authorization': 'Bearer ' + pat, 'Accept': 'application/vnd.github.v3+json' }
+      });
+      if (res.ok) {
+        var data = await res.json();
+        currentEditingSha = data.sha;
+      }
+    } catch(e) {}
+  }
+
+  function showAlert(msg, isError) {
+    statusAlert.textContent = msg;
+    statusAlert.className = 'px-4 py-3 rounded-lg text-xs font-mono mb-6 ' + (isError ? 'bg-red-950/40 text-red-400 border border-red-900/50' : 'bg-emerald-950/40 text-emerald-400 border border-emerald-900/50');
+    statusAlert.classList.remove('hidden');
+    setTimeout(function() { statusAlert.classList.add('hidden'); }, 8000);
+  }
+
+  // Publish / Save Button
+  publishBtn.addEventListener('click', async function() {
+    var pat = localStorage.getItem('github_pat');
+    if (!pat) {
+      showAlert('GitHub 토큰이 필요합니다. 트윗 작성 페이지에서 먼저 토큰을 등록해주세요.', true);
+      return;
+    }
+
+    var title = postTitle.value.trim();
+    var slug = postSlug.value.trim();
+    var content = postContent.value.trim();
+    var categories = postCategories.value.trim();
+    var tags = postTags.value.trim();
+
+    if (!title) { showAlert('제목을 입력해주세요.', true); return; }
+    if (!slug) { showAlert('파일명을 입력해주세요.', true); return; }
+    if (!slug.endsWith('.md')) { slug += '.md'; postSlug.value = slug; }
+    if (!content) { showAlert('본문 내용을 입력해주세요.', true); return; }
+
+    publishBtn.disabled = true;
+    publishBtnText.textContent = '저장 중...';
+
+    // Construct Frontmatter
+    var now = new Date();
+    var pad = function(n) { return n.toString().padStart(2, '0'); };
+    var dateStr = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate());
+
+    var frontmatter = '---\n';
+    frontmatter += 'title: "' + title.replace(/"/g, '\\"') + '"\n';
+    frontmatter += 'date: ' + dateStr + '\n';
+    if (categories) {
+      frontmatter += 'categories: [' + categories.split(',').map(function(s){ return '"' + s.trim() + '"'; }).join(', ') + ']\n';
+    }
+    if (tags) {
+      frontmatter += 'tags: [' + tags.split(',').map(function(s){ return '"' + s.trim() + '"'; }).join(', ') + ']\n';
+    }
+    frontmatter += '---\n\n';
+
+    var fullFileContent = frontmatter + content;
+
+    var reqBody = {
+      message: (currentEditingSha ? 'edit post: ' : 'post: ') + title,
+      content: btoa(unescape(encodeURIComponent(fullFileContent)))
+    };
+    if (currentEditingSha) {
+      reqBody.sha = currentEditingSha;
+    }
+
+    try {
+      var res = await fetch('https://api.github.com/repos/Nekonic/Nekonic.github.io/contents/src/content/blog/' + slug, {
+        method: 'PUT',
+        headers: {
+          'Authorization': 'Bearer ' + pat,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(reqBody)
+      });
+
+      if (res.ok) {
+        var data = await res.json();
+        currentEditingSha = data.content ? data.content.sha : null;
+        showAlert('성공적으로 저장되었습니다! GitHub Actions 배포 후 사이트에 자동 반영됩니다.', false);
+        publishBtnText.textContent = '발행 완료!';
+        setTimeout(function() { publishBtnText.textContent = currentEditingSha ? '수정 저장하기' : '발행하기'; }, 3000);
+      } else {
+        var err = await res.json();
+        showAlert('저장 실패: ' + err.message, true);
+        publishBtnText.textContent = '저장 실패';
+      }
+    } catch(e) {
+      showAlert('통신 오류가 발생했습니다.', true);
+      publishBtnText.textContent = '오류 발생';
+    } finally {
+      publishBtn.disabled = false;
+    }
+  });
+
+  // Init
+  var today = new Date();
+  var pad = function(n) { return n.toString().padStart(2, '0'); };
+  postSlug.value = today.getFullYear() + '-' + pad(today.getMonth()+1) + '-' + pad(today.getDate()) + '-new-post.md';
+</script>

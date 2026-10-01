@@ -136,13 +136,21 @@ function isActive(href: string) {
         );
       })}
 
-      <!-- Compose Action -->
-      <div class="pt-5 px-1">
+      <!-- Actions -->
+      <div class="pt-4 px-1 space-y-2">
+        <a
+          href="/write"
+          class="flex items-center justify-center gap-2 w-full py-2 bg-secondary hover:bg-[#35373c] text-text-primary border border-borderSubtle hover:border-accent rounded-md text-xs font-semibold tracking-wide transition-colors"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          새 포스트 작성
+        </a>
+
         <a
           href="/compose"
           class="flex items-center justify-center gap-2 w-full py-2 bg-accent/90 hover:bg-accent text-white rounded-md text-xs font-semibold tracking-wide shadow-xs transition-colors"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
           새 트윗 작성
         </a>
       </div>

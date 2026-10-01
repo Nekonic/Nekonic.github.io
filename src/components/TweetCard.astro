@@ -2,29 +2,76 @@
 import { formatDate } from '../lib/utils';
 
 export interface Props {
-    content?: string;
-    date?: Date;
+  id?: string;
+  content?: string;
+  date?: Date;
 }
 
-const { content = '', date } = Astro.props;
+const { id, content = '', date } = Astro.props;
+const tweetTerm = id ? `tweet-${id}` : undefined;
 ---
-<article class="bg-card border border-border rounded-lg p-5 hover:border-accent transition-colors duration-200">
-    <div class="flex items-start gap-4">
-        <a href="https://github.com/Nekonic" target="_blank" rel="noopener noreferrer" class="flex-shrink-0 mt-1">
-            <img 
-                src="https://github.com/Nekonic.png" 
-                alt="Nekonic Avatar" 
-                class="w-10 h-10 rounded-full border border-border hover:border-accent transition-colors"
-            />
-        </a>
-        <div class="flex-1 min-w-0">
-            <div class="flex items-center justify-between mb-1">
-                <span class="font-semibold text-text-primary">Nekonic</span>
-            </div>
-            <div class="text-text-primary whitespace-pre-wrap text-sm leading-relaxed mb-3">
-                {content}
-            </div>
-            {date && <time class="text-xs text-text-secondary">{formatDate(date)}</time>}
+
+<article class="bg-card border border-borderSubtle rounded-lg p-5 transition-all duration-200 hover:border-borderHover">
+  <div class="flex items-start gap-3.5">
+    <a href="https://github.com/Nekonic" target="_blank" rel="noopener noreferrer" class="flex-shrink-0 mt-0.5">
+      <img 
+        src="https://github.com/Nekonic.png" 
+        alt="Nekonic Avatar" 
+        class="w-9 h-9 rounded-full border border-borderSubtle hover:border-accent transition-colors"
+      />
+    </a>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center justify-between mb-1.5">
+        <div class="flex items-center gap-2">
+          <span class="font-semibold text-text-primary text-sm">Nekonic</span>
+          <span class="text-xs font-mono text-text-muted">@Nekonic</span>
         </div>
+        {date && <time class="text-[11px] font-mono text-text-muted">{formatDate(date)}</time>}
+      </div>
+
+      <div class="text-text-primary whitespace-pre-wrap text-sm leading-relaxed mb-4">
+        {content}
+      </div>
+
+      <!-- Tweet Interaction Bar (Twitter Style) -->
+      <div class="flex items-center gap-6 pt-2.5 border-t border-borderSubtle/60 text-xs font-mono text-text-muted">
+        <!-- Comment Toggle Button -->
+        <button 
+          type="button"
+          class="tweet-comment-btn flex items-center gap-1.5 hover:text-accent transition-colors py-1 focus:outline-none cursor-pointer"
+          data-target={`comments-${id || 'generic'}`}
+          data-term={tweetTerm}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span class="comment-label">댓글</span>
+        </button>
+
+        <!-- Heart Button -->
+        <button 
+          type="button"
+          class="tweet-heart-btn flex items-center gap-1.5 hover:text-rose-400 transition-colors py-1 focus:outline-none cursor-pointer"
+          data-target={`comments-${id || 'generic'}`}
+          data-term={tweetTerm}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+          <span>하트 & 리액션</span>
+        </button>
+      </div>
+
+      <!-- Collapsible Giscus Container for this tweet -->
+      {tweetTerm && (
+        <div id={`comments-${id}`} class="hidden mt-4 pt-4 border-t border-borderSubtle giscus-tweet-box">
+          <div class="text-[11px] font-mono text-text-muted mb-2 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-accent"></span>
+            <span>GitHub 계정으로 로그인하여 댓글과 하트(리액션)를 남길 수 있습니다:</span>
+          </div>
+          <div class="giscus-slot" data-term={tweetTerm}></div>
+        </div>
+      )}
     </div>
+  </div>
 </article>
