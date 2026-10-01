@@ -60,7 +60,7 @@ const sortedTweets = allTweets.sort((a, b) => {
 <style is:global>
   @keyframes heart-burst {
     0% { transform: scale(1); }
-    50% { transform: scale(1.35); }
+    50% { transform: scale(1.4); }
     100% { transform: scale(1); }
   }
   .animate-heart-burst {
@@ -69,30 +69,32 @@ const sortedTweets = allTweets.sort((a, b) => {
 </style>
 
 <script is:inline>
+  var githubDiscussionsData = {};
+
+  function mountGiscus(slot, term) {
+    if (slot.getAttribute('data-loaded')) return;
+    slot.setAttribute('data-loaded', 'true');
+
+    var script = document.createElement('script');
+    script.src = 'https://giscus.app/client.js';
+    script.setAttribute('data-repo', 'Nekonic/Nekonic.github.io');
+    script.setAttribute('data-repo-id', 'R_kgDOIgGsMA');
+    script.setAttribute('data-category', 'General');
+    script.setAttribute('data-category-id', 'DIC_kwDOIgGsMM4DG0Di');
+    script.setAttribute('data-mapping', 'specific');
+    script.setAttribute('data-term', term);
+    script.setAttribute('data-strict', '0');
+    script.setAttribute('data-reactions-enabled', '1');
+    script.setAttribute('data-emit-metadata', '1');
+    script.setAttribute('data-input-position', 'bottom');
+    script.setAttribute('data-theme', 'transparent_dark');
+    script.setAttribute('data-lang', 'ko');
+    script.crossOrigin = 'anonymous';
+    script.async = true;
+    slot.appendChild(script);
+  }
+
   function initTweetInteractions() {
-    function mountGiscus(slot, term) {
-      if (slot.getAttribute('data-loaded')) return;
-      slot.setAttribute('data-loaded', 'true');
-
-      var script = document.createElement('script');
-      script.src = 'https://giscus.app/client.js';
-      script.setAttribute('data-repo', 'Nekonic/Nekonic.github.io');
-      script.setAttribute('data-repo-id', 'R_kgDOIgGsMA');
-      script.setAttribute('data-category', 'General');
-      script.setAttribute('data-category-id', 'DIC_kwDOIgGsMM4DG0Di');
-      script.setAttribute('data-mapping', 'specific');
-      script.setAttribute('data-term', term);
-      script.setAttribute('data-strict', '0');
-      script.setAttribute('data-reactions-enabled', '1');
-      script.setAttribute('data-emit-metadata', '0');
-      script.setAttribute('data-input-position', 'bottom');
-      script.setAttribute('data-theme', 'transparent_dark');
-      script.setAttribute('data-lang', 'ko');
-      script.crossOrigin = 'anonymous';
-      script.async = true;
-      slot.appendChild(script);
-    }
-
     // 1. Reply Button (Toggle Giscus thread)
     document.querySelectorAll('.tweet-comment-btn').forEach(function(btn) {
       if (btn.getAttribute('data-bound')) return;
@@ -118,63 +120,83 @@ const sortedTweets = allTweets.sort((a, b) => {
       });
     });
 
-    // 2. Heart / Like Button (Twitter style with pop animation & local persistence)
+    // 2. Heart / Like Button
     document.querySelectorAll('.tweet-like-btn').forEach(function(btn) {
       if (btn.getAttribute('data-bound')) return;
       btn.setAttribute('data-bound', 'true');
 
       var tweetId = btn.getAttribute('data-id') || 'generic';
-      var isLiked = localStorage.getItem('tweet_liked_' + tweetId) === 'true';
       var heartSvg = btn.querySelector('.heart-svg');
       var countSpan = btn.querySelector('.like-count');
 
-      function updateHeartUI(liked) {
-        if (!heartSvg) return;
-        if (liked) {
+      function renderLikeState() {
+        var isLiked = localStorage.getItem('tweet_liked_' + tweetId) === 'true';
+        var ghHearts = (githubDiscussionsData[tweetId] && githubDiscussionsData[tweetId].heart) || 0;
+        var totalCount = ghHearts + (isLiked ? 1 : 0);
+
+        if (isLiked) {
           btn.classList.add('text-[#f91880]');
           btn.classList.remove('text-[#71767b]');
-          heartSvg.setAttribute('fill', '#f91880');
-          heartSvg.setAttribute('stroke', '#f91880');
-          if (countSpan) countSpan.textContent = '1';
+          if (heartSvg) {
+            heartSvg.style.fill = '#f91880';
+            heartSvg.style.stroke = '#f91880';
+          }
         } else {
           btn.classList.remove('text-[#f91880]');
           btn.classList.add('text-[#71767b]');
-          heartSvg.setAttribute('fill', 'none');
-          heartSvg.setAttribute('stroke', 'currentColor');
-          if (countSpan) countSpan.textContent = '';
+          if (heartSvg) {
+            heartSvg.style.fill = 'none';
+            heartSvg.style.stroke = 'currentColor';
+          }
+        }
+
+        if (countSpan) {
+          countSpan.textContent = totalCount > 0 ? totalCount : '';
         }
       }
 
-      // Initialize saved state
-      if (isLiked) updateHeartUI(true);
+      renderLikeState();
 
       btn.addEventListener('click', function(e) {
         e.preventDefault();
-        var currentlyLiked = localStorage.getItem('tweet_liked_' + tweetId) === 'true';
-        var nextLiked = !currentlyLiked;
-        localStorage.setItem('tweet_liked_' + tweetId, nextLiked ? 'true' : 'false');
-        updateHeartUI(nextLiked);
+        var current = localStorage.getItem('tweet_liked_' + tweetId) === 'true';
+        var next = !current;
+        localStorage.setItem('tweet_liked_' + tweetId, next ? 'true' : 'false');
+        
+        renderLikeState();
 
-        if (nextLiked && heartSvg) {
+        if (next && heartSvg) {
           heartSvg.classList.add('animate-heart-burst');
           setTimeout(function() {
             heartSvg.classList.remove('animate-heart-burst');
           }, 350);
+
+          // If unmounted, automatically open comments/Giscus box so user can also give official GitHub reaction
+          var targetId = btn.getAttribute('data-target');
+          var term = btn.getAttribute('data-term');
+          var box = document.getElementById(targetId);
+          if (box && box.classList.contains('hidden')) {
+            box.classList.remove('hidden');
+            var commentBtn = btn.closest('article')?.querySelector('.tweet-comment-btn');
+            if (commentBtn) commentBtn.classList.add('text-[#1d9bf0]');
+            var slot = box.querySelector('.giscus-slot');
+            if (slot && term) mountGiscus(slot, term);
+          }
         }
       });
     });
 
-    // 3. Retweet / Repost Button (Twitter green toggle)
+    // 3. Retweet Button
     document.querySelectorAll('.tweet-retweet-btn').forEach(function(btn) {
       if (btn.getAttribute('data-bound')) return;
       btn.setAttribute('data-bound', 'true');
 
       var tweetId = btn.getAttribute('data-id') || 'generic';
-      var isRetweeted = localStorage.getItem('tweet_rt_' + tweetId) === 'true';
       var countSpan = btn.querySelector('.retweet-count');
 
-      function updateRtUI(rt) {
-        if (rt) {
+      function renderRtState() {
+        var isRt = localStorage.getItem('tweet_rt_' + tweetId) === 'true';
+        if (isRt) {
           btn.classList.add('text-[#00ba7c]');
           btn.classList.remove('text-[#71767b]');
           if (countSpan) countSpan.textContent = '1';
@@ -185,18 +207,18 @@ const sortedTweets = allTweets.sort((a, b) => {
         }
       }
 
-      if (isRetweeted) updateRtUI(true);
+      renderRtState();
 
       btn.addEventListener('click', function(e) {
         e.preventDefault();
         var current = localStorage.getItem('tweet_rt_' + tweetId) === 'true';
         var next = !current;
         localStorage.setItem('tweet_rt_' + tweetId, next ? 'true' : 'false');
-        updateRtUI(next);
+        renderRtState();
       });
     });
 
-    // 4. Share / Copy Link Button
+    // 4. Share Button
     document.querySelectorAll('.tweet-share-btn').forEach(function(btn) {
       if (btn.getAttribute('data-bound')) return;
       btn.setAttribute('data-bound', 'true');
@@ -227,9 +249,86 @@ const sortedTweets = allTweets.sort((a, b) => {
     });
   }
 
-  // 실시간 트윗 동기화 (새로 등록된 파일 실시간 확인)
+  // GitHub Discussions 실시간 카운트 동기화
+  async function fetchDiscussionsData() {
+    try {
+      var pat = localStorage.getItem('github_pat');
+      var headers = { 'Accept': 'application/vnd.github.v3+json' };
+      if (pat) headers['Authorization'] = 'Bearer ' + pat;
+
+      var res = await fetch('https://api.github.com/repos/Nekonic/Nekonic.github.io/discussions', { headers: headers });
+      if (!res.ok) return;
+
+      var discussions = await res.json();
+      if (!Array.isArray(discussions)) return;
+
+      discussions.forEach(function(disc) {
+        var m = disc.title && disc.title.match(/tweet-(.+)/);
+        if (!m) return;
+        var tweetId = m[1];
+        githubDiscussionsData[tweetId] = {
+          comments: disc.comments || 0,
+          heart: (disc.reactions && disc.reactions.heart) || 0
+        };
+
+        var card = document.querySelector('[data-tweet-id="' + tweetId + '"]');
+        if (!card) return;
+
+        // Update reply count
+        var replySpan = card.querySelector('.reply-count');
+        if (replySpan && disc.comments > 0) {
+          replySpan.textContent = disc.comments;
+        }
+
+        // Update heart count
+        var isLiked = localStorage.getItem('tweet_liked_' + tweetId) === 'true';
+        var heartSpan = card.querySelector('.like-count');
+        var totalHearts = (disc.reactions?.heart || 0) + (isLiked ? 1 : 0);
+        if (heartSpan && totalHearts > 0) {
+          heartSpan.textContent = totalHearts;
+        }
+      });
+    } catch (e) {
+      console.warn('Discussions fetch:', e);
+    }
+  }
+
+  // Giscus 메타데이터 수신 (실시간 하트/댓글 반영)
+  window.addEventListener('message', function(event) {
+    if (event.origin !== 'https://giscus.app') return;
+    if (!event.data || typeof event.data.giscus !== 'object') return;
+
+    var giscusData = event.data.giscus;
+    if (giscusData.discussion) {
+      var disc = giscusData.discussion;
+      // 찾아서 화면 카운트 실시간 업데이트
+      document.querySelectorAll('.tweet-article').forEach(function(card) {
+        var slot = card.querySelector('.giscus-slot');
+        if (slot && slot.getAttribute('data-loaded')) {
+          var tweetId = card.getAttribute('data-tweet-id');
+          if (!tweetId) return;
+
+          var comments = disc.totalCommentCount || 0;
+          var ghHearts = (disc.reactions && disc.reactions.HEART) || 0;
+
+          githubDiscussionsData[tweetId] = { comments: comments, heart: ghHearts };
+
+          var replySpan = card.querySelector('.reply-count');
+          if (replySpan && comments > 0) replySpan.textContent = comments;
+
+          var isLiked = localStorage.getItem('tweet_liked_' + tweetId) === 'true';
+          var heartSpan = card.querySelector('.like-count');
+          var total = ghHearts + (isLiked ? 1 : 0);
+          if (heartSpan) heartSpan.textContent = total > 0 ? total : '';
+        }
+      });
+    }
+  });
+
+  // 초기화 및 실시간 감시
   (async function() {
     initTweetInteractions();
+    await fetchDiscussionsData();
 
     try {
       var pat = localStorage.getItem('github_pat');
