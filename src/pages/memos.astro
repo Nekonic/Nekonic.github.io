@@ -171,8 +171,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       for (var i = 0; i < files.length; i++) {
         var file = files[i];
         if (!file.name.endsWith('.md')) continue;
-
-        var contentRes = await fetch(file.download_url, { headers: { 'Authorization': 'Bearer ' + pat } });
+        var contentRes = await fetch(file.url, { 
+          headers: { 
+            'Authorization': 'Bearer ' + pat, 
+            'Accept': 'application/vnd.github.raw' 
+          } 
+        });
         var text = await contentRes.text();
 
         var title = file.name.replace('.md', '');
