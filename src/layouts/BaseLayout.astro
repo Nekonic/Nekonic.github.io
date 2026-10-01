@@ -4,9 +4,10 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description?: string;
+  wide?: boolean;
 }
 
-const { title, description = "C++ Programmer & Developer" } = Astro.props;
+const { title, description = "C++ Programmer & Developer", wide = false } = Astro.props;
 const pathname = Astro.url.pathname;
 
 const navItems = [
@@ -56,9 +57,11 @@ function isActive(href: string) {
   <meta name="description" content={description} />
   <title>{title} | Nekonic</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-4FX5NFXY7Z"></script>
@@ -170,7 +173,7 @@ function isActive(href: string) {
     </div>
 
     <!-- Page Body -->
-    <div class="max-w-4xl mx-auto px-6 lg:px-10 py-10">
+    <div class:list={["mx-auto px-6 lg:px-10 py-10", wide ? "max-w-6xl" : "max-w-4xl"]}>
       <slot />
     </div>
   </main>
