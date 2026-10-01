@@ -57,8 +57,18 @@ const sortedTweets = allTweets.sort((a, b) => {
   </div>
 </BaseLayout>
 
+<style is:global>
+  @keyframes heart-burst {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.35); }
+    100% { transform: scale(1); }
+  }
+  .animate-heart-burst {
+    animation: heart-burst 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.49);
+  }
+</style>
+
 <script is:inline>
-  // Giscus 댓글/하트 영역 동적 마운트 함수
   function initTweetInteractions() {
     function mountGiscus(slot, term) {
       if (slot.getAttribute('data-loaded')) return;
@@ -83,7 +93,8 @@ const sortedTweets = allTweets.sort((a, b) => {
       slot.appendChild(script);
     }
 
-    document.querySelectorAll('.tweet-comment-btn, .tweet-heart-btn').forEach(function(btn) {
+    // 1. Reply Button (Toggle Giscus thread)
+    document.querySelectorAll('.tweet-comment-btn').forEach(function(btn) {
       if (btn.getAttribute('data-bound')) return;
       btn.setAttribute('data-bound', 'true');
 
@@ -97,12 +108,120 @@ const sortedTweets = allTweets.sort((a, b) => {
         var isHidden = box.classList.contains('hidden');
         if (isHidden) {
           box.classList.remove('hidden');
+          btn.classList.add('text-[#1d9bf0]');
           var slot = box.querySelector('.giscus-slot');
-          if (slot && term) {
-            mountGiscus(slot, term);
-          }
+          if (slot && term) mountGiscus(slot, term);
         } else {
           box.classList.add('hidden');
+          btn.classList.remove('text-[#1d9bf0]');
+        }
+      });
+    });
+
+    // 2. Heart / Like Button (Twitter style with pop animation & local persistence)
+    document.querySelectorAll('.tweet-like-btn').forEach(function(btn) {
+      if (btn.getAttribute('data-bound')) return;
+      btn.setAttribute('data-bound', 'true');
+
+      var tweetId = btn.getAttribute('data-id') || 'generic';
+      var isLiked = localStorage.getItem('tweet_liked_' + tweetId) === 'true';
+      var heartSvg = btn.querySelector('.heart-svg');
+      var countSpan = btn.querySelector('.like-count');
+
+      function updateHeartUI(liked) {
+        if (!heartSvg) return;
+        if (liked) {
+          btn.classList.add('text-[#f91880]');
+          btn.classList.remove('text-[#71767b]');
+          heartSvg.setAttribute('fill', '#f91880');
+          heartSvg.setAttribute('stroke', '#f91880');
+          if (countSpan) countSpan.textContent = '1';
+        } else {
+          btn.classList.remove('text-[#f91880]');
+          btn.classList.add('text-[#71767b]');
+          heartSvg.setAttribute('fill', 'none');
+          heartSvg.setAttribute('stroke', 'currentColor');
+          if (countSpan) countSpan.textContent = '';
+        }
+      }
+
+      // Initialize saved state
+      if (isLiked) updateHeartUI(true);
+
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        var currentlyLiked = localStorage.getItem('tweet_liked_' + tweetId) === 'true';
+        var nextLiked = !currentlyLiked;
+        localStorage.setItem('tweet_liked_' + tweetId, nextLiked ? 'true' : 'false');
+        updateHeartUI(nextLiked);
+
+        if (nextLiked && heartSvg) {
+          heartSvg.classList.add('animate-heart-burst');
+          setTimeout(function() {
+            heartSvg.classList.remove('animate-heart-burst');
+          }, 350);
+        }
+      });
+    });
+
+    // 3. Retweet / Repost Button (Twitter green toggle)
+    document.querySelectorAll('.tweet-retweet-btn').forEach(function(btn) {
+      if (btn.getAttribute('data-bound')) return;
+      btn.setAttribute('data-bound', 'true');
+
+      var tweetId = btn.getAttribute('data-id') || 'generic';
+      var isRetweeted = localStorage.getItem('tweet_rt_' + tweetId) === 'true';
+      var countSpan = btn.querySelector('.retweet-count');
+
+      function updateRtUI(rt) {
+        if (rt) {
+          btn.classList.add('text-[#00ba7c]');
+          btn.classList.remove('text-[#71767b]');
+          if (countSpan) countSpan.textContent = '1';
+        } else {
+          btn.classList.remove('text-[#00ba7c]');
+          btn.classList.add('text-[#71767b]');
+          if (countSpan) countSpan.textContent = '';
+        }
+      }
+
+      if (isRetweeted) updateRtUI(true);
+
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        var current = localStorage.getItem('tweet_rt_' + tweetId) === 'true';
+        var next = !current;
+        localStorage.setItem('tweet_rt_' + tweetId, next ? 'true' : 'false');
+        updateRtUI(next);
+      });
+    });
+
+    // 4. Share / Copy Link Button
+    document.querySelectorAll('.tweet-share-btn').forEach(function(btn) {
+      if (btn.getAttribute('data-bound')) return;
+      btn.setAttribute('data-bound', 'true');
+
+      var tweetId = btn.getAttribute('data-id');
+      var shareIcon = btn.querySelector('.share-icon');
+      var checkIcon = btn.querySelector('.check-icon');
+      var tooltip = btn.querySelector('.copied-tooltip');
+
+      btn.addEventListener('click', async function(e) {
+        e.preventDefault();
+        var url = window.location.origin + '/tweets' + (tweetId ? '#' + tweetId : '');
+        try {
+          await navigator.clipboard.writeText(url);
+          if (shareIcon) shareIcon.classList.add('hidden');
+          if (checkIcon) checkIcon.classList.remove('hidden');
+          if (tooltip) tooltip.classList.remove('opacity-0');
+
+          setTimeout(function() {
+            if (shareIcon) shareIcon.classList.remove('hidden');
+            if (checkIcon) checkIcon.classList.add('hidden');
+            if (tooltip) tooltip.classList.add('opacity-0');
+          }, 1500);
+        } catch (err) {
+          console.error(err);
         }
       });
     });
@@ -129,7 +248,6 @@ const sortedTweets = allTweets.sort((a, b) => {
 
       var renderedCount = container ? container.children.length : 0;
       if (files.length > renderedCount) {
-        // 새로 추가된 트윗이 있으면 새로고침 반영
         window.location.reload();
       }
     } catch (e) {
