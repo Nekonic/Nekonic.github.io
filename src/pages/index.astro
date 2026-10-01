@@ -5,28 +5,56 @@ import { getCollection } from 'astro:content';
 import { getDateFromId } from '../lib/utils';
 
 const allPosts = await getCollection('blog');
-let allTweets: any[] = [];
-try { allTweets = await getCollection('tweets'); } catch {}
 
 const recentPosts = allPosts
-  .sort((a, b) => getDateFromId(a.id, a.data.date).valueOf() - getDateFromId(b.id, b.data.date).valueOf())
-  .reverse()
+  .sort((a, b) => getDateFromId(b.id, b.data.date).valueOf() - getDateFromId(a.id, a.data.date).valueOf())
   .slice(0, 6);
+
+const techStack = ['C++', 'Algorithms', 'Linux', 'Reverse Engineering', 'Systems'];
 ---
 
 <BaseLayout title="Home" description="C++ Programmer & Developer">
-  <section class="py-12 md:py-20">
-    <h1 class="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent to-purple-400 mb-4">
-      Nekonic
+  <!-- Hero Section (JetBrains developer header) -->
+  <section class="py-8 lg:py-14 border-b border-border/60 mb-10">
+    <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-secondary border border-border text-xs font-mono text-text-secondary mb-4">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span>Nekonic's Workspace</span>
+    </div>
+
+    <h1 class="text-3xl lg:text-5xl font-bold tracking-tight text-white mb-3">
+      Welcome to <span class="bg-clip-text text-transparent bg-gradient-to-r from-white via-text-primary to-accent">Nekonic.</span>
     </h1>
-    <p class="text-xl text-text-secondary">C++ Programmer & Developer</p>
+    
+    <p class="text-base lg:text-lg text-text-secondary max-w-2xl leading-relaxed mb-6">
+      Notes from the Dev. Explorations in C++, systems programming, algorithms, and digital craftsmanship.
+    </p>
+
+    <!-- Tech tags -->
+    <div class="flex flex-wrap items-center gap-2">
+      {techStack.map(tech => (
+        <span class="px-2.5 py-1 rounded text-xs font-mono bg-card border border-border text-text-secondary">
+          {tech}
+        </span>
+      ))}
+    </div>
   </section>
 
-  <section class="mb-16">
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-semibold text-text-primary">Recent Posts</h2>
-      <a href="/blog" class="text-accent hover:text-accent-hover transition-colors">View all &rarr;</a>
+  <!-- Recent Posts Section -->
+  <section class="mb-14">
+    <div class="flex justify-between items-baseline mb-6">
+      <div>
+        <h2 class="text-xl font-bold text-white tracking-tight">Recent Posts</h2>
+        <p class="text-xs font-mono text-text-muted mt-0.5">Latest technical articles and problem solving logs</p>
+      </div>
+      <a 
+        href="/blog" 
+        class="text-xs font-mono text-accent hover:text-accent-hover transition-colors flex items-center gap-1 group"
+      >
+        View all ({allPosts.length})
+        <span class="group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+      </a>
     </div>
+
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {recentPosts.map(post => (
         <PostCard 

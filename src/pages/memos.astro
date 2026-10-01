@@ -2,45 +2,85 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<BaseLayout title="Memos (Private)" description="Private memos">
-  <div class="max-w-4xl mx-auto py-8">
-    <div class="flex justify-between items-center mb-8">
-      <h1 class="text-3xl font-bold text-text-primary">Memos</h1>
-      <button id="newMemoBtn" class="hidden px-4 py-2 bg-accent text-white rounded-md hover:bg-accent-hover transition-colors font-medium">
-        + 새 메모
+<BaseLayout title="Memos" description="Private memos">
+  <div class="max-w-4xl mx-auto py-6">
+    <div class="flex justify-between items-center mb-8 pb-4 border-b border-border/70">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <h1 class="text-xl lg:text-2xl font-bold text-white tracking-tight">Private Memos</h1>
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary border border-border text-accent">
+            Encrypted & Private
+          </span>
+        </div>
+        <p class="text-xs font-mono text-text-muted">비공개 저장소(Nekonic.github.io.data)에만 안전하게 보관되는 개인 메모장</p>
+      </div>
+      <button 
+        id="newMemoBtn" 
+        class="hidden items-center gap-1.5 px-3.5 py-1.5 bg-accent hover:bg-accent-hover text-white rounded-md text-xs font-semibold tracking-wide transition-colors shadow-xs"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        새 메모 작성
       </button>
     </div>
 
     <!-- Auth Container -->
-    <div id="authContainer" class="bg-card border border-border rounded-lg p-6 max-w-md mx-auto">
-      <h2 class="text-xl font-semibold text-text-primary mb-4">🔑 인증 필요</h2>
-      <p class="text-text-secondary mb-4 text-sm">GitHub 토큰을 입력해주세요. 브라우저에만 저장됩니다.</p>
-      <input type="password" id="patInput" class="w-full bg-secondary border border-border rounded-md px-3 py-2 text-text-primary focus:outline-none focus:border-accent mb-4" placeholder="ghp_...">
-      <button id="saveAuthBtn" class="w-full bg-accent text-white rounded-md py-2 hover:bg-accent-hover transition-colors">
-        로그인
+    <div id="authContainer" class="bg-card border border-border rounded-xl p-6 max-w-md mx-auto shadow-sm">
+      <div class="w-10 h-10 rounded-lg bg-secondary border border-border flex items-center justify-center text-accent mb-4">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <h2 class="text-base font-bold text-white mb-1.5">인증 필요</h2>
+      <p class="text-xs text-text-secondary mb-4 leading-relaxed">
+        비공개 메모를 조회하고 작성하려면 GitHub Classic Token (<code class="text-accent font-mono">repo</code> 권한)이 필요합니다. 토큰은 오직 현재 브라우저의 localStorage에만 보관됩니다.
+      </p>
+      <input 
+        type="password" 
+        id="patInput" 
+        class="w-full bg-primary border border-border rounded-md px-3 py-2 text-xs font-mono text-text-primary focus:outline-none focus:border-accent mb-3" 
+        placeholder="ghp_xxxxxxxxxxxx"
+      >
+      <button 
+        id="saveAuthBtn" 
+        class="w-full bg-accent hover:bg-accent-hover text-white text-xs font-semibold py-2 rounded-md transition-colors shadow-xs"
+      >
+        확인 및 로그인
       </button>
     </div>
 
     <!-- Memos Container -->
     <div id="memosContainer" class="hidden">
-      <div class="text-text-secondary text-center py-8" id="loadingState">불러오는 중...</div>
+      <div class="text-text-muted font-mono text-xs text-center py-12" id="loadingState">
+        비공개 저장소에서 메모를 동기화하는 중...
+      </div>
     </div>
   </div>
 
   <!-- New Memo Modal -->
-  <div id="memoModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-card border border-border rounded-lg w-full max-w-2xl flex flex-col max-h-[90vh]">
-      <div class="flex justify-between items-center p-4 border-b border-border">
-        <h2 class="text-xl font-semibold text-text-primary">새 메모</h2>
-        <button id="closeModalBtn" class="text-text-secondary hover:text-text-primary text-xl">✕</button>
+  <div id="memoModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-card border border-border rounded-xl w-full max-w-2xl flex flex-col max-h-[90vh] shadow-xl">
+      <div class="flex justify-between items-center p-4 border-b border-border/70">
+        <h2 class="text-sm font-bold text-white font-mono">New Private Memo</h2>
+        <button id="closeModalBtn" class="text-text-muted hover:text-white text-lg">&times;</button>
       </div>
-      <div class="p-4 flex-grow flex flex-col gap-4 overflow-y-auto">
-        <input type="text" id="memoTitle" class="w-full bg-secondary border border-border rounded-md px-3 py-2 text-text-primary focus:outline-none focus:border-accent" placeholder="메모 제목">
-        <textarea id="memoContent" class="w-full bg-secondary border border-border rounded-md px-3 py-2 text-text-primary focus:outline-none focus:border-accent flex-grow min-h-[200px] resize-none" placeholder="내용을 입력하세요..."></textarea>
+      <div class="p-4 flex-grow flex flex-col gap-3 overflow-y-auto">
+        <input 
+          type="text" 
+          id="memoTitle" 
+          class="w-full bg-primary border border-border rounded-md px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent" 
+          placeholder="메모 제목을 입력하세요"
+        >
+        <textarea 
+          id="memoContent" 
+          class="w-full bg-primary border border-border rounded-md p-3 text-sm text-text-primary font-mono focus:outline-none focus:border-accent flex-grow min-h-[260px] resize-none leading-relaxed" 
+          placeholder="마크다운 문법으로 메모 내용을 자유롭게 작성하세요..."
+        ></textarea>
       </div>
-      <div class="p-4 border-t border-border flex justify-end gap-3">
-        <button id="cancelMemoBtn" class="px-4 py-2 bg-secondary text-text-primary rounded-md hover:bg-primary transition-colors">취소</button>
-        <button id="saveMemoBtn" class="px-4 py-2 bg-accent text-white rounded-md hover:bg-accent-hover transition-colors font-medium">저장</button>
+      <div class="p-4 border-t border-border/70 flex justify-end gap-2 bg-secondary/30">
+        <button id="cancelMemoBtn" class="px-3.5 py-1.5 bg-secondary text-text-secondary hover:text-white rounded-md text-xs font-medium transition-colors">
+          취소
+        </button>
+        <button id="saveMemoBtn" class="px-4 py-1.5 bg-accent hover:bg-accent-hover text-white rounded-md text-xs font-semibold transition-colors">
+          저장하기
+        </button>
       </div>
     </div>
   </div>
@@ -70,11 +110,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       authContainer.classList.add('hidden');
       memosContainer.classList.remove('hidden');
       newMemoBtn.classList.remove('hidden');
+      newMemoBtn.classList.add('inline-flex');
       fetchMemos();
     } else {
       authContainer.classList.remove('hidden');
       memosContainer.classList.add('hidden');
       newMemoBtn.classList.add('hidden');
+      newMemoBtn.classList.remove('inline-flex');
     }
   }
 
@@ -105,13 +147,23 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       });
 
       if (!response.ok) {
-        if (response.status === 401) { localStorage.removeItem('github_pat'); checkAuth(); return; }
-        if (response.status === 404) { memosContainer.innerHTML = '<div class="text-text-secondary text-center py-8">메모가 없습니다. 첫 메모를 작성해보세요!</div>'; return; }
+        if (response.status === 401) { 
+          localStorage.removeItem('github_pat'); 
+          checkAuth(); 
+          return; 
+        }
+        if (response.status === 404) { 
+          memosContainer.innerHTML = '<div class="text-text-muted font-mono text-xs text-center py-12 bg-card border border-border rounded-xl p-8">저장된 메모가 없습니다. 첫 비밀 메모를 작성해보세요.</div>'; 
+          return; 
+        }
         throw new Error('Failed');
       }
 
       var files = await response.json();
-      if (!files.length) { memosContainer.innerHTML = '<div class="text-text-secondary text-center py-8">메모가 없습니다.</div>'; return; }
+      if (!files.length) { 
+        memosContainer.innerHTML = '<div class="text-text-muted font-mono text-xs text-center py-12 bg-card border border-border rounded-xl p-8">저장된 메모가 없습니다.</div>'; 
+        return; 
+      }
 
       memosContainer.innerHTML = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>';
       var grid = memosContainer.firstChild;
@@ -125,22 +177,25 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
         var title = file.name.replace('.md', '');
         var body = text;
+        var date = '';
         var fmMatch = text.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
         if (fmMatch) {
           var fm = fmMatch[1];
           body = fmMatch[2].trim();
-          var titleMatch = fm.match(/title:\s*(.*)/);
-          if (titleMatch) title = titleMatch[1].replace(/['"]/g, '').trim();
+          var titleMatch = fm.match(/title:\s*["']?(.*?)["']?$/m);
+          var dateMatch = fm.match(/date:\s*["']?(.*?)["']?$/m);
+          if (titleMatch) title = titleMatch[1].trim();
+          if (dateMatch) date = dateMatch[1].trim().substring(0, 10);
         }
 
         var el = document.createElement('div');
-        el.className = 'bg-card border border-border rounded-lg p-5 flex flex-col gap-2';
-        el.innerHTML = '<h3 class="text-lg font-semibold text-text-primary">' + title + '</h3><div class="text-text-secondary text-sm mt-2">' + body.substring(0, 200) + '</div>';
+        el.className = 'bg-card border border-border rounded-lg p-5 flex flex-col justify-between hover:border-borderHover transition-all';
+        el.innerHTML = '<div><div class="flex items-center justify-between mb-2"><h3 class="text-base font-semibold text-text-primary tracking-tight">' + title + '</h3>' + (date ? '<span class="text-[11px] font-mono text-text-muted">' + date + '</span>' : '') + '</div><div class="text-text-secondary text-xs font-mono leading-relaxed line-clamp-4 whitespace-pre-wrap">' + body.substring(0, 240) + '</div></div>';
         grid.appendChild(el);
       }
     } catch (e) {
       console.error(e);
-      memosContainer.innerHTML = '<div class="text-red-400 text-center py-8">메모를 불러올 수 없습니다.</div>';
+      memosContainer.innerHTML = '<div class="text-rose-400 font-mono text-xs text-center py-8">메모 목록을 불러오지 못했습니다. 토큰 권한을 확인해주세요.</div>';
     }
   }
 
@@ -165,10 +220,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         headers: { 'Authorization': 'Bearer ' + pat, 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: 'memo: ' + title, content: btoa(unescape(encodeURIComponent(fileContent))) })
       });
-      if (response.ok) { memoModal.classList.add('hidden'); fetchMemos(); }
-      else { alert('저장 실패'); }
-    } catch (e) { alert('오류 발생'); }
-    finally { saveMemoBtn.textContent = '저장'; saveMemoBtn.disabled = false; }
+      if (response.ok) { 
+        memoModal.classList.add('hidden'); 
+        fetchMemos(); 
+      } else { 
+        alert('저장에 실패했습니다.'); 
+      }
+    } catch (e) { 
+      alert('오류가 발생했습니다.'); 
+    } finally { 
+      saveMemoBtn.textContent = '저장하기'; 
+      saveMemoBtn.disabled = false; 
+    }
   });
 
   checkAuth();

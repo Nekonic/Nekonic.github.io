@@ -4,24 +4,28 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: {
-          primary: '#27282c',
-          secondary: '#1e1f22',
-          card: '#2b2d30',
-        },
+        primary: '#1e1f22',       // IntelliJ editor main bg
+        secondary: '#2b2d30',     // IntelliJ tool window / sidebar bg
+        card: '#26282d',          // JetBrains card bg
+        cardHover: '#2f3137',     // Hover state for cards
+        border: '#393b40',        // JetBrains UI line border
+        borderHover: '#4e5157',
         accent: {
-          DEFAULT: '#7b68ee',
-          hover: '#6c5ce7',
+          DEFAULT: '#7f52ff',     // JetBrains vibrant purple
+          hover: '#9872ff',
+          blue: '#3574f0',        // JetBrains blue
+          cyan: '#2cd5c4',
         },
         text: {
-          primary: '#bcbec4',
-          secondary: '#6f737a',
+          primary: '#dfe1e5',     // Main readable light text
+          secondary: '#9da0a8',   // Muted gray
+          muted: '#6f737a',       // Line numbers / subtle metadata
         },
-        border: '#393b40',
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-      }
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+      },
     },
   },
   plugins: [],

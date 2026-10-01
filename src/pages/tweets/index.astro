@@ -3,27 +3,57 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import TweetCard from '../../components/TweetCard.astro';
 import { getCollection } from 'astro:content';
 
-const allTweets = await getCollection('tweets');
-const sortedTweets = allTweets.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+let allTweets: any[] = [];
+try {
+  allTweets = await getCollection('tweets');
+} catch {}
+
+const sortedTweets = allTweets.sort((a, b) => {
+  const dateA = a.data?.date ? new Date(a.data.date).valueOf() : 0;
+  const dateB = b.data?.date ? new Date(b.data.date).valueOf() : 0;
+  return dateB - dateA;
+});
 ---
 
 <BaseLayout title="Tweets" description="Short thoughts and updates">
-  <div class="mb-8 flex justify-between items-center">
-    <div>
-      <h1 class="text-3xl font-bold text-text-primary mb-2">Tweets</h1>
-      <p class="text-text-secondary">Short thoughts and updates.</p>
+  <div class="max-w-2xl mx-auto">
+    <div class="mb-8 flex justify-between items-center pb-6 border-b border-border/70">
+      <div>
+        <h1 class="text-2xl lg:text-3xl font-bold text-white tracking-tight">Tweets</h1>
+        <p class="text-xs font-mono text-text-muted mt-1">Short thoughts, quick updates, and micro-logs</p>
+      </div>
+      <a 
+        href="/compose" 
+        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-accent hover:bg-accent-hover text-white rounded-md text-xs font-semibold tracking-wide transition-colors shadow-xs"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        작성하기
+      </a>
     </div>
-    <a href="/compose" class="px-4 py-2 bg-accent text-white rounded-md hover:bg-accent-hover transition-colors font-medium">
-      Compose
-    </a>
-  </div>
-  
-  <div class="flex flex-col gap-6 max-w-2xl mx-auto">
-    {sortedTweets.map(tweet => (
-      <TweetCard 
-        content={tweet.body}
-        date={tweet.data.date}
-      />
-    ))}
+    
+    {sortedTweets.length > 0 ? (
+      <div class="flex flex-col gap-4">
+        {sortedTweets.map(tweet => (
+          <TweetCard 
+            content={tweet.body}
+            date={tweet.data?.date ? new Date(tweet.data.date) : undefined}
+          />
+        ))}
+      </div>
+    ) : (
+      <div class="text-center py-16 bg-card border border-border rounded-xl p-8">
+        <div class="w-12 h-12 rounded-full bg-secondary border border-border flex items-center justify-center mx-auto mb-3 text-text-muted">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <p class="text-sm text-text-secondary font-medium mb-1">아직 작성된 트윗이 없습니다.</p>
+        <p class="text-xs text-text-muted mb-4 font-mono">새로운 소식이나 짧은 메모를 남겨보세요.</p>
+        <a 
+          href="/compose" 
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-secondary border border-border hover:border-accent text-text-primary rounded-md text-xs font-medium transition-colors"
+        >
+          첫 트윗 작성하기 &rarr;
+        </a>
+      </div>
+    )}
   </div>
 </BaseLayout>

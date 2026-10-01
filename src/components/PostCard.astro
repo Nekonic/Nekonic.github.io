@@ -2,35 +2,42 @@
 import { formatDate, toArray } from '../lib/utils';
 
 export interface Props {
-    title: string;
-    date: Date;
-    categories?: string | string[];
-    tags?: string | string[];
-    slug: string;
+  title: string;
+  date: Date;
+  categories?: string | string[];
+  tags?: string | string[];
+  slug: string;
 }
 
 const { title, date, categories, tags, slug } = Astro.props;
 const catArray = toArray(categories);
 const tagArray = toArray(tags);
 ---
+
 <a href={`/blog/${slug}`} class="block group h-full">
-    <article class="bg-card border border-border rounded-lg p-5 transition-all duration-200 hover:border-accent h-full flex flex-col">
-        <header class="mb-3">
-            <h3 class="text-lg font-semibold text-text-primary mb-1 group-hover:text-accent transition-colors">{title}</h3>
-            <time class="text-sm text-text-secondary block mb-3">{formatDate(date)}</time>
-        </header>
-        
-        <div class="flex flex-wrap gap-2 mt-auto">
-            {catArray.map(category => (
-                <span class="px-2 py-0.5 text-xs rounded bg-accent/20 text-accent border border-accent/30 font-medium">
-                    {category}
-                </span>
-            ))}
-            {tagArray.map(tag => (
-                <span class="px-2 py-0.5 text-xs rounded bg-secondary text-text-secondary border border-border">
-                    #{tag}
-                </span>
-            ))}
-        </div>
-    </article>
+  <article class="bg-card border border-border rounded-lg p-5 transition-all duration-150 hover:border-borderHover hover:bg-cardHover hover:shadow-lg h-full flex flex-col justify-between">
+    <div>
+      <div class="flex items-center gap-2 mb-2.5">
+        <time class="text-xs font-mono text-text-muted">{formatDate(date)}</time>
+        {catArray.length > 0 && (
+          <span class="text-xs font-mono text-text-muted">/</span>
+          <span class="text-xs font-mono text-accent">{catArray[0]}</span>
+        )}
+      </div>
+
+      <h3 class="text-base lg:text-lg font-semibold text-text-primary tracking-tight group-hover:text-white transition-colors mb-3 leading-snug">
+        {title}
+      </h3>
+    </div>
+
+    {tagArray.length > 0 && (
+      <div class="flex flex-wrap gap-1.5 mt-4 pt-3 border-t border-border/50">
+        {tagArray.map(tag => (
+          <span class="px-2 py-0.5 text-[11px] font-mono rounded bg-primary/70 text-text-secondary border border-border/60">
+            #{tag}
+          </span>
+        ))}
+      </div>
+    )}
+  </article>
 </a>
