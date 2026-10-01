@@ -10,6 +10,12 @@
     background-color: #1e1f22;
     color: #dfe1e5;
     font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    /* Subtle JetBrains ambient glow at top */
+    background-image: 
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(127, 82, 255, 0.08), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 80% -10%, rgba(53, 116, 240, 0.08), transparent 60%);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
   }
 
   code, pre, kbd {
@@ -36,7 +42,7 @@
   background: #4e5157;
 }
 
-/* Custom selection */
+/* JetBrains Editor Selection */
 ::selection {
   background: #2e436e;
   color: #ffffff;
@@ -61,8 +67,13 @@
 }
 
 .article-content h1 { font-size: 2rem; }
-.article-content h2 { font-size: 1.5rem; border-bottom: 1px solid #393b40; padding-bottom: 0.5rem; }
-.article-content h3 { font-size: 1.25rem; }
+.article-content h2 { 
+  font-size: 1.45rem; 
+  border-bottom: 1px solid #2e3035; 
+  padding-bottom: 0.5rem; 
+  color: #ffffff;
+}
+.article-content h3 { font-size: 1.2rem; color: #f0f2f5; }
 
 .article-content p {
   margin-bottom: 1.25rem;
@@ -70,12 +81,13 @@
 }
 
 .article-content a {
-  color: #7f52ff;
+  color: #3574f0;
   text-decoration: underline;
   text-underline-offset: 3px;
+  transition: color 0.15s ease-in-out;
 }
 .article-content a:hover {
-  color: #9872ff;
+  color: #56a8f5;
 }
 
 .article-content ul, .article-content ol {
@@ -87,30 +99,32 @@
 .article-content ol { list-style-type: decimal; }
 .article-content li { margin-bottom: 0.4rem; }
 
+/* IntelliJ Darcula-style Code Blocks */
 .article-content pre {
-  background-color: #26282d !important;
+  background-color: #1e1f22 !important;
   border: 1px solid #393b40;
   border-radius: 8px;
-  padding: 1rem 1.25rem;
+  padding: 1.1rem 1.25rem;
   margin-top: 1.5rem;
   margin-bottom: 1.5rem;
   overflow-x: auto;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 .article-content code:not(pre code) {
   background-color: #2b2d30;
   border: 1px solid #393b40;
-  color: #f7768e;
-  padding: 0.15rem 0.4rem;
+  color: #e59368; /* Darcula string/keyword warm tone */
+  padding: 0.15rem 0.45rem;
   border-radius: 4px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.88em;
 }
 
 .article-content blockquote {
-  border-left: 3px solid #7f52ff;
+  border-left: 3px solid #3574f0;
   padding-left: 1rem;
   margin: 1.5rem 0;
   color: #9da0a8;
@@ -118,36 +132,52 @@
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
   border-radius: 0 6px 6px 0;
+  border-top: 1px solid #2e3035;
+  border-right: 1px solid #2e3035;
+  border-bottom: 1px solid #2e3035;
 }
 
 .article-content hr {
   border: 0;
-  border-top: 1px solid #393b40;
+  border-top: 1px solid #2e3035;
   margin: 2rem 0;
 }
 
+/* IntelliJ Grid Tables */
 .article-content table {
   width: 100%;
   border-collapse: collapse;
   margin: 1.5rem 0;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
+  background-color: #26282d;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #393b40;
 }
 
 .article-content th, .article-content td {
-  border: 1px solid #393b40;
-  padding: 0.6rem 1rem;
+  border: 1px solid #323438;
+  padding: 0.65rem 1rem;
   text-align: left;
 }
 
 .article-content th {
   background-color: #2b2d30;
-  color: #ffffff;
+  color: #dfe1e5;
   font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  border-bottom: 2px solid #393b40;
+}
+
+.article-content tr:hover td {
+  background-color: #2b2d32;
 }
 
 .article-content img {
   max-width: 100%;
   border-radius: 8px;
   border: 1px solid #393b40;
-  margin: 1.5rem auto;
+  margin: 1.75rem auto;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
