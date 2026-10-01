@@ -1,0 +1,134 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "C++ Programmer & Developer" } = Astro.props;
+const pathname = Astro.url.pathname;
+
+const navItems = [
+  { href: "/", icon: "🏠", label: "Home" },
+  { href: "/blog", icon: "📝", label: "Blog" },
+  { href: "/tweets", icon: "🐦", label: "Tweets" },
+  { href: "/memos", icon: "📌", label: "Memos" },
+  { href: "/about", icon: "👤", label: "About" },
+];
+
+function isActive(href: string) {
+  if (href === "/") return pathname === "/";
+  return pathname.startsWith(href);
+}
+---
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content={description} />
+  <title>{title} | Nekonic</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-4FX5NFXY7Z"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-4FX5NFXY7Z');
+  </script>
+</head>
+<body class="bg-primary text-text-primary font-sans">
+  <!-- Mobile Header -->
+  <header class="lg:hidden fixed top-0 left-0 right-0 z-50 bg-secondary border-b border-border px-4 h-14 flex items-center justify-between">
+    <span class="text-lg font-bold text-white">Nekonic<span class="text-accent">.</span></span>
+    <button id="menuToggle" class="text-text-secondary hover:text-text-primary p-2">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 12h18M3 6h18M3 18h18" />
+      </svg>
+    </button>
+  </header>
+
+  <!-- Sidebar Overlay (Mobile) -->
+  <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="fixed top-0 left-0 h-full w-60 bg-secondary border-r border-border z-50 flex flex-col transform -translate-x-full lg:translate-x-0 transition-transform duration-200">
+    <!-- Logo -->
+    <div class="p-5 pb-3">
+      <a href="/" class="text-xl font-bold text-white hover:text-accent transition-colors">
+        Nekonic<span class="text-accent">.</span>
+      </a>
+      <p class="text-xs text-text-secondary mt-1">C++ Programmer</p>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 px-3 py-2">
+      <ul class="space-y-1">
+        {navItems.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class:list={[
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
+                isActive(item.href)
+                  ? "bg-accent/15 text-accent border-l-2 border-accent"
+                  : "text-text-secondary hover:text-text-primary hover:bg-white/5",
+              ]}
+            >
+              <span class="text-base">{item.icon}</span>
+              <span>{item.label}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      <!-- Compose Button -->
+      <div class="mt-6 px-1">
+        <a
+          href="/compose"
+          class="flex items-center justify-center gap-2 w-full py-2.5 bg-accent hover:bg-accent-hover text-white rounded-lg text-sm font-semibold transition-colors"
+        >
+          ✏️ 새 트윗
+        </a>
+      </div>
+    </nav>
+
+    <!-- Footer -->
+    <div class="p-4 border-t border-border">
+      <p class="text-xs text-text-secondary">© 2017-2026 Nekonic</p>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="lg:ml-60 min-h-screen pt-14 lg:pt-0">
+    <div class="max-w-4xl mx-auto px-6 py-8">
+      <slot />
+    </div>
+  </main>
+
+  <!-- Mobile Menu Script -->
+  <script>
+    const toggle = document.getElementById("menuToggle");
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("sidebarOverlay");
+
+    function openMenu() {
+      sidebar?.classList.remove("-translate-x-full");
+      overlay?.classList.remove("hidden");
+    }
+
+    function closeMenu() {
+      sidebar?.classList.add("-translate-x-full");
+      overlay?.classList.add("hidden");
+    }
+
+    toggle?.addEventListener("click", openMenu);
+    overlay?.addEventListener("click", closeMenu);
+  </script>
+</body>
+</html>

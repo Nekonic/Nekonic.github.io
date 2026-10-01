@@ -1,0 +1,175 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Memos (Private)" description="Private memos">
+  <div class="max-w-4xl mx-auto py-8">
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-3xl font-bold text-text-primary">Memos</h1>
+      <button id="newMemoBtn" class="hidden px-4 py-2 bg-accent text-white rounded-md hover:bg-accent-hover transition-colors font-medium">
+        + 새 메모
+      </button>
+    </div>
+
+    <!-- Auth Container -->
+    <div id="authContainer" class="bg-card border border-border rounded-lg p-6 max-w-md mx-auto">
+      <h2 class="text-xl font-semibold text-text-primary mb-4">🔑 인증 필요</h2>
+      <p class="text-text-secondary mb-4 text-sm">GitHub 토큰을 입력해주세요. 브라우저에만 저장됩니다.</p>
+      <input type="password" id="patInput" class="w-full bg-secondary border border-border rounded-md px-3 py-2 text-text-primary focus:outline-none focus:border-accent mb-4" placeholder="ghp_...">
+      <button id="saveAuthBtn" class="w-full bg-accent text-white rounded-md py-2 hover:bg-accent-hover transition-colors">
+        로그인
+      </button>
+    </div>
+
+    <!-- Memos Container -->
+    <div id="memosContainer" class="hidden">
+      <div class="text-text-secondary text-center py-8" id="loadingState">불러오는 중...</div>
+    </div>
+  </div>
+
+  <!-- New Memo Modal -->
+  <div id="memoModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-card border border-border rounded-lg w-full max-w-2xl flex flex-col max-h-[90vh]">
+      <div class="flex justify-between items-center p-4 border-b border-border">
+        <h2 class="text-xl font-semibold text-text-primary">새 메모</h2>
+        <button id="closeModalBtn" class="text-text-secondary hover:text-text-primary text-xl">✕</button>
+      </div>
+      <div class="p-4 flex-grow flex flex-col gap-4 overflow-y-auto">
+        <input type="text" id="memoTitle" class="w-full bg-secondary border border-border rounded-md px-3 py-2 text-text-primary focus:outline-none focus:border-accent" placeholder="메모 제목">
+        <textarea id="memoContent" class="w-full bg-secondary border border-border rounded-md px-3 py-2 text-text-primary focus:outline-none focus:border-accent flex-grow min-h-[200px] resize-none" placeholder="내용을 입력하세요..."></textarea>
+      </div>
+      <div class="p-4 border-t border-border flex justify-end gap-3">
+        <button id="cancelMemoBtn" class="px-4 py-2 bg-secondary text-text-primary rounded-md hover:bg-primary transition-colors">취소</button>
+        <button id="saveMemoBtn" class="px-4 py-2 bg-accent text-white rounded-md hover:bg-accent-hover transition-colors font-medium">저장</button>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script is:inline>
+  var REPO = 'Nekonic/Nekonic.github.io.data';
+  var MEMO_PATH = '_memos';
+
+  var authContainer = document.getElementById('authContainer');
+  var memosContainer = document.getElementById('memosContainer');
+  var patInput = document.getElementById('patInput');
+  var saveAuthBtn = document.getElementById('saveAuthBtn');
+  var newMemoBtn = document.getElementById('newMemoBtn');
+  var memoModal = document.getElementById('memoModal');
+  var closeModalBtn = document.getElementById('closeModalBtn');
+  var cancelMemoBtn = document.getElementById('cancelMemoBtn');
+  var saveMemoBtn = document.getElementById('saveMemoBtn');
+  var memoTitleInput = document.getElementById('memoTitle');
+  var memoContentInput = document.getElementById('memoContent');
+
+  function getPat() { return localStorage.getItem('github_pat'); }
+
+  function checkAuth() {
+    var pat = getPat();
+    if (pat) {
+      authContainer.classList.add('hidden');
+      memosContainer.classList.remove('hidden');
+      newMemoBtn.classList.remove('hidden');
+      fetchMemos();
+    } else {
+      authContainer.classList.remove('hidden');
+      memosContainer.classList.add('hidden');
+      newMemoBtn.classList.add('hidden');
+    }
+  }
+
+  saveAuthBtn.addEventListener('click', function() {
+    var pat = patInput.value.trim();
+    if (pat) {
+      localStorage.setItem('github_pat', pat);
+      checkAuth();
+    }
+  });
+
+  newMemoBtn.addEventListener('click', function() {
+    memoModal.classList.remove('hidden');
+    memoTitleInput.value = '';
+    memoContentInput.value = '';
+  });
+
+  closeModalBtn.addEventListener('click', function() { memoModal.classList.add('hidden'); });
+  cancelMemoBtn.addEventListener('click', function() { memoModal.classList.add('hidden'); });
+
+  async function fetchMemos() {
+    var pat = getPat();
+    if (!pat) return;
+
+    try {
+      var response = await fetch('https://api.github.com/repos/' + REPO + '/contents/' + MEMO_PATH, {
+        headers: { 'Authorization': 'Bearer ' + pat, 'Accept': 'application/vnd.github.v3+json' }
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) { localStorage.removeItem('github_pat'); checkAuth(); return; }
+        if (response.status === 404) { memosContainer.innerHTML = '<div class="text-text-secondary text-center py-8">메모가 없습니다. 첫 메모를 작성해보세요!</div>'; return; }
+        throw new Error('Failed');
+      }
+
+      var files = await response.json();
+      if (!files.length) { memosContainer.innerHTML = '<div class="text-text-secondary text-center py-8">메모가 없습니다.</div>'; return; }
+
+      memosContainer.innerHTML = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>';
+      var grid = memosContainer.firstChild;
+
+      for (var i = 0; i < files.length; i++) {
+        var file = files[i];
+        if (!file.name.endsWith('.md')) continue;
+
+        var contentRes = await fetch(file.download_url, { headers: { 'Authorization': 'Bearer ' + pat } });
+        var text = await contentRes.text();
+
+        var title = file.name.replace('.md', '');
+        var body = text;
+        var fmMatch = text.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+        if (fmMatch) {
+          var fm = fmMatch[1];
+          body = fmMatch[2].trim();
+          var titleMatch = fm.match(/title:\s*(.*)/);
+          if (titleMatch) title = titleMatch[1].replace(/['"]/g, '').trim();
+        }
+
+        var el = document.createElement('div');
+        el.className = 'bg-card border border-border rounded-lg p-5 flex flex-col gap-2';
+        el.innerHTML = '<h3 class="text-lg font-semibold text-text-primary">' + title + '</h3><div class="text-text-secondary text-sm mt-2">' + body.substring(0, 200) + '</div>';
+        grid.appendChild(el);
+      }
+    } catch (e) {
+      console.error(e);
+      memosContainer.innerHTML = '<div class="text-red-400 text-center py-8">메모를 불러올 수 없습니다.</div>';
+    }
+  }
+
+  saveMemoBtn.addEventListener('click', async function() {
+    var pat = getPat();
+    var title = memoTitleInput.value.trim();
+    var content = memoContentInput.value.trim();
+    if (!pat || !title || !content) return;
+
+    saveMemoBtn.textContent = '저장 중...';
+    saveMemoBtn.disabled = true;
+
+    var now = new Date();
+    var pad = function(n) { return n.toString().padStart(2, '0'); };
+    var dateStr = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate());
+    var filename = dateStr + '-' + title.toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-') + '.md';
+    var fileContent = '---\ntitle: "' + title + '"\ndate: ' + now.toISOString() + '\n---\n' + content;
+
+    try {
+      var response = await fetch('https://api.github.com/repos/' + REPO + '/contents/' + MEMO_PATH + '/' + filename, {
+        method: 'PUT',
+        headers: { 'Authorization': 'Bearer ' + pat, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'memo: ' + title, content: btoa(unescape(encodeURIComponent(fileContent))) })
+      });
+      if (response.ok) { memoModal.classList.add('hidden'); fetchMemos(); }
+      else { alert('저장 실패'); }
+    } catch (e) { alert('오류 발생'); }
+    finally { saveMemoBtn.textContent = '저장'; saveMemoBtn.disabled = false; }
+  });
+
+  checkAuth();
+</script>

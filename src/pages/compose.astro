@@ -1,0 +1,110 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Compose Tweet" description="Write a new tweet">
+  <div class="max-w-xl mx-auto py-8">
+    <div class="bg-card border border-border rounded-lg p-4 mb-4">
+      <div class="flex gap-4">
+        <img src="https://github.com/Nekonic.png" alt="Nekonic" class="w-12 h-12 rounded-full">
+        <div class="flex-grow flex flex-col gap-2">
+          <textarea 
+            id="tweetInput" 
+            class="w-full bg-transparent text-text-primary text-lg resize-none focus:outline-none min-h-[120px] placeholder:text-text-secondary/50"
+            placeholder="무슨 일이 일어나고 있나요?"
+            maxlength="280"
+          ></textarea>
+          
+          <div class="border-t border-border pt-3 flex justify-between items-center">
+            <span id="charCount" class="text-sm text-text-secondary">0 / 280</span>
+            <button id="postBtn" disabled class="px-5 py-2 bg-accent text-white rounded-full hover:bg-accent-hover transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+              게시하기
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="statusMsg" class="hidden px-4 py-3 rounded-md text-sm"></div>
+  </div>
+</BaseLayout>
+
+<script is:inline>
+  const tweetInput = document.getElementById('tweetInput');
+  const charCount = document.getElementById('charCount');
+  const postBtn = document.getElementById('postBtn');
+  const statusMsg = document.getElementById('statusMsg');
+  
+  const REPO = 'Nekonic/Nekonic.github.io';
+  const PATH = '_tweets';
+
+  tweetInput.addEventListener('input', function() {
+    var len = tweetInput.value.length;
+    charCount.textContent = len + ' / 280';
+    postBtn.disabled = !(len > 0 && len <= 280);
+    tweetInput.style.height = 'auto';
+    tweetInput.style.height = tweetInput.scrollHeight + 'px';
+  });
+
+  function showStatus(msg, isError) {
+    statusMsg.textContent = msg;
+    statusMsg.className = 'px-4 py-3 rounded-md text-sm mt-4 ' + (isError ? 'bg-red-900/30 text-red-400 border border-red-900' : 'bg-green-900/30 text-green-400 border border-green-900');
+    statusMsg.classList.remove('hidden');
+    setTimeout(function() { statusMsg.classList.add('hidden'); }, 5000);
+  }
+
+  postBtn.addEventListener('click', async function() {
+    var pat = localStorage.getItem('github_pat');
+    if (!pat) {
+      showStatus('토큰이 없습니다. Memos 페이지에서 먼저 토큰을 설정해주세요.', true);
+      return;
+    }
+
+    var content = tweetInput.value.trim();
+    if (!content) return;
+
+    postBtn.disabled = true;
+    postBtn.textContent = '전송 중...';
+
+    var now = new Date();
+    var pad = function(n) { return n.toString().padStart(2, '0'); };
+    var dateStr = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate());
+    var timeStr = pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
+    var filename = dateStr + '-' + timeStr + '.md';
+
+    var fileContent = '---\ntitle: "' + dateStr + ' tweet"\ndate: ' + now.toISOString() + '\nlayout: tweet\n---\n' + content;
+
+    try {
+      var response = await fetch('https://api.github.com/repos/' + REPO + '/contents/' + PATH + '/' + filename, {
+        method: 'PUT',
+        headers: {
+          'Authorization': 'Bearer ' + pat,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: 'tweet: ' + content.substring(0, 30),
+          content: btoa(unescape(encodeURIComponent(fileContent)))
+        })
+      });
+
+      if (response.ok) {
+        showStatus('트윗이 게시되었습니다!', false);
+        tweetInput.value = '';
+        charCount.textContent = '0 / 280';
+        tweetInput.style.height = 'auto';
+      } else {
+        var err = await response.json();
+        showStatus('게시 실패: ' + err.message, true);
+      }
+    } catch (e) {
+      showStatus('네트워크 오류가 발생했습니다.', true);
+    } finally {
+      postBtn.disabled = false;
+      postBtn.textContent = '게시하기';
+    }
+  });
+
+  if (!localStorage.getItem('github_pat')) {
+    showStatus('토큰이 없습니다. Memos 페이지에서 먼저 토큰을 설정해주세요.', true);
+  }
+</script>

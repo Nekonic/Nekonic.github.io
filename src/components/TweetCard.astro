@@ -1,0 +1,30 @@
+---
+import { formatDate } from '../lib/utils';
+
+export interface Props {
+    content?: string;
+    date?: Date;
+}
+
+const { content = '', date } = Astro.props;
+---
+<article class="bg-card border border-border rounded-lg p-5 hover:border-accent transition-colors duration-200">
+    <div class="flex items-start gap-4">
+        <a href="https://github.com/Nekonic" target="_blank" rel="noopener noreferrer" class="flex-shrink-0 mt-1">
+            <img 
+                src="https://github.com/Nekonic.png" 
+                alt="Nekonic Avatar" 
+                class="w-10 h-10 rounded-full border border-border hover:border-accent transition-colors"
+            />
+        </a>
+        <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between mb-1">
+                <span class="font-semibold text-text-primary">Nekonic</span>
+            </div>
+            <div class="text-text-primary whitespace-pre-wrap text-sm leading-relaxed mb-3">
+                {content}
+            </div>
+            {date && <time class="text-xs text-text-secondary">{formatDate(date)}</time>}
+        </div>
+    </div>
+</article>

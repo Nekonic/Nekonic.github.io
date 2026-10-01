@@ -1,0 +1,29 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TweetCard from '../../components/TweetCard.astro';
+import { getCollection } from 'astro:content';
+
+const allTweets = await getCollection('tweets');
+const sortedTweets = allTweets.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<BaseLayout title="Tweets" description="Short thoughts and updates">
+  <div class="mb-8 flex justify-between items-center">
+    <div>
+      <h1 class="text-3xl font-bold text-text-primary mb-2">Tweets</h1>
+      <p class="text-text-secondary">Short thoughts and updates.</p>
+    </div>
+    <a href="/compose" class="px-4 py-2 bg-accent text-white rounded-md hover:bg-accent-hover transition-colors font-medium">
+      Compose
+    </a>
+  </div>
+  
+  <div class="flex flex-col gap-6 max-w-2xl mx-auto">
+    {sortedTweets.map(tweet => (
+      <TweetCard 
+        content={tweet.body}
+        date={tweet.data.date}
+      />
+    ))}
+  </div>
+</BaseLayout>

@@ -1,7 +1,23 @@
-*.gem
-.bundle
-.sass-cache
-_site
-Gemfile.lock
-.idea
+# build output
+dist/
+.netlify/
+.vercel/
+
+# dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+
+# OS generated files
 .DS_Store
+Thumbs.db
+
+# Astro generated files
+.astro/
+
+_site/
+.idea/
+Gemfile.lock
+

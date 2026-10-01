@@ -1,0 +1,42 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+import { getDateFromId } from '../lib/utils';
+
+const allPosts = await getCollection('blog');
+let allTweets: any[] = [];
+try { allTweets = await getCollection('tweets'); } catch {}
+
+const recentPosts = allPosts
+  .sort((a, b) => getDateFromId(a.id, a.data.date).valueOf() - getDateFromId(b.id, b.data.date).valueOf())
+  .reverse()
+  .slice(0, 6);
+---
+
+<BaseLayout title="Home" description="C++ Programmer & Developer">
+  <section class="py-12 md:py-20">
+    <h1 class="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent to-purple-400 mb-4">
+      Nekonic
+    </h1>
+    <p class="text-xl text-text-secondary">C++ Programmer & Developer</p>
+  </section>
+
+  <section class="mb-16">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-semibold text-text-primary">Recent Posts</h2>
+      <a href="/blog" class="text-accent hover:text-accent-hover transition-colors">View all &rarr;</a>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {recentPosts.map(post => (
+        <PostCard 
+          title={post.data.title}
+          date={getDateFromId(post.id, post.data.date)}
+          categories={post.data.categories}
+          tags={post.data.tags}
+          slug={post.id}
+        />
+      ))}
+    </div>
+  </section>
+</BaseLayout>
