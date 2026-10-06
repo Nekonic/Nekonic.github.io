@@ -7,7 +7,7 @@ tags: hacking network server
 
 ## 1. 리버스 프록시란 무엇인가?
 리버스 프록시는 클라이언트의 요청을 받아 내부 서버로 전달하고, 서버의 응답을 다시 클라이언트에게 전달하는 중개 서버이다. 이는 서버 측에 위치하여 외부로부터의 직접적인 접근을 차단하고, 다양한 부가 기능을 제공한다.  
-![img](/assets/images/Reverse_Proxy/a.png)
+![img](/assets/images/posts/2024-10-14-Reverse_Proxy/a.png)
   
 리버스 프록시의 주요 기능은 다음과 같다:
   

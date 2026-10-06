@@ -115,6 +115,8 @@ const postList = allPosts.map(p => ({
       </div>
 
       <div class="text-xs font-mono text-text-muted flex items-center gap-3">
+        <button id="imageBtn" type="button" class="px-2.5 py-1 rounded border border-borderSubtle bg-secondary hover:text-text-primary">🖼 이미지 추가</button>
+        <input type="file" id="imageInput" accept="image/*" multiple class="hidden" />
         <span id="charCount">0 characters</span>
       </div>
     </div>
@@ -188,6 +190,108 @@ const postList = allPosts.map(p => ({
 
   var currentEditingSha = null;
 
+  // ---- Image upload (원본 파일 그대로 public/assets/images/posts/<slug>/ 에 저장) ----
+  var REPO_API = 'https://api.github.com/repos/Nekonic/Nekonic.github.io';
+  var pendingImages = {}; // publicPath -> { file, blobUrl, repoPath }
+
+  function sanitizeName(name) {
+    var dot = name.lastIndexOf('.');
+    var base = dot > 0 ? name.slice(0, dot) : name;
+    var ext = dot > 0 ? name.slice(dot + 1).toLowerCase() : 'png';
+    base = base.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'image';
+    return base + '-' + Date.now().toString(36) + '.' + ext;
+  }
+
+  function addImageFiles(files) {
+    var folder = (postSlug.value.trim().replace(/\.md$/, '')) || 'untitled';
+    var inserts = [];
+    Array.prototype.forEach.call(files, function(file) {
+      if (!file.type.startsWith('image/')) return;
+      var fileName = sanitizeName(file.name || 'image.png');
+      var publicPath = '/assets/images/posts/' + folder + '/' + fileName;
+      pendingImages[publicPath] = {
+        file: file,
+        blobUrl: URL.createObjectURL(file),
+        repoPath: 'public' + publicPath
+      };
+      inserts.push('![](' + publicPath + ')');
+    });
+    if (!inserts.length) return;
+    var start = postContent.selectionStart, end = postContent.selectionEnd;
+    var text = inserts.join('\n\n') + '\n';
+    postContent.value = postContent.value.slice(0, start) + text + postContent.value.slice(end);
+    postContent.selectionStart = postContent.selectionEnd = start + text.length;
+    postContent.focus();
+    updatePreview();
+  }
+
+  postContent.addEventListener('paste', function(e) {
+    var items = e.clipboardData && e.clipboardData.files;
+    if (items && items.length && Array.prototype.some.call(items, function(f) { return f.type.startsWith('image/'); })) {
+      e.preventDefault();
+      addImageFiles(items);
+    }
+  });
+  postContent.addEventListener('dragover', function(e) { e.preventDefault(); });
+  postContent.addEventListener('drop', function(e) {
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+      e.preventDefault();
+      addImageFiles(e.dataTransfer.files);
+    }
+  });
+  document.getElementById('imageBtn').addEventListener('click', function() {
+    document.getElementById('imageInput').click();
+  });
+  document.getElementById('imageInput').addEventListener('change', function(e) {
+    addImageFiles(e.target.files);
+    e.target.value = '';
+  });
+
+  function fileToBase64(file) {
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function() { resolve(String(reader.result).split(',')[1]); };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function gh(path, method, body, pat) {
+    var res = await fetch(REPO_API + path, {
+      method: method,
+      headers: { 'Authorization': 'Bearer ' + pat, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.message || ('HTTP ' + res.status));
+    return data;
+  }
+
+  // 글 + 이미지를 하나의 커밋으로 발행 (Git Data API)
+  async function publishWithImages(pat, slug, fileContent, title, imagePaths) {
+    var repo = await gh('', 'GET', null, pat);
+    var branch = repo.default_branch;
+    var ref = await gh('/git/ref/heads/' + branch, 'GET', null, pat);
+    var baseCommit = await gh('/git/commits/' + ref.object.sha, 'GET', null, pat);
+
+    var entries = [];
+    for (var i = 0; i < imagePaths.length; i++) {
+      var img = pendingImages[imagePaths[i]];
+      var blob = await gh('/git/blobs', 'POST', { content: await fileToBase64(img.file), encoding: 'base64' }, pat);
+      entries.push({ path: img.repoPath, mode: '100644', type: 'blob', sha: blob.sha });
+    }
+    var postBlob = await gh('/git/blobs', 'POST', { content: fileContent, encoding: 'utf-8' }, pat);
+    entries.push({ path: 'src/content/blog/' + slug, mode: '100644', type: 'blob', sha: postBlob.sha });
+
+    var tree = await gh('/git/trees', 'POST', { base_tree: baseCommit.tree.sha, tree: entries }, pat);
+    var commit = await gh('/git/commits', 'POST', {
+      message: 'post: ' + title + ' (+' + imagePaths.length + ' image' + (imagePaths.length > 1 ? 's' : '') + ')',
+      tree: tree.sha,
+      parents: [ref.object.sha]
+    }, pat);
+    await gh('/git/refs/heads/' + branch, 'PATCH', { sha: commit.sha }, pat);
+  }
+
   // Live Markdown Preview
   function updatePreview() {
     var raw = postContent.value;
@@ -199,9 +303,16 @@ const postList = allPosts.map(p => ({
     }
 
     if (window.marked) {
-      previewContent.innerHTML = marked.parse(raw);
+      var src = raw;
+      // 업로드 대기 중인 이미지는 blob URL로 미리보기
+      Object.keys(pendingImages).forEach(function(p) { src = src.split(p).join(pendingImages[p].blobUrl); });
+      // 정렬 문법: ![alt](url){left|right|center} (기존 {: .align-left} 도 지원)
+      src = src.replace(/!\[([^\]]*)\]\(([^)\s]+)\)\{:?\s*\.?(?:align-)?(left|right|center)(?:-block)?\s*:?\}/g,
+        function(_, alt, url, a) { return '<img src="' + url + '" alt="' + alt + '" class="img-' + a + '">'; });
+      previewContent.innerHTML = marked.parse(src);
     }
   }
+
 
   postContent.addEventListener('input', updatePreview);
 
@@ -336,6 +447,26 @@ const postList = allPosts.map(p => ({
     frontmatter += '---\n\n';
 
     var fullFileContent = frontmatter + content;
+
+    // 본문에서 실제로 참조 중인 이미지만 함께 커밋
+    var usedImages = Object.keys(pendingImages).filter(function(p) { return fullFileContent.indexOf(p) !== -1; });
+    if (usedImages.length > 0) {
+      try {
+        await publishWithImages(pat, slug, fullFileContent, title, usedImages);
+        usedImages.forEach(function(p) { URL.revokeObjectURL(pendingImages[p].blobUrl); delete pendingImages[p]; });
+        currentEditingSha = null;
+        fetchFileSha(slug);
+        showAlert('글과 이미지가 한 커밋으로 저장되었습니다! GitHub Actions 배포 후 반영됩니다.', false);
+        publishBtnText.textContent = '발행 완료!';
+        setTimeout(function() { publishBtnText.textContent = '수정 저장하기'; }, 3000);
+      } catch(e) {
+        showAlert('저장 실패: ' + e.message, true);
+        publishBtnText.textContent = '저장 실패';
+      } finally {
+        publishBtn.disabled = false;
+      }
+      return;
+    }
 
     var reqBody = {
       message: (currentEditingSha ? 'edit post: ' : 'post: ') + title,

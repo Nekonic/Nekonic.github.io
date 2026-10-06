@@ -24,7 +24,7 @@ SCL -> A5
 SDA -> A4  
   
 그림으로 보면 이렇다.
-![image](/assets/images/2024-02-Arduino_Project/1/oled1.png)
+![image](/assets/images/posts/2024-02-17-1Arduino_Project/oled1.png)
 
 ### hello world 출력
 
@@ -66,7 +66,7 @@ void loop() {
 ```
 
 출력결과
-![image](/assets/images/2024-02-Arduino_Project/1/hello_world.jpg)
+![image](/assets/images/posts/2024-02-17-1Arduino_Project/hello-world.jpg)
 
 ## 3. OLED 응용하기
 
@@ -103,6 +103,6 @@ void loop() {
 }
 ```
 출력결과
-![image](/assets/images/2024-02-Arduino_Project/1/graph.jpg)
+![image](/assets/images/posts/2024-02-17-1Arduino_Project/graph.jpg)
 
 ### 2차원 그래프를 그려보자

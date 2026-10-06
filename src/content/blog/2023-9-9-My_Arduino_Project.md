@@ -15,7 +15,7 @@ tags: arduino music
 
 ## 2. 미세먼지 측정기
 
-![image](/assets/images/My_Arduino_Project/IMG_0188.jpeg)
+![image](/assets/images/posts/2023-9-9-My_Arduino_Project/img-0188.jpeg)
 
 미세먼지는 키트가 있었는데 따로 좋음,보통,나쁨을 간단하게 확인할 수 있게 따로 LED를 넣어서 코드를 직접 짜서 넣었다.  
 
