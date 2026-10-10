@@ -1,28 +1,194 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import PostCard from '../../components/PostCard.astro';
+import Icon from '../../components/Icon.astro';
 import { getCollection } from 'astro:content';
-import { getDateFromId } from '../../lib/utils';
+import { getDateFromId, toArray, categoryStyle } from '../../lib/utils';
 
 const allPosts = await getCollection('blog');
-const sortedPosts = allPosts.sort((a, b) => getDateFromId(b.id, b.data.date).valueOf() - getDateFromId(a.id, a.data.date).valueOf());
+const posts = allPosts
+  .map((post) => {
+    const date = getDateFromId(post.id, post.data.date);
+    const cats = toArray(post.data.categories);
+    const tags = toArray(post.data.tags);
+    return {
+      id: post.id,
+      title: post.data.title,
+      date,
+      cats,
+      tags,
+      style: categoryStyle(cats[0]),
+    };
+  })
+  .sort((a, b) => b.date.valueOf() - a.date.valueOf());
+
+const years = new Map<number, typeof posts>();
+for (const p of posts) {
+  const y = p.date.getFullYear();
+  if (!years.has(y)) years.set(y, []);
+  years.get(y)!.push(p);
+}
+
+const catCounts = new Map<string, number>();
+for (const p of posts) for (const c of p.cats) catCounts.set(c, (catCounts.get(c) ?? 0) + 1);
+const topCats = [...catCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+const firstYear = posts.at(-1)?.date.getFullYear();
+const lastYear = posts[0]?.date.getFullYear();
+const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 ---
 
-<BaseLayout title="Blog" description="All blog posts">
-  <div class="mb-8">
-    <h1 class="text-3xl font-bold text-text-primary mb-2">Blog</h1>
-    <p class="text-text-secondary">Thoughts, learnings, and projects.</p>
-  </div>
-  
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    {sortedPosts.map(post => (
-      <PostCard 
-        title={post.data.title}
-        date={getDateFromId(post.id, post.data.date)}
-        categories={post.data.categories}
-        tags={post.data.tags}
-        slug={post.id}
-      />
+<BaseLayout title="Blog" description="All blog posts" tab="posts/" tabIcon="folder" crumbs={['posts']} status={[`${posts.length} posts · ${catCounts.size} categories`, 'UTF-8']} wide={true}>
+  <div class="flex flex-col gap-5">
+    <div class="flex items-baseline gap-3 flex-wrap">
+      <h1 class="text-[26px] font-bold tracking-tight text-white">Posts</h1>
+      <span class="font-mono text-[13px] text-text-secondary">{posts.length} files · {firstYear} — {lastYear}</span>
+    </div>
+
+    <!-- Find toolbar -->
+    <div id="filter" class="flex flex-col gap-2.5 p-2.5 bg-secondary rounded-lg scroll-mt-16">
+      <label class="flex items-center gap-2 h-8 px-2.5 bg-primary border border-border rounded-md focus-within:border-accent transition-colors">
+        <Icon name="search" size={14} class="text-text-secondary" />
+        <input id="filterInput" type="search" placeholder="제목, 카테고리, 태그로 찾기" aria-label="글 찾기" class="flex-1 min-w-0 bg-transparent border-0 outline-none text-text-primary placeholder:text-text-muted" />
+        <span id="matchCount" class="font-mono text-[11px] text-text-muted"></span>
+      </label>
+      <div class="flex flex-wrap gap-1.5" id="catChips">
+        <button type="button" data-cat="" class="cat-chip h-[26px] px-2.5 rounded-full text-xs border border-transparent bg-accent text-white">전체 {posts.length}</button>
+        {topCats.map(([c, n]) => (
+          <button type="button" data-cat={c} class="cat-chip h-[26px] px-2.5 rounded-full text-xs border border-border text-text-body hover:border-borderHover">{c} {n}</button>
+        ))}
+      </div>
+    </div>
+
+    <!-- Private posts (토큰이 있을 때만 채워짐) -->
+    <section id="privateGroup" class="hidden flex-col">
+      <h2 class="m-0 px-2.5 py-1.5 flex items-center gap-2 font-mono text-xs font-medium text-text-secondary border-b border-borderSubtle">
+        <Icon name="lock" size={12} />
+        private <span id="privateCount" class="text-text-faint"></span>
+      </h2>
+      <div id="privateRows" class="flex flex-col"></div>
+    </section>
+
+    {[...years.entries()].map(([year, list], i) => (
+      <details open={i < 2} class="year-group group/year">
+        <summary class="list-none cursor-pointer px-2.5 py-1.5 flex items-center gap-2 font-mono text-xs font-medium text-text-secondary border-b border-borderSubtle hover:text-text-primary">
+          <Icon name="chevron-right" size={12} class="transition-transform group-open/year:rotate-90" />
+          {year} <span class="text-text-faint">· <span class="year-count">{list.length}</span></span>
+        </summary>
+        <div class="flex flex-col pt-1">
+          {list.map((p) => (
+            <a
+              href={`/blog/${p.id}`}
+              class="post-row grid grid-cols-[52px_minmax(0,1fr)] sm:grid-cols-[64px_minmax(0,1fr)_auto] gap-x-4 gap-y-1 items-center px-2.5 py-2.5 rounded-md hover:bg-accent/15 transition-colors"
+              data-search={`${p.title} ${p.cats.join(' ')} ${p.tags.join(' ')}`.toLowerCase()}
+              data-cats={JSON.stringify(p.cats)}
+            >
+              <span class="font-mono text-xs text-text-secondary">{mmdd(p.date)}</span>
+              <span class="text-sm font-medium text-text-primary truncate">{p.title}</span>
+              <span class="col-start-2 sm:col-start-auto flex gap-1.5 font-mono text-[11px] min-w-0">
+                {p.cats[0] && <span class="px-1.5 py-0.5 rounded whitespace-nowrap" style={`background:${p.style.chipBg};color:${p.style.chipText}`}>{p.cats[0]}</span>}
+                {p.tags.length > 0 && <span class="py-0.5 text-text-secondary truncate hidden md:inline">{p.tags.slice(0, 2).map((t) => `#${t}`).join(' ')}</span>}
+              </span>
+            </a>
+          ))}
+        </div>
+      </details>
     ))}
+
+    <p id="noMatch" class="hidden text-center py-10 font-mono text-xs text-text-muted">일치하는 글이 없습니다.</p>
   </div>
 </BaseLayout>
+
+<script>
+  import { getPat, listPrivatePosts } from '../../lib/private-posts';
+
+  const input = document.getElementById('filterInput') as HTMLInputElement;
+  const matchCount = document.getElementById('matchCount')!;
+  const noMatch = document.getElementById('noMatch')!;
+  const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('.cat-chip'));
+  let activeCat = '';
+
+  const ACTIVE = ['bg-accent', 'text-white', 'border-transparent'];
+  const IDLE = ['border-border', 'text-text-body', 'hover:border-borderHover'];
+
+  function apply() {
+    const q = input.value.trim().toLowerCase();
+    const filtering = q !== '' || activeCat !== '';
+    let total = 0;
+    document.querySelectorAll<HTMLElement>('.year-group, #privateGroup').forEach((group) => {
+      let visible = 0;
+      group.querySelectorAll<HTMLElement>('.post-row').forEach((row) => {
+        const cats: string[] = JSON.parse(row.dataset.cats || '[]');
+        const ok = (!q || (row.dataset.search || '').includes(q)) && (!activeCat || cats.includes(activeCat));
+        row.style.display = ok ? '' : 'none';
+        if (ok) visible++;
+      });
+      total += visible;
+      if (group.id === 'privateGroup') {
+        if (group.dataset.loaded) group.style.display = visible ? '' : 'none';
+        return;
+      }
+      group.style.display = visible ? '' : 'none';
+      const count = group.querySelector('.year-count');
+      if (count) count.textContent = String(visible);
+      if (filtering && visible) (group as HTMLDetailsElement).open = true;
+    });
+    matchCount.textContent = filtering ? `${total} matches` : '';
+    noMatch.classList.toggle('hidden', total > 0);
+  }
+
+  chips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      activeCat = chip.dataset.cat || '';
+      chips.forEach((c) => {
+        const on = c === chip;
+        c.classList.remove(...(on ? IDLE : ACTIVE));
+        c.classList.add(...(on ? ACTIVE : IDLE));
+      });
+      apply();
+    });
+  });
+  input.addEventListener('input', apply);
+
+  const q = new URLSearchParams(location.search).get('q');
+  if (q) {
+    input.value = q;
+    apply();
+  }
+  if (location.hash === '#filter') input.focus();
+
+  // 비밀글: 토큰이 있는 브라우저에서만 비공개 저장소에서 불러옵니다
+  const pat = getPat();
+  if (pat) {
+    listPrivatePosts(pat).then((list) => {
+      if (!list || list.length === 0) return;
+      const group = document.getElementById('privateGroup')!;
+      const rows = document.getElementById('privateRows')!;
+      document.getElementById('privateCount')!.textContent = `· ${list.length}`;
+      for (const p of list) {
+        const a = document.createElement('a');
+        a.href = `/secret?id=${encodeURIComponent(p.id)}`;
+        a.className = 'post-row grid grid-cols-[52px_minmax(0,1fr)] sm:grid-cols-[64px_minmax(0,1fr)_auto] gap-x-4 gap-y-1 items-center px-2.5 py-2.5 rounded-md hover:bg-accent/15 transition-colors';
+        a.dataset.search = `${p.title} ${p.categories.join(' ')} ${p.tags.join(' ')}`.toLowerCase();
+        a.dataset.cats = JSON.stringify(p.categories);
+        const d = document.createElement('span');
+        d.className = 'font-mono text-xs text-text-secondary';
+        d.textContent = p.date.slice(5);
+        const t = document.createElement('span');
+        t.className = 'text-sm font-medium text-text-primary truncate';
+        t.textContent = p.title;
+        const c = document.createElement('span');
+        c.className = 'col-start-2 sm:col-start-auto flex gap-1.5 font-mono text-[11px]';
+        const badge = document.createElement('span');
+        badge.className = 'px-1.5 py-0.5 rounded bg-secondary text-text-body whitespace-nowrap';
+        badge.textContent = p.categories[0] ? `private · ${p.categories[0]}` : 'private';
+        c.append(badge);
+        a.append(d, t, c);
+        rows.append(a);
+      }
+      group.dataset.loaded = '1';
+      group.classList.remove('hidden');
+      group.classList.add('flex');
+      apply();
+    });
+  }
+</script>

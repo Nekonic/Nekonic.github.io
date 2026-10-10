@@ -1,52 +1,70 @@
 ---
 import '../styles/global.css';
+import Icon from '../components/Icon.astro';
+import { getCollection } from 'astro:content';
+import { getDateFromId } from '../lib/utils';
+
+type Crumb = string | { label: string; href?: string };
 
 interface Props {
   title: string;
   description?: string;
   wide?: boolean;
+  /** 에디터 탭에 표시할 이름 (기본: title) */
+  tab?: string;
+  /** 탭 아이콘 */
+  tabIcon?: string;
+  /** 에디터 상단/상태 표시줄 경로 */
+  crumbs?: Crumb[];
+  /** 왼쪽 Project 트리 표시 여부 */
+  tree?: boolean;
+  /** 상태 표시줄 오른쪽 정보 */
+  status?: string[];
 }
 
-const { title, description = "C++ Programmer & Developer", wide = false } = Astro.props;
-const pathname = Astro.url.pathname;
+const {
+  title,
+  description = "C++ Programmer & Developer",
+  wide = false,
+  tab = title,
+  tabIcon = 'md',
+  crumbs = [],
+  tree = false,
+  status = ['UTF-8', 'LF'],
+} = Astro.props;
+const pathname = Astro.url.pathname.replace(/\/$/, '') || '/';
 
 const navItems = [
-  {
-    href: "/",
-    label: "Home",
-    // Home icon SVG
-    svg: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`
-  },
-  {
-    href: "/blog",
-    label: "Blog",
-    // FileText / Posts icon
-    svg: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>`
-  },
-  {
-    href: "/tweets",
-    label: "Tweets",
-    // MessageSquare icon
-    svg: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`
-  },
-  {
-    href: "/memos",
-    label: "Memos",
-    // Lock / Key icon for private memos
-    svg: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
-  },
-  {
-    href: "/about",
-    label: "About",
-    // User / Info icon
-    svg: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`
-  },
+  { href: "/", label: "Home", icon: "folder" },
+  { href: "/blog", label: "Blog", icon: "file" },
+  { href: "/tweets", label: "Tweets", icon: "chat" },
+  { href: "/memos", label: "Memos", icon: "lock" },
+  { href: "/about", label: "About", icon: "user" },
 ];
 
 function isActive(href: string) {
   if (href === "/") return pathname === "/";
+  if (href === "/blog") return pathname.startsWith("/blog") || pathname.startsWith("/secret");
   return pathname.startsWith(href);
 }
+
+const crumbItems = crumbs.map((c) => (typeof c === 'string' ? { label: c } : c));
+
+// Project 트리: 연도별 글 목록
+let treeYears: { year: string; posts: { id: string; title: string }[] }[] = [];
+if (tree) {
+  const posts = (await getCollection('blog'))
+    .map((p) => ({ id: p.id, title: p.data.title, date: getDateFromId(p.id, p.data.date) }))
+    .sort((a, b) => b.date.valueOf() - a.date.valueOf());
+  const byYear = new Map<string, { id: string; title: string }[]>();
+  for (const p of posts) {
+    const y = String(p.date.getFullYear());
+    if (!byYear.has(y)) byYear.set(y, []);
+    byYear.get(y)!.push({ id: p.id, title: p.title });
+  }
+  treeYears = [...byYear.entries()].map(([year, posts]) => ({ year, posts }));
+}
+const hasAside = Astro.slots.has('aside');
 ---
 
 <!DOCTYPE html>
@@ -72,138 +90,217 @@ function isActive(href: string) {
     gtag('config', 'G-4FX5NFXY7Z');
   </script>
 </head>
-<body class="bg-primary text-text-primary font-sans antialiased min-h-screen">
-  <!-- Mobile Header -->
-  <header class="lg:hidden fixed top-0 left-0 right-0 z-50 bg-secondary border-b border-border px-4 h-14 flex items-center justify-between">
-    <div class="flex items-center gap-2">
-      <span class="inline-block w-2.5 h-2.5 rounded-sm bg-gradient-to-tr from-amber-500 via-rose-500 to-accent"></span>
-      <span class="text-base font-bold text-text-primary tracking-tight">Nekonic</span>
-    </div>
-    <button id="menuToggle" class="text-text-secondary hover:text-text-primary p-2 focus:outline-none">
-      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M3 12h18M3 6h18M3 18h18" />
-      </svg>
-    </button>
+<body class="bg-ground text-text-primary font-sans antialiased text-[13px]">
+<div class="min-h-screen flex flex-col pb-16 lg:pb-0">
+
+  <!-- Main toolbar -->
+  <header class="sticky top-0 z-40 h-11 bg-ground flex items-center gap-1.5 px-2.5">
+    <a href="/" class="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-secondary transition-colors">
+      <span class="w-5 h-5 rounded-[5px] bg-accent text-white font-mono text-[10px] font-semibold flex items-center justify-center">NK</span>
+      <span class="font-semibold text-text-primary"><span class="hidden sm:inline">nekonic.github.io</span><span class="sm:hidden">nekonic</span></span>
+    </a>
+    <span class="hidden md:flex items-center gap-1.5 px-2 py-1 text-text-secondary">
+      <Icon name="branch" size={14} />
+      <span>main</span>
+    </span>
+
+    <div class="flex-1"></div>
+
+    <form action="/blog" method="get" role="search" class="hidden md:flex items-center gap-2 h-7 w-72 px-2.5 bg-primary border border-borderSubtle rounded-md text-text-muted focus-within:border-accent transition-colors">
+      <Icon name="search" size={14} />
+      <input id="globalSearch" type="search" name="q" placeholder="Search Everywhere" aria-label="글 검색" class="flex-1 min-w-0 bg-transparent border-0 outline-none text-text-primary placeholder:text-text-muted" />
+      <kbd class="font-mono text-[11px] text-text-muted">⇧⇧</kbd>
+    </form>
+    <a href="/blog#filter" aria-label="글 검색" class="md:hidden w-10 h-10 flex items-center justify-center rounded-md text-text-secondary hover:bg-secondary">
+      <Icon name="search" />
+    </a>
+
+    <div class="hidden md:block flex-1"></div>
+
+    <a href="/write" class="hidden sm:flex items-center gap-1.5 h-7 px-2.5 rounded-md bg-secondary hover:bg-border text-text-primary transition-colors">
+      <Icon name="play" size={12} />
+      <span>새 포스트</span>
+    </a>
+    <a href="/compose" class="hidden md:flex items-center gap-1.5 h-7 px-2.5 rounded-md text-text-secondary hover:bg-secondary hover:text-text-primary transition-colors">
+      <Icon name="plus" size={14} />
+      <span>트윗</span>
+    </a>
+    <a href="https://github.com/Nekonic" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="w-8 h-7 flex items-center justify-center rounded-md text-text-secondary hover:bg-secondary hover:text-text-primary transition-colors">
+      <Icon name="github" />
+    </a>
   </header>
 
-  <!-- Sidebar Overlay (Mobile) -->
-  <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 hidden lg:hidden"></div>
+  <div class="flex-1 flex items-stretch gap-1.5 px-1.5 lg:pl-0">
 
-  <!-- Sidebar (JetBrains New UI style) -->
-  <aside id="sidebar" class="fixed top-0 left-0 h-full w-60 bg-secondary border-r border-border z-50 flex flex-col transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-in-out">
-    <!-- Brand Header -->
-    <div class="p-5 border-b border-border/60">
-      <a href="/" class="flex items-center gap-2.5 group">
-        <!-- JetBrains Logo Icon Style -->
-        <span class="w-4 h-4 rounded-xs bg-gradient-to-tr from-amber-500 via-rose-500 to-accent shadow-xs group-hover:rotate-12 transition-transform duration-200"></span>
-        <span class="text-lg font-bold text-text-primary tracking-tight group-hover:text-white transition-colors">
-          Nekonic
-        </span>
-      </a>
-      <div class="mt-2 flex items-center gap-2">
-        <span class="text-[11px] font-mono text-text-muted px-1.5 py-0.5 rounded bg-primary/70 border border-border/80">
-          C++ / Systems
-        </span>
-      </div>
-    </div>
-
-    <!-- Navigation List -->
-    <nav class="flex-1 px-2.5 py-4 space-y-1">
-      <div class="text-[10px] font-mono font-medium text-text-muted uppercase tracking-wider px-3 mb-2">
-        Project Explorer
-      </div>
-      {navItems.map((item) => {
-        const active = isActive(item.href);
-        return (
+    <!-- Tool window stripe -->
+    <nav aria-label="사이트 메뉴" class="hidden lg:flex w-10 shrink-0 flex-col items-center gap-1 pt-1 sticky top-11 self-start">
+      {navItems.map((item, i) => (
+        <>
+          {i === navItems.length - 1 && <span class="w-5 h-px bg-borderSubtle my-1"></span>}
           <a
             href={item.href}
+            aria-label={item.label}
+            title={item.label}
             class:list={[
-              "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all group relative",
-              active
-                ? "bg-[#35373c] text-text-primary shadow-xs"
-                : "text-text-secondary hover:text-text-primary hover:bg-[#35373c]/50",
+              "w-[30px] h-[30px] rounded-md flex items-center justify-center transition-colors",
+              isActive(item.href) ? "bg-accent/20 text-accent-soft" : "text-text-secondary hover:bg-secondary hover:text-text-primary",
             ]}
           >
-            {active && (
-              <span class="absolute left-0 top-1.5 bottom-1.5 w-1 bg-accent rounded-r"></span>
-            )}
-            <span class:list={[
-              "transition-colors",
-              active ? "text-accent" : "text-text-muted group-hover:text-text-secondary"
-            ]} set:html={item.svg}></span>
-            <span>{item.label}</span>
+            <Icon name={item.icon} />
           </a>
-        );
-      })}
-
-      <!-- Actions -->
-      <div class="pt-4 px-1 space-y-2">
-        <a
-          href="/write"
-          class="flex items-center justify-center gap-2 w-full py-2 bg-secondary hover:bg-[#35373c] text-text-primary border border-borderSubtle hover:border-accent rounded-md text-xs font-semibold tracking-wide transition-colors"
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          새 포스트 작성
-        </a>
-
-        <a
-          href="/compose"
-          class="flex items-center justify-center gap-2 w-full py-2 bg-accent/90 hover:bg-accent text-white rounded-md text-xs font-semibold tracking-wide shadow-xs transition-colors"
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-          새 트윗 작성
-        </a>
-      </div>
+        </>
+      ))}
     </nav>
 
-    <!-- Bottom Status Bar style -->
-    <div class="p-3 border-t border-border/60 bg-secondary/80 flex items-center justify-between text-[11px] font-mono text-text-muted">
-      <span>UTF-8</span>
-      <span>© 2026 Nekonic</span>
-    </div>
-  </aside>
+    <!-- Project tool window -->
+    {tree && (
+      <aside class="hidden lg:flex w-64 shrink-0 flex-col bg-primary rounded-xl sticky top-11 self-start max-h-[calc(100vh-4.75rem)] overflow-hidden">
+        <div class="h-9 shrink-0 flex items-center px-3 font-semibold">Project</div>
+        <div class="flex-1 overflow-y-auto px-1.5 pb-3 leading-6">
+          <div class="flex items-center gap-1.5 px-1.5">
+            <Icon name="chevron-down" size={12} class="text-text-muted" />
+            <Icon name="folder" size={14} class="text-text-secondary" />
+            <span class="font-semibold">nekonic.github.io</span>
+          </div>
+          <details open class="group/posts">
+            <summary class="list-none cursor-pointer flex items-center gap-1.5 pl-[22px] pr-1.5 rounded-md hover:bg-secondary">
+              <Icon name="chevron-right" size={12} class="text-text-muted transition-transform group-open/posts:rotate-90" />
+              <Icon name="folder" size={14} class="text-text-secondary" />
+              <span>posts</span>
+              <span class="text-text-muted text-xs">{treeYears.reduce((n, y) => n + y.posts.length, 0)}</span>
+            </summary>
+            {treeYears.map((y, i) => (
+              <details open={i === 0} class="group/year">
+                <summary class="list-none cursor-pointer flex items-center gap-1.5 pl-[38px] pr-1.5 rounded-md hover:bg-secondary">
+                  <Icon name="chevron-right" size={12} class="text-text-muted transition-transform group-open/year:rotate-90" />
+                  <Icon name="folder" size={14} class="text-text-secondary" />
+                  <span>{y.year}</span>
+                </summary>
+                {y.posts.map((p) => (
+                  <a
+                    href={`/blog/${p.id}`}
+                    title={p.title}
+                    class:list={[
+                      "flex items-center gap-1.5 pl-[70px] pr-1.5 rounded-md text-text-primary whitespace-nowrap overflow-hidden",
+                      pathname === `/blog/${p.id}` ? "bg-accent/15" : "hover:bg-secondary",
+                    ]}
+                  >
+                    <Icon name="md" />
+                    <span class="truncate">{p.title}</span>
+                  </a>
+                ))}
+              </details>
+            ))}
+          </details>
+          <a href="/tweets" class="flex items-center gap-1.5 pl-[22px] pr-1.5 rounded-md hover:bg-secondary text-text-primary">
+            <Icon name="chevron-right" size={12} class="text-text-muted" />
+            <Icon name="folder" size={14} class="text-text-secondary" />
+            <span>tweets</span>
+          </a>
+          <a href="/memos" class="flex items-center gap-1.5 pl-[22px] pr-1.5 rounded-md hover:bg-secondary text-text-primary">
+            <Icon name="chevron-right" size={12} class="text-text-muted" />
+            <Icon name="folder" size={14} class="text-[#c9a35a]" />
+            <span>memos</span>
+            <Icon name="lock" size={11} class="text-text-muted" />
+          </a>
+          <a href="/" class:list={["flex items-center gap-1.5 pl-[38px] pr-1.5 rounded-md text-text-primary", pathname === '/' ? 'bg-accent/15' : 'hover:bg-secondary']}>
+            <Icon name="md" />
+            <span>README.md</span>
+          </a>
+          <a href="/about" class="flex items-center gap-1.5 pl-[38px] pr-1.5 rounded-md hover:bg-secondary text-text-primary">
+            <Icon name="md" />
+            <span>about.md</span>
+          </a>
+        </div>
+      </aside>
+    )}
 
-  <!-- Main Content Area -->
-  <main class="lg:ml-60 min-h-screen pt-14 lg:pt-0 bg-primary">
-    <!-- Top breadcrumb bar (IDE style) -->
-    <div class="hidden lg:flex items-center justify-between px-8 py-3 border-b border-border/50 text-xs font-mono text-text-muted bg-primary/40 backdrop-blur-xs">
-      <div class="flex items-center gap-2">
-        <span class="text-text-secondary">nekonic</span>
-        <span>/</span>
-        <span class="text-accent">{title.toLowerCase()}</span>
+    <!-- Editor island -->
+    <main class="flex-1 min-w-0 bg-primary rounded-xl flex flex-col">
+      <div role="tablist" class="h-[38px] shrink-0 flex items-stretch px-1.5 border-b border-borderSubtle overflow-x-auto">
+        <span role="tab" aria-selected="true" class="flex items-center gap-1.5 px-3 text-text-primary shadow-[inset_0_-2px_0_#3574f0] whitespace-nowrap">
+          {tabIcon === 'md' ? <Icon name="md" /> : <Icon name={tabIcon} size={14} class="text-text-secondary" />}
+          <span>{tab}</span>
+        </span>
       </div>
-      <div class="flex items-center gap-3">
-        <a href="https://github.com/Nekonic" target="_blank" rel="noopener noreferrer" class="hover:text-text-primary transition-colors flex items-center gap-1.5">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-          GitHub
-        </a>
+
+      {crumbItems.length > 0 && (
+        <div class="h-[30px] shrink-0 flex items-center gap-1.5 px-5 text-xs text-text-secondary border-b border-borderSubtle overflow-hidden whitespace-nowrap">
+          {crumbItems.map((c, i) => (
+            <>
+              {i > 0 && <span aria-hidden="true">›</span>}
+              {c.href
+                ? <a href={c.href} class="hover:text-text-primary">{c.label}</a>
+                : <span class:list={[i === crumbItems.length - 1 && "text-text-primary truncate"]}>{c.label}</span>}
+            </>
+          ))}
+          <slot name="crumbs-end" />
+        </div>
+      )}
+
+      <div class:list={["w-full mx-auto px-5 sm:px-8 lg:px-12 py-8 lg:py-10", wide ? "max-w-6xl" : "max-w-4xl"]}>
+        <slot />
       </div>
-    </div>
+    </main>
 
-    <!-- Page Body -->
-    <div class:list={["mx-auto px-6 lg:px-10 py-10", wide ? "max-w-6xl" : "max-w-4xl"]}>
-      <slot />
-    </div>
-  </main>
+    <!-- Right tool windows -->
+    {hasAside && (
+      <aside class="hidden xl:flex w-64 shrink-0 flex-col gap-1.5 sticky top-11 self-start max-h-[calc(100vh-4.75rem)] overflow-y-auto">
+        <slot name="aside" />
+      </aside>
+    )}
+  </div>
 
-  <!-- Mobile Menu Script -->
-  <script>
-    const toggle = document.getElementById("menuToggle");
-    const sidebar = document.getElementById("sidebar");
-    const overlay = document.getElementById("sidebarOverlay");
+  <!-- Status bar -->
+  <footer class="hidden lg:flex h-7 items-center gap-1 px-3 text-xs text-text-secondary whitespace-nowrap overflow-hidden">
+    <span>nekonic.github.io</span>
+    {crumbItems.map((c) => (
+      <>
+        <span aria-hidden="true">›</span>
+        <span>{c.label}</span>
+      </>
+    ))}
+    <span class="flex-1"></span>
+    {status.map((s) => <span class="px-2">{s}</span>)}
+    <span class="px-2">© 2026 Nekonic</span>
+  </footer>
 
-    function openMenu() {
-      sidebar?.classList.remove("-translate-x-full");
-      overlay?.classList.remove("hidden");
-    }
+  <!-- Mobile bottom stripe -->
+  <nav aria-label="사이트 메뉴" class="lg:hidden fixed bottom-0 inset-x-0 z-40 h-16 bg-primary border-t border-borderSubtle grid grid-cols-5">
+    {navItems.map((item) => (
+      <a
+        href={item.href}
+        class:list={[
+          "flex flex-col items-center justify-center gap-1 text-[11px]",
+          isActive(item.href) ? "text-accent-soft" : "text-text-secondary",
+        ]}
+      >
+        <Icon name={item.icon} size={18} />
+        {item.label}
+      </a>
+    ))}
+  </nav>
+</div>
 
-    function closeMenu() {
-      sidebar?.classList.add("-translate-x-full");
-      overlay?.classList.add("hidden");
-    }
-
-    toggle?.addEventListener("click", openMenu);
-    overlay?.addEventListener("click", closeMenu);
+  <!-- Search Everywhere: Shift 두 번 -->
+  <script is:inline>
+    (function() {
+      var last = 0;
+      document.addEventListener('keyup', function(e) {
+        if (e.key !== 'Shift') { last = 0; return; }
+        var t = e.target;
+        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+        var now = Date.now();
+        if (now - last < 350) {
+          var input = document.getElementById('globalSearch');
+          if (input && input.offsetParent !== null) input.focus();
+          else location.href = '/blog#filter';
+          last = 0;
+        } else {
+          last = now;
+        }
+      });
+    })();
   </script>
 </body>
 </html>

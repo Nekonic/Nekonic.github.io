@@ -32,6 +32,7 @@ const postList = allPosts.map(p => ({
           class="bg-secondary border border-borderSubtle text-xs font-mono text-text-primary rounded-md px-3 py-1.5 focus:outline-none focus:border-accent max-w-xs"
         >
           <option value="__NEW__">✨ 새 글 작성</option>
+          <optgroup id="secretGroup" label="비밀글 수정" hidden></optgroup>
           <optgroup label="기존 글 수정">
             {postList.map(p => (
               <option value={p.id}>{p.id} ({p.title.substring(0, 24)}...)</option>
@@ -91,7 +92,7 @@ const postList = allPosts.map(p => ({
         <div class="lg:col-span-4">
           <div class="flex items-center justify-between mb-1">
             <label class="block text-xs font-mono text-text-muted">파일명 (Filename)</label>
-            <span class="text-[11px] font-mono text-text-muted">저장 위치: src/content/blog/</span>
+            <span id="saveLocation" class="text-[11px] font-mono text-text-muted">저장 위치: src/content/blog/</span>
           </div>
           <input 
             type="text" 
@@ -99,6 +100,17 @@ const postList = allPosts.map(p => ({
             class="w-full bg-primary border border-borderSubtle rounded-md px-3 py-2 text-xs font-mono text-text-primary focus:outline-none focus:border-accent"
             placeholder="2026-10-01-my-first-post.md"
           />
+        </div>
+
+        <!-- Secret toggle -->
+        <div class="lg:col-span-4">
+          <label class="flex items-start gap-3 p-3 rounded-md bg-primary border border-borderSubtle cursor-pointer has-[:checked]:border-accent has-[:disabled]:opacity-70 has-[:disabled]:cursor-not-allowed">
+            <input type="checkbox" id="postSecret" class="mt-0.5 accent-[#3574f0] w-4 h-4" />
+            <span class="flex flex-col gap-0.5">
+              <span class="text-sm text-text-primary font-medium">비밀글로 저장</span>
+              <span class="text-xs text-text-muted leading-relaxed">메모처럼 비공개 저장소(Nekonic.github.io.data)에만 저장돼요. 사이트에는 올라가지 않고, 토큰으로 로그인한 브라우저에서만 목록과 본문이 보입니다. 이미지도 비공개 저장소에 함께 저장됩니다.</span>
+            </span>
+          </label>
         </div>
       </div>
     </div>
@@ -189,6 +201,129 @@ const postList = allPosts.map(p => ({
   var workspaceContainer = document.getElementById('workspaceContainer');
 
   var currentEditingSha = null;
+  var postSecret = document.getElementById('postSecret');
+  var saveLocation = document.getElementById('saveLocation');
+  var secretGroup = document.getElementById('secretGroup');
+
+  // ---- 비밀글 (비공개 저장소) ----
+  var PRIVATE_API = 'https://api.github.com/repos/Nekonic/Nekonic.github.io.data/contents/';
+  var PRIVATE_DIR = '_posts';
+  var privateImageCache = {};
+
+  function updateSaveLocation() {
+    saveLocation.textContent = postSecret.checked
+      ? '저장 위치: Nekonic.github.io.data/_posts/ (비공개)'
+      : '저장 위치: src/content/blog/';
+    publishBtnText.textContent = currentEditingSha ? '수정 저장하기' : (postSecret.checked ? '비밀글 저장' : '발행하기');
+  }
+  postSecret.addEventListener('change', updateSaveLocation);
+
+  function encodePath(path) {
+    return path.split('/').map(encodeURIComponent).join('/');
+  }
+
+  function decodeBase64Utf8(b64) {
+    var bin = atob(b64.replace(/\n/g, ''));
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+
+  function parseFrontmatter(text) {
+    var m = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
+    var fm = m ? m[1] : '';
+    var field = function(k) {
+      var r = fm.match(new RegExp('^' + k + '\\s*:\\s*(.*)$', 'm'));
+      return r ? r[1].trim() : '';
+    };
+    var list = function(v) {
+      if (!v) return '';
+      if (v.charAt(0) === '[') v = v.slice(1, -1);
+      return v.split(',').map(function(x) { return x.trim().replace(/^["']|["']$/g, ''); }).filter(Boolean).join(', ');
+    };
+    return {
+      title: field('title').replace(/^"(.*)"$/, '$1').replace(/^'(.*)'$/, '$1').replace(/\\"/g, '"'),
+      categories: list(field('categories')),
+      tags: list(field('tags')),
+      body: m ? m[2].trim() : text
+    };
+  }
+
+  async function loadSecretList() {
+    var pat = localStorage.getItem('github_pat');
+    if (!pat) return;
+    try {
+      var res = await fetch(PRIVATE_API + PRIVATE_DIR, {
+        headers: { 'Authorization': 'Bearer ' + pat, 'Accept': 'application/vnd.github+json' }
+      });
+      if (!res.ok) return;
+      var files = await res.json();
+      files.filter(function(f) { return f.type === 'file' && f.name.endsWith('.md'); })
+        .sort(function(a, b) { return b.name.localeCompare(a.name); })
+        .forEach(function(f) {
+          var opt = document.createElement('option');
+          opt.value = 'secret:' + f.name.replace(/\.md$/, '');
+          opt.textContent = f.name.replace(/\.md$/, '');
+          secretGroup.appendChild(opt);
+        });
+      if (secretGroup.children.length) secretGroup.hidden = false;
+    } catch (e) {}
+  }
+
+  async function loadSecretPost(id) {
+    var pat = localStorage.getItem('github_pat');
+    if (!pat) { showAlert('비밀글을 불러오려면 GitHub 토큰이 필요합니다.', true); return; }
+    try {
+      var res = await fetch(PRIVATE_API + encodePath(PRIVATE_DIR + '/' + id + '.md'), {
+        headers: { 'Authorization': 'Bearer ' + pat, 'Accept': 'application/vnd.github+json' }
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      var data = await res.json();
+      var parsed = parseFrontmatter(decodeBase64Utf8(data.content));
+      currentEditingSha = data.sha;
+      postSecret.checked = true;
+      postSecret.disabled = true;
+      postTitle.value = parsed.title;
+      postCategories.value = parsed.categories;
+      postTags.value = parsed.tags;
+      postSlug.value = id + '.md';
+      postContent.value = parsed.body;
+      updateSaveLocation();
+      updatePreview();
+    } catch (e) {
+      showAlert('비밀글을 불러오지 못했습니다: ' + e.message, true);
+    }
+  }
+
+  // 미리보기에서 /_private/... 이미지를 토큰으로 불러와 표시
+  function resolvePreviewImages() {
+    var pat = localStorage.getItem('github_pat');
+    if (!pat) return;
+    previewContent.querySelectorAll('img[src^="/_private/"]').forEach(function(img) {
+      var src = img.getAttribute('src');
+      if (privateImageCache[src]) { img.src = privateImageCache[src]; return; }
+      fetch(PRIVATE_API + encodePath(PRIVATE_DIR + '/' + src.slice('/_private/'.length)), {
+        headers: { 'Authorization': 'Bearer ' + pat, 'Accept': 'application/vnd.github.raw' }
+      }).then(function(r) { return r.ok ? r.blob() : null; }).then(function(b) {
+        if (!b) return;
+        privateImageCache[src] = URL.createObjectURL(b);
+        img.src = privateImageCache[src];
+      });
+    });
+  }
+
+  async function putPrivateFile(pat, path, base64Content, message, sha) {
+    var body = { message: message, content: base64Content };
+    if (sha) body.sha = sha;
+    var res = await fetch(PRIVATE_API + encodePath(path), {
+      method: 'PUT',
+      headers: { 'Authorization': 'Bearer ' + pat, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.message || ('HTTP ' + res.status));
+    return data;
+  }
 
   // ---- Image upload (원본 파일 그대로 public/assets/images/posts/<slug>/ 에 저장) ----
   var REPO_API = 'https://api.github.com/repos/Nekonic/Nekonic.github.io';
@@ -310,6 +445,7 @@ const postList = allPosts.map(p => ({
       src = src.replace(/!\[([^\]]*)\]\(([^)\s]+)\)\{:?\s*\.?(?:align-)?(left|right|center)(?:-block)?\s*:?\}/g,
         function(_, alt, url, a) { return '<img src="' + url + '" alt="' + alt + '" class="img-' + a + '">'; });
       previewContent.innerHTML = marked.parse(src);
+      resolvePreviewImages();
     }
   }
 
@@ -359,8 +495,15 @@ const postList = allPosts.map(p => ({
   // Post Selector change handler
   postSelector.addEventListener('change', async function() {
     var val = postSelector.value;
+    postSecret.disabled = false;
+    if (val.indexOf('secret:') === 0) {
+      await loadSecretPost(val.slice('secret:'.length));
+      return;
+    }
     if (val === '__NEW__') {
       currentEditingSha = null;
+      postSecret.checked = false;
+      updateSaveLocation();
       postTitle.value = '';
       postCategories.value = '';
       postTags.value = '';
@@ -373,6 +516,11 @@ const postList = allPosts.map(p => ({
 
     var selected = posts.find(function(p) { return p.id === val; });
     if (selected) {
+      // 공개 글을 수정할 때는 비밀글로 바꿀 수 없음 (공개 파일이 그대로 남기 때문)
+      currentEditingSha = null;
+      postSecret.checked = false;
+      postSecret.disabled = true;
+      updateSaveLocation();
       postTitle.value = selected.title || '';
       postCategories.value = Array.isArray(selected.categories) ? selected.categories.join(', ') : (selected.categories || '');
       postTags.value = Array.isArray(selected.tags) ? selected.tags.join(', ') : (selected.tags || '');
@@ -448,6 +596,43 @@ const postList = allPosts.map(p => ({
 
     var fullFileContent = frontmatter + content;
 
+    if (postSecret.checked) {
+      try {
+        // 이미지: 비공개 저장소 _posts/images/<폴더>/ 에 저장하고 본문 경로를 /_private/ 로 바꿈
+        var secretImages = Object.keys(pendingImages).filter(function(p) { return fullFileContent.indexOf(p) !== -1; });
+        for (var i = 0; i < secretImages.length; i++) {
+          var publicPath = secretImages[i];
+          var rel = 'images/' + publicPath.replace(/^\/assets\/images\/posts\//, '');
+          var img = pendingImages[publicPath];
+          await putPrivateFile(pat, PRIVATE_DIR + '/' + rel, await fileToBase64(img.file), 'secret image: ' + title);
+          var privatePath = '/_private/' + rel;
+          fullFileContent = fullFileContent.split(publicPath).join(privatePath);
+          postContent.value = postContent.value.split(publicPath).join(privatePath);
+          privateImageCache[privatePath] = img.blobUrl;
+          delete pendingImages[publicPath];
+        }
+
+        var saved = await putPrivateFile(
+          pat,
+          PRIVATE_DIR + '/' + slug,
+          btoa(unescape(encodeURIComponent(fullFileContent))),
+          (currentEditingSha ? 'edit secret post: ' : 'secret post: ') + title,
+          currentEditingSha
+        );
+        currentEditingSha = saved.content ? saved.content.sha : null;
+        postSecret.disabled = true;
+        showAlert('비밀글이 비공개 저장소에 저장되었습니다. Blog 목록의 private 그룹에서 볼 수 있어요.', false);
+        publishBtnText.textContent = '저장 완료!';
+        setTimeout(function() { publishBtnText.textContent = '수정 저장하기'; }, 3000);
+      } catch (e) {
+        showAlert('비밀글 저장 실패: ' + e.message, true);
+        publishBtnText.textContent = '저장 실패';
+      } finally {
+        publishBtn.disabled = false;
+      }
+      return;
+    }
+
     // 본문에서 실제로 참조 중인 이미지만 함께 커밋
     var usedImages = Object.keys(pendingImages).filter(function(p) { return fullFileContent.indexOf(p) !== -1; });
     if (usedImages.length > 0) {
@@ -509,4 +694,12 @@ const postList = allPosts.map(p => ({
   var today = new Date();
   var pad = function(n) { return n.toString().padStart(2, '0'); };
   postSlug.value = today.getFullYear() + '-' + pad(today.getMonth()+1) + '-' + pad(today.getDate()) + '-new-post.md';
+
+  loadSecretList().then(function() {
+    var secretId = new URLSearchParams(location.search).get('secret');
+    if (secretId) {
+      postSelector.value = 'secret:' + secretId;
+      loadSecretPost(secretId);
+    }
+  });
 </script>

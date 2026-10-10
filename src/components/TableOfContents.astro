@@ -8,42 +8,22 @@ const toc = headings.filter(h => h.depth >= 2 && h.depth <= 4);
 ---
 
 {toc.length > 0 && (
-  <nav class="toc-container text-xs">
-    <div class="flex items-center gap-1.5 text-text-muted font-mono uppercase tracking-wider text-[11px] font-semibold mb-3">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="8" y1="6" x2="21" y2="6"/>
-        <line x1="8" y1="12" x2="21" y2="12"/>
-        <line x1="8" y1="18" x2="21" y2="18"/>
-        <line x1="3" y1="6" x2="3.01" y2="6"/>
-        <line x1="3" y1="12" x2="3.01" y2="12"/>
-        <line x1="3" y1="18" x2="3.01" y2="18"/>
-      </svg>
-      <span>On this page</span>
-    </div>
-
-    <ul class="space-y-1 border-l border-border/80 pl-2">
-      {toc.map(heading => {
-        const indentClass = heading.depth === 2 
-          ? "pl-1 text-text-secondary font-medium" 
-          : heading.depth === 3 
-          ? "pl-3.5 text-text-muted text-[11.5px]" 
-          : "pl-6 text-text-muted/80 text-[11px]";
-        
-        return (
-          <li>
-            <a 
-              href={`#${heading.slug}`}
-              class:list={[
-                "toc-link block py-1 hover:text-white transition-all truncate leading-snug rounded-xs",
-                indentClass
-              ]}
-              data-slug={heading.slug}
-            >
-              {heading.text}
-            </a>
-          </li>
-        );
-      })}
+  <nav class="toc-container" aria-label="목차">
+    <div class="h-9 flex items-center px-3.5 font-semibold text-[13px]">Structure</div>
+    <ul class="flex flex-col px-1.5 leading-[26px]">
+      {toc.map(heading => (
+        <li>
+          <a
+            href={`#${heading.slug}`}
+            class="toc-link flex items-center gap-2 pr-2 rounded-[5px] text-text-body hover:bg-secondary transition-colors"
+            style={`padding-left:${0.5 + (heading.depth - 2) * 0.875}rem`}
+            data-slug={heading.slug}
+          >
+            <span class="toc-badge font-mono text-[10px] font-semibold text-text-muted shrink-0">H{heading.depth}</span>
+            <span class="truncate">{heading.text}</span>
+          </a>
+        </li>
+      ))}
     </ul>
   </nav>
 )}
@@ -59,17 +39,15 @@ const toc = headings.filter(h => h.depth >= 2 && h.depth <= 4);
 
       var observer = new IntersectionObserver(function(entries) {
         entries.forEach(function(entry) {
-          if (entry.isIntersecting) {
-            var id = entry.target.getAttribute('id');
-            links.forEach(function(link) {
-              if (link.getAttribute('data-slug') === id) {
-                link.classList.add('text-accent', 'font-semibold', 'translate-x-0.5');
-                link.classList.remove('text-text-secondary', 'text-text-muted');
-              } else {
-                link.classList.remove('text-accent', 'font-semibold', 'translate-x-0.5');
-              }
-            });
-          }
+          if (!entry.isIntersecting) return;
+          var id = entry.target.getAttribute('id');
+          links.forEach(function(link) {
+            var on = link.getAttribute('data-slug') === id;
+            link.classList.toggle('bg-accent/15', on);
+            link.classList.toggle('text-text-primary', on);
+            var badge = link.querySelector('.toc-badge');
+            if (badge) badge.classList.toggle('text-accent-soft', on);
+          });
         });
       }, { rootMargin: '0px 0px -75% 0px' });
 

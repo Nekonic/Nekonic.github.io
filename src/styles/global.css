@@ -7,20 +7,16 @@
 
 @layer base {
   body {
-    background-color: #1e1f22;
+    background-color: #151618;
     color: #dfe1e5;
     font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-    /* Subtle JetBrains ambient glow at top */
-    background-image: 
-      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(127, 82, 255, 0.08), transparent 70%),
-      radial-gradient(ellipse 60% 40% at 80% -10%, rgba(53, 116, 240, 0.08), transparent 60%);
-    background-repeat: no-repeat;
-    background-attachment: fixed;
   }
 
   code, pre, kbd {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
   }
+
+  summary::-webkit-details-marker { display: none; }
 }
 
 /* JetBrains IDE Scrollbar */
@@ -30,7 +26,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #1e1f22;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -67,11 +63,25 @@
 }
 
 .article-content h1 { font-size: 2rem; }
-.article-content h2 { 
-  font-size: 1.45rem; 
-  border-bottom: 1px solid #2e3035; 
-  padding-bottom: 0.5rem; 
+.article-content h2 {
+  font-size: 1.4rem;
   color: #ffffff;
+  scroll-margin-top: 4rem;
+}
+.article-content h2::before {
+  content: '## ';
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75em;
+  font-weight: 500;
+  color: #6f737a;
+}
+.article-content h3 { scroll-margin-top: 4rem; }
+.article-content h3::before {
+  content: '### ';
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75em;
+  font-weight: 500;
+  color: #6f737a;
 }
 .article-content h3 { font-size: 1.2rem; color: #f0f2f5; }
 
@@ -79,15 +89,16 @@
   margin-bottom: 1.25rem;
   color: #bcbec4;
 }
+.article-content strong { color: #dfe1e5; }
 
 .article-content a {
-  color: #3574f0;
+  color: #56a8f5;
   text-decoration: underline;
   text-underline-offset: 3px;
   transition: color 0.15s ease-in-out;
 }
 .article-content a:hover {
-  color: #56a8f5;
+  color: #8cc4ff;
 }
 
 .article-content ul, .article-content ol {
@@ -101,22 +112,86 @@
 
 /* IntelliJ Darcula-style Code Blocks */
 .article-content pre {
-  background-color: #1e1f22 !important;
-  border: 1px solid #393b40;
+  position: relative;
+  background-color: #191a1c !important;
+  border: 1px solid #2b2d30;
   border-radius: 8px;
-  padding: 1.1rem 1.25rem;
+  padding: 1rem 1.25rem;
   margin-top: 1.5rem;
   margin-bottom: 1.5rem;
   overflow-x: auto;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.88rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+
+/* 코드 블록 헤더 (언어 + 복사 버튼) — 스크립트가 .code-frame 으로 감쌉니다 */
+.article-content .code-frame {
+  margin: 1.5rem 0;
+  border: 1px solid #2b2d30;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #191a1c;
+}
+.article-content .code-frame pre {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+.article-content .code-frame-header {
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.5rem 0 0.75rem;
+  background: #232427;
+  border-bottom: 1px solid #2b2d30;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: #9da0a8;
+}
+.article-content .code-frame-header button {
+  height: 1.5rem;
+  padding: 0 0.5rem;
+  border-radius: 4px;
+  color: #9da0a8;
+}
+.article-content .code-frame-header button:hover {
+  background: #2b2d30;
+  color: #dfe1e5;
+}
+
+.article-content details {
+  margin: 1.5rem 0;
+  border: 1px solid #2b2d30;
+  border-radius: 8px;
+  background: #191a1c;
+}
+.article-content details > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 0.6rem 0.9rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  color: #bcbec4;
+}
+.article-content details > summary::before {
+  content: '▸ ';
+  color: #868a91;
+}
+.article-content details[open] > summary::before { content: '▾ '; }
+.article-content details > :not(summary) {
+  display: block;
+  padding: 0 0.9rem 0.9rem;
+  white-space: pre;
+  overflow-x: auto;
+  font-size: 0.8rem;
 }
 
 .article-content code:not(pre code) {
   background-color: #2b2d30;
-  border: 1px solid #393b40;
-  color: #e59368; /* Darcula string/keyword warm tone */
+  border: 0;
+  color: #cf8e6d; /* Darcula keyword tone */
   padding: 0.15rem 0.45rem;
   border-radius: 4px;
   font-family: 'JetBrains Mono', monospace;
@@ -124,11 +199,11 @@
 }
 
 .article-content blockquote {
-  border-left: 3px solid #3574f0;
+  border-left: 3px solid #4e5157;
   padding-left: 1rem;
   margin: 1.5rem 0;
   color: #9da0a8;
-  background-color: #26282d;
+  background-color: #232427;
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
   border-radius: 0 6px 6px 0;
@@ -149,7 +224,7 @@
   border-collapse: collapse;
   margin: 1.5rem 0;
   font-size: 0.92rem;
-  background-color: #26282d;
+  background-color: #1e1f22;
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid #393b40;
@@ -177,9 +252,8 @@
 .article-content img {
   max-width: 100%;
   border-radius: 8px;
-  border: 1px solid #393b40;
+  border: 1px solid #2b2d30;
   margin: 1.75rem auto;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 .article-content img.img-left { float: left; margin: 0.5rem 1.5rem 1rem 0; }
 .article-content img.img-right { float: right; margin: 0.5rem 0 1rem 1.5rem; }

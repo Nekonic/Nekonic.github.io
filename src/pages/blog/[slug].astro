@@ -3,72 +3,102 @@ import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import TableOfContents from '../../components/TableOfContents.astro';
 import Giscus from '../../components/Giscus.astro';
-import { getDateFromId, formatDate, toArray } from '../../lib/utils';
+import { getDateFromId, toArray, categoryStyle, isoDate, readingMinutes } from '../../lib/utils';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('blog');
-  return posts.map(post => ({
+  const posts = (await getCollection('blog')).sort(
+    (a, b) => getDateFromId(b.id, b.data.date).valueOf() - getDateFromId(a.id, a.data.date).valueOf(),
+  );
+  return posts.map((post, i) => ({
     params: { slug: post.id },
-    props: { post },
+    props: {
+      post,
+      newer: i > 0 ? { id: posts[i - 1].id, title: posts[i - 1].data.title } : null,
+      older: i < posts.length - 1 ? { id: posts[i + 1].id, title: posts[i + 1].data.title } : null,
+    },
   }));
 }
 
-const { post } = Astro.props;
+const { post, newer, older } = Astro.props;
 const { Content, headings } = await render(post);
 const date = getDateFromId(post.id, post.data.date);
 const tags = toArray(post.data.tags);
 const categories = toArray(post.data.categories);
+const year = String(date.getFullYear());
 ---
 
-<BaseLayout title={post.data.title} description={`Blog post about ${post.data.title}`} wide={true}>
-  <div class="flex gap-8 lg:gap-12 items-start justify-between">
-    <!-- Main Article Column -->
-    <article class="flex-1 min-w-0 max-w-3xl">
-      <!-- Back to blog link -->
-      <a href="/blog" class="inline-flex items-center gap-1.5 text-xs font-mono text-text-muted hover:text-accent mb-6 transition-colors">
-        <span>&larr;</span>
-        <span>Back to all posts</span>
-      </a>
+<BaseLayout
+  title={post.data.title}
+  description={`Blog post about ${post.data.title}`}
+  tab={`${post.id}.md`}
+  crumbs={[{ label: 'posts', href: '/blog' }, { label: year, href: '/blog' }, `${post.id}.md`]}
+  status={['UTF-8', 'LF', 'Markdown']}
+>
+  <span slot="crumbs-end" class="ml-auto font-mono hidden sm:inline">Reader Mode</span>
 
-      <!-- Post Header -->
-      <header class="mb-8 border-b border-border/70 pb-6">
-        <div class="flex items-center gap-2 mb-3">
-          <time class="text-xs font-mono text-text-muted">{formatDate(date)}</time>
-          {categories.length > 0 && (
-            <span class="text-xs font-mono text-text-muted">/</span>
-            <span class="text-xs font-mono text-accent">{categories.join(', ')}</span>
-          )}
+  <article class="flex flex-col">
+    <header class="flex flex-col gap-3.5 pb-6 mb-8 border-b border-borderSubtle">
+      {categories.length > 0 && (
+        <div class="flex gap-1.5 flex-wrap font-mono text-xs">
+          {categories.map((c) => {
+            const s = categoryStyle(c);
+            return <a href={`/blog?q=${encodeURIComponent(c)}`} class="px-2 py-0.5 rounded" style={`background:${s.chipBg};color:${s.chipText}`}>{c}</a>;
+          })}
         </div>
-
-        <h1 class="text-2xl lg:text-4xl font-bold text-white tracking-tight leading-tight mb-4">
-          {post.data.title}
-        </h1>
-
+      )}
+      <h1 class="text-[28px] lg:text-[34px] leading-tight font-bold tracking-tight text-white">{post.data.title}</h1>
+      <div class="flex items-center gap-2.5 flex-wrap font-mono text-xs text-text-secondary">
+        <img src="https://github.com/Nekonic.png" alt="" class="w-5 h-5 rounded-full bg-secondary" />
+        <span class="text-text-primary">Nekonic</span>
+        <span aria-hidden="true">·</span>
+        <time datetime={isoDate(date)}>{isoDate(date)}</time>
+        <span aria-hidden="true">·</span>
+        <span>{readingMinutes(post.body)} min read</span>
         {tags.length > 0 && (
-          <div class="flex flex-wrap gap-1.5 pt-2">
-            {tags.map(tag => (
-              <span class="px-2 py-0.5 text-xs font-mono rounded bg-secondary text-text-secondary border border-border">
-                #{tag}
-              </span>
-            ))}
-          </div>
+          <>
+            <span aria-hidden="true">·</span>
+            <span>{tags.map((t) => `#${t}`).join(' ')}</span>
+          </>
         )}
-      </header>
-
-      <!-- Post Body -->
-      <div class="article-content">
-        <Content />
       </div>
+    </header>
 
-      <!-- Comments Section (GitHub Discussions) -->
-      <Giscus mapping="pathname" />
-    </article>
+    <div class="article-content" id="articleBody">
+      <Content />
+    </div>
 
-    <!-- Right-side Sticky TOC (Notion style) -->
-    {headings && headings.length > 0 && (
-      <aside class="hidden xl:block w-60 shrink-0 sticky top-10 self-start max-h-[calc(100vh-5rem)] overflow-y-auto pr-2">
-        <TableOfContents headings={headings} />
-      </aside>
-    )}
-  </div>
+    <nav aria-label="이전·다음 글" class="flex gap-3 flex-wrap mt-12">
+      {older ? (
+        <a href={`/blog/${older.id}`} class="flex-[1_1_240px] flex flex-col gap-1 px-4 py-3.5 border border-borderSubtle rounded-lg hover:border-borderHover transition-colors">
+          <span class="font-mono text-xs text-text-secondary">← Previous</span>
+          <span class="text-sm font-semibold text-text-primary">{older.title}</span>
+        </a>
+      ) : <span class="flex-[1_1_240px]"></span>}
+      {newer ? (
+        <a href={`/blog/${newer.id}`} class="flex-[1_1_240px] flex flex-col gap-1 px-4 py-3.5 border border-borderSubtle rounded-lg text-right hover:border-borderHover transition-colors">
+          <span class="font-mono text-xs text-text-secondary">Next →</span>
+          <span class="text-sm font-semibold text-text-primary">{newer.title}</span>
+        </a>
+      ) : (
+        <span class="flex-[1_1_240px] flex flex-col gap-1 px-4 py-3.5 border border-borderSubtle rounded-lg text-right">
+          <span class="font-mono text-xs text-text-secondary">Next →</span>
+          <span class="text-sm font-semibold text-text-muted">최신 글입니다</span>
+        </span>
+      )}
+    </nav>
+
+    <Giscus mapping="pathname" />
+  </article>
+
+  {headings && headings.length > 0 && (
+    <div slot="aside" class="bg-primary rounded-xl pb-3">
+      <TableOfContents headings={headings} />
+    </div>
+  )}
 </BaseLayout>
+
+<script>
+  import { enhanceArticle } from '../../lib/enhance-article';
+  const body = document.getElementById('articleBody');
+  if (body) enhanceArticle(body);
+</script>
