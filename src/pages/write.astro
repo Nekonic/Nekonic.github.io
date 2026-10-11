@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
 import { getCollection } from 'astro:content';
 
 const allPosts = await getCollection('blog');
@@ -13,161 +14,140 @@ const postList = allPosts.map(p => ({
 })).sort((a, b) => b.id.localeCompare(a.id));
 ---
 
-<BaseLayout title="Post Editor" description="Write or edit blog posts" wide={true}>
-  <div class="max-w-6xl mx-auto py-2">
-    <!-- Editor Header Toolbar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 mb-6 border-b border-borderSubtle">
-      <div class="flex items-center gap-3">
-        <span class="w-2.5 h-2.5 rounded-xs bg-gradient-to-tr from-[#f48924] via-[#f03a69] to-[#3574f0]"></span>
-        <h1 class="text-xl font-bold text-white tracking-tight">Blog Post Editor</h1>
-        <span class="text-xs font-mono text-text-muted px-2 py-0.5 rounded bg-secondary border border-borderSubtle">
-          Markdown
-        </span>
-      </div>
-
-      <div class="flex items-center gap-3">
-        <!-- Post Mode Selector -->
-        <select 
-          id="postSelector" 
-          class="bg-secondary border border-borderSubtle text-xs font-mono text-text-primary rounded-md px-3 py-1.5 focus:outline-none focus:border-accent max-w-xs"
-        >
-          <option value="__NEW__">✨ 새 글 작성</option>
+<BaseLayout title="Post Editor" description="Write or edit blog posts" tab="new-post.md" status={[]} bleed={true}>
+  <div class="flex flex-col h-[calc(100dvh-9.5rem)] lg:h-[calc(100dvh-7.25rem)] min-h-[440px]">
+    <!-- Toolbar -->
+    <div class="shrink-0 flex flex-wrap items-center gap-x-1.5 gap-y-1.5 px-2 py-1.5 border-b border-borderSubtle">
+      <!-- Run configuration 스타일 글 선택 (네이티브 select를 투명하게 덮음) -->
+      <div class="relative flex-1 sm:flex-none min-w-0">
+        <div class="flex items-center gap-1.5 h-7 pl-2 pr-1.5 rounded-md hover:bg-secondary transition-colors pointer-events-none">
+          <Icon name="md" class="shrink-0" />
+          <span id="runConfigLabel" class="truncate max-w-[14rem] text-text-primary">새 글</span>
+          <Icon name="chevron-down" size={12} class="shrink-0 text-text-secondary" />
+        </div>
+        <select id="postSelector" aria-label="수정할 글 선택" class="absolute inset-0 w-full opacity-0 cursor-pointer">
+          <option value="__NEW__">새 글</option>
           <optgroup id="secretGroup" label="비밀글 수정" hidden></optgroup>
           <optgroup label="기존 글 수정">
             {postList.map(p => (
-              <option value={p.id}>{p.id} ({p.title.substring(0, 24)}...)</option>
+              <option value={p.id}>{p.title}</option>
             ))}
           </optgroup>
         </select>
+      </div>
 
-        <button 
-          id="publishBtn" 
-          class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-accent hover:bg-accent-hover text-white rounded-md text-xs font-semibold tracking-wide transition-colors shadow-xs"
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-          <span id="publishBtnText">발행하기</span>
+      <span class="hidden sm:block w-px h-4 bg-border mx-0.5"></span>
+
+      <!-- 저장 경로 / 파일명 -->
+      <label class="order-last sm:order-none basis-full sm:basis-0 sm:flex-1 flex items-center h-7 px-2 rounded-md text-xs font-mono text-text-muted hover:bg-secondary focus-within:bg-secondary focus-within:ring-1 focus-within:ring-accent min-w-0 sm:max-w-2xl">
+        <Icon name="folder" size={13} class="shrink-0 mr-1.5 text-text-secondary" />
+        <span id="saveLocation" class="text-text-muted whitespace-nowrap truncate min-w-0">src/content/blog/</span>
+        <input
+          type="text"
+          id="postSlug"
+          aria-label="파일명"
+          spellcheck="false"
+          class="flex-1 min-w-[6rem] bg-transparent text-text-primary focus:outline-none"
+          placeholder="2026-10-01-my-first-post.md"
+        />
+      </label>
+
+      <span class="hidden sm:block flex-1"></span>
+
+      <label title="비밀글: 비공개 저장소(Nekonic.github.io.data)에만 저장되고 이미지도 함께 비공개로 저장됩니다." class="flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-text-secondary hover:bg-secondary cursor-pointer select-none has-[:checked]:bg-accent/20 has-[:checked]:text-accent-soft has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed">
+        <input type="checkbox" id="postSecret" class="sr-only" />
+        <Icon name="lock" size={13} />
+        <span class="hidden sm:inline">Private</span>
+      </label>
+
+      <button
+        id="publishBtn"
+        class="inline-flex items-center gap-1.5 h-7 px-3 bg-accent hover:bg-accent-hover disabled:opacity-60 text-white rounded-md text-xs font-semibold transition-colors"
+      >
+        <svg width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9.5-5.5z" fill="currentColor"/></svg>
+        <span id="publishBtnText">발행하기</span>
+      </button>
+    </div>
+
+    <!-- frontmatter 값은 에디터 본문에서 읽어 여기에 동기화 -->
+    <input type="hidden" id="postTitle" />
+    <input type="hidden" id="postCategories" />
+    <input type="hidden" id="postTags" />
+
+    <!-- Editor + Preview -->
+    <div id="workspaceContainer" class="relative flex-1 min-h-0 flex flex-col lg:flex-row">
+      <!-- Editor toolbar (JetBrains Markdown 편집기 오른쪽 위) -->
+      <div class="absolute top-1 right-2 z-10 flex items-center gap-0.5">
+        <button id="imageBtn" type="button" title="이미지 추가 (붙여넣기·드래그도 가능)" class="w-7 h-6 flex items-center justify-center rounded text-text-secondary hover:bg-secondary hover:text-text-primary">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5"/><circle cx="6" cy="6.5" r="1"/><path d="M2.5 12l3.5-3.5 2.5 2.5 2-2 3 3"/></svg>
+        </button>
+        <input type="file" id="imageInput" accept="image/*" multiple class="hidden" />
+        <span class="w-px h-4 bg-border mx-1"></span>
+        <button id="viewEditBtn" type="button" title="Editor Only" class="w-7 h-6 flex items-center justify-center rounded text-text-secondary hover:bg-secondary hover:text-text-primary">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" aria-hidden="true"><path d="M3 4h10M3 7h7M3 10h10M3 13h5"/></svg>
+        </button>
+        <button id="viewSplitBtn" type="button" title="Editor and Preview" class="w-7 h-6 flex items-center justify-center rounded text-text-secondary hover:bg-secondary hover:text-text-primary">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M8 2.5v11"/></svg>
+        </button>
+        <button id="viewPreviewBtn" type="button" title="Preview Only" class="w-7 h-6 flex items-center justify-center rounded text-text-secondary hover:bg-secondary hover:text-text-primary">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg>
         </button>
       </div>
-    </div>
 
-    <!-- Metadata Fields (JetBrains form panel) -->
-    <div class="bg-card border border-borderSubtle rounded-xl p-5 mb-6 shadow-xs">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Title -->
-        <div class="lg:col-span-2">
-          <label class="block text-xs font-mono text-text-muted mb-1.5">제목 (Title)</label>
-          <input 
-            type="text" 
-            id="postTitle" 
-            class="w-full bg-primary border border-borderSubtle rounded-md px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent"
-            placeholder="포스트 제목을 입력하세요"
-          />
+      <!-- Editor pane -->
+      <div id="editorCol" class="flex-1 min-w-0 min-h-0 flex flex-col">
+        <div class="shrink-0 h-8 flex items-center px-3 text-xs text-text-muted border-b border-borderSubtle">Markdown</div>
+        <div class="relative flex-1 min-h-0 flex">
+          <div id="lineGutter" class="editor-font w-12 shrink-0 overflow-hidden text-right pr-3 py-3 text-[13px] leading-6 text-text-faint select-none" aria-hidden="true"></div>
+          <textarea
+            id="postContent"
+            spellcheck="false"
+            class="editor-font flex-1 min-w-0 h-full bg-transparent py-3 pr-4 text-[13px] leading-6 text-text-primary placeholder:text-text-faint focus:outline-none resize-none"
+          ></textarea>
+          <!-- 줄 높이 측정용 (soft wrap 대응) -->
+          <div id="lineMirror" class="editor-font absolute invisible pointer-events-none top-0 text-[13px] leading-6 whitespace-pre-wrap break-words" aria-hidden="true"></div>
         </div>
+      </div>
 
-        <!-- Categories -->
-        <div>
-          <label class="block text-xs font-mono text-text-muted mb-1.5">카테고리 (Categories)</label>
-          <input 
-            type="text" 
-            id="postCategories" 
-            class="w-full bg-primary border border-borderSubtle rounded-md px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent"
-            placeholder="C++, Algorithm"
-          />
-        </div>
-
-        <!-- Tags -->
-        <div>
-          <label class="block text-xs font-mono text-text-muted mb-1.5">태그 (Tags)</label>
-          <input 
-            type="text" 
-            id="postTags" 
-            class="w-full bg-primary border border-borderSubtle rounded-md px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent"
-            placeholder="Linux, Network"
-          />
-        </div>
-
-        <!-- Filename / Slug -->
-        <div class="lg:col-span-4">
-          <div class="flex items-center justify-between mb-1">
-            <label class="block text-xs font-mono text-text-muted">파일명 (Filename)</label>
-            <span id="saveLocation" class="text-[11px] font-mono text-text-muted">저장 위치: src/content/blog/</span>
-          </div>
-          <input 
-            type="text" 
-            id="postSlug" 
-            class="w-full bg-primary border border-borderSubtle rounded-md px-3 py-2 text-xs font-mono text-text-primary focus:outline-none focus:border-accent"
-            placeholder="2026-10-01-my-first-post.md"
-          />
-        </div>
-
-        <!-- Secret toggle -->
-        <div class="lg:col-span-4">
-          <label class="flex items-start gap-3 p-3 rounded-md bg-primary border border-borderSubtle cursor-pointer has-[:checked]:border-accent has-[:disabled]:opacity-70 has-[:disabled]:cursor-not-allowed">
-            <input type="checkbox" id="postSecret" class="mt-0.5 accent-[#3574f0] w-4 h-4" />
-            <span class="flex flex-col gap-0.5">
-              <span class="text-sm text-text-primary font-medium">비밀글로 저장</span>
-              <span class="text-xs text-text-muted leading-relaxed">메모처럼 비공개 저장소(Nekonic.github.io.data)에만 저장돼요. 사이트에는 올라가지 않고, 토큰으로 로그인한 브라우저에서만 목록과 본문이 보입니다. 이미지도 비공개 저장소에 함께 저장됩니다.</span>
-            </span>
-          </label>
+      <!-- Preview pane -->
+      <div id="previewCol" class="flex-1 min-w-0 min-h-0 flex flex-col border-t lg:border-t-0 lg:border-l border-borderSubtle">
+        <div class="shrink-0 h-8 flex items-center px-3 text-xs text-text-muted border-b border-borderSubtle">Preview</div>
+        <div class="flex-1 min-h-0 overflow-y-auto">
+          <header id="previewHeader" class="hidden mx-6 lg:mx-8 mt-6 flex-col gap-3.5 pb-6 border-b border-borderSubtle">
+            <div id="previewCats" class="flex gap-1.5 flex-wrap font-mono text-xs"></div>
+            <h1 id="previewTitle" class="text-[28px] lg:text-[34px] leading-tight font-bold tracking-tight text-white"></h1>
+            <div class="flex items-center gap-2.5 flex-wrap font-mono text-xs text-text-secondary">
+              <img src="https://github.com/Nekonic.png" alt="" class="w-5 h-5 rounded-full bg-secondary" />
+              <span class="text-text-primary">Nekonic</span>
+              <span aria-hidden="true">·</span>
+              <time id="previewDate"></time>
+              <span id="previewTags"></span>
+            </div>
+          </header>
+          <div id="previewContent" class="px-6 lg:px-8 pt-6 pb-10 article-content"></div>
         </div>
       </div>
     </div>
 
-    <!-- Status Alert Bar -->
-    <div id="statusAlert" class="hidden px-4 py-3 rounded-lg text-xs font-mono mb-6"></div>
-
-    <!-- Editor & Live Preview Toolbar -->
-    <div class="flex items-center justify-between mb-2">
-      <div class="flex items-center gap-1 bg-secondary p-1 rounded-md border border-borderSubtle text-xs font-mono">
-        <button id="viewSplitBtn" class="px-2.5 py-1 rounded bg-card text-white font-medium">좌우 분할</button>
-        <button id="viewEditBtn" class="px-2.5 py-1 rounded text-text-muted hover:text-text-primary">에디터만</button>
-        <button id="viewPreviewBtn" class="px-2.5 py-1 rounded text-text-muted hover:text-text-primary">미리보기만</button>
-      </div>
-
-      <div class="text-xs font-mono text-text-muted flex items-center gap-3">
-        <button id="imageBtn" type="button" class="px-2.5 py-1 rounded border border-borderSubtle bg-secondary hover:text-text-primary">🖼 이미지 추가</button>
-        <input type="file" id="imageInput" accept="image/*" multiple class="hidden" />
-        <span id="charCount">0 characters</span>
-      </div>
-    </div>
-
-    <!-- Main Workspace (Editor + Live Preview) -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4" id="workspaceContainer">
-      <!-- Editor Column -->
-      <div id="editorCol" class="flex flex-col">
-        <div class="bg-secondary px-3 py-2 border border-b-0 border-borderSubtle rounded-t-lg text-xs font-mono text-text-muted flex items-center justify-between">
-          <span>Markdown Source</span>
-          <span class="text-[11px]">UTF-8</span>
-        </div>
-        <textarea 
-          id="postContent" 
-          class="w-full bg-[#1e1f22] border border-borderSubtle rounded-b-lg p-4 font-mono text-sm leading-relaxed text-[#dfe1e5] focus:outline-none focus:border-accent min-h-[500px] resize-y"
-          placeholder="여기에 마크다운 본문을 작성하세요...
-## 1. 개요
-내용을 입력하면 우측 미리보기에 실시간으로 렌더링됩니다."
-        ></textarea>
-      </div>
-
-      <!-- Live Preview Column -->
-      <div id="previewCol" class="flex flex-col">
-        <div class="bg-secondary px-3 py-2 border border-b-0 border-borderSubtle rounded-t-lg text-xs font-mono text-text-muted flex items-center justify-between">
-          <span>Live Preview</span>
-          <span class="text-[11px] text-accent">Real-time</span>
-        </div>
-        <div 
-          id="previewContent" 
-          class="w-full bg-card border border-borderSubtle rounded-b-lg p-6 min-h-[500px] overflow-y-auto article-content"
-        >
-          <div class="text-text-muted text-center py-20 font-mono text-xs">
-            마크다운을 입력하면 실시간 미리보기가 표시됩니다.
-          </div>
-        </div>
-      </div>
+    <!-- Status bar -->
+    <div class="shrink-0 h-7 flex items-center gap-4 px-3 border-t border-borderSubtle font-mono text-[11px] text-text-muted whitespace-nowrap overflow-hidden">
+      <span id="caretPos">1:1</span>
+      <span id="charCount">0 characters</span>
+      <span class="flex-1"></span>
+      <span class="hidden sm:inline">Markdown</span>
+      <span class="hidden sm:inline">UTF-8</span>
+      <span class="hidden sm:inline">LF</span>
     </div>
   </div>
+
+  <!-- Notification balloon -->
+  <div id="statusAlert" class="hidden" role="status"></div>
 </BaseLayout>
+
+<style>
+  /* 영문·코드는 JetBrains Mono, 한글은 Pretendard로 */
+  .editor-font { font-family: "JetBrains Mono", "Pretendard Variable", Pretendard, ui-monospace, monospace; }
+</style>
 
 <!-- Lightweight Marked CDN for Live Markdown Parsing -->
 <script is:inline src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -212,8 +192,9 @@ const postList = allPosts.map(p => ({
 
   function updateSaveLocation() {
     saveLocation.textContent = postSecret.checked
-      ? '저장 위치: Nekonic.github.io.data/_posts/ (비공개)'
-      : '저장 위치: src/content/blog/';
+      ? 'Nekonic.github.io.data/_posts/'
+      : 'src/content/blog/';
+    saveLocation.className = postSecret.checked ? 'text-accent-soft whitespace-nowrap truncate min-w-0' : 'text-text-muted whitespace-nowrap truncate min-w-0';
     publishBtnText.textContent = currentEditingSha ? '수정 저장하기' : (postSecret.checked ? '비밀글 저장' : '발행하기');
   }
   postSecret.addEventListener('change', updateSaveLocation);
@@ -230,22 +211,22 @@ const postList = allPosts.map(p => ({
   }
 
   function parseFrontmatter(text) {
-    var m = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
+    var m = text.match(/^---\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/);
     var fm = m ? m[1] : '';
     var field = function(k) {
-      var r = fm.match(new RegExp('^' + k + '\\s*:\\s*(.*)$', 'm'));
+      var r = fm.match(new RegExp('^' + k + '[ \\t]*:[ \\t]*(.*)$', 'm'));
       return r ? r[1].trim() : '';
     };
     var list = function(v) {
-      if (!v) return '';
-      if (v.charAt(0) === '[') v = v.slice(1, -1);
+      v = v.replace(/^\[/, '').replace(/\]$/, '');
       return v.split(',').map(function(x) { return x.trim().replace(/^["']|["']$/g, ''); }).filter(Boolean).join(', ');
     };
     return {
       title: field('title').replace(/^"(.*)"$/, '$1').replace(/^'(.*)'$/, '$1').replace(/\\"/g, '"'),
+      date: field('date').replace(/^["']|["']$/g, ''),
       categories: list(field('categories')),
       tags: list(field('tags')),
-      body: m ? m[2].trim() : text
+      body: m ? text.slice(m[0].length) : text
     };
   }
 
@@ -287,7 +268,7 @@ const postList = allPosts.map(p => ({
       postCategories.value = parsed.categories;
       postTags.value = parsed.tags;
       postSlug.value = id + '.md';
-      postContent.value = parsed.body;
+      setEditor(parsed.body.trim(), parsed.date);
       updateSaveLocation();
       updatePreview();
     } catch (e) {
@@ -429,8 +410,13 @@ const postList = allPosts.map(p => ({
 
   // Live Markdown Preview
   function updatePreview() {
-    var raw = postContent.value;
-    charCount.textContent = raw.length + ' characters';
+    var raw = syncFrontmatter();
+    charCount.textContent = postContent.value.length + ' characters';
+    updateRunLabel();
+    updatePreviewHeader();
+    updateGutter();
+    updateCaret();
+    updateTabName();
 
     if (!raw.trim()) {
       previewContent.innerHTML = '<div class="text-text-muted text-center py-20 font-mono text-xs">마크다운을 입력하면 실시간 미리보기가 표시됩니다.</div>';
@@ -452,43 +438,174 @@ const postList = allPosts.map(p => ({
 
   postContent.addEventListener('input', updatePreview);
 
+  // ---- Line number gutter (soft wrap 대응: 미러로 줄마다 높이를 잼) ----
+  var lineGutter = document.getElementById('lineGutter');
+  var lineMirror = document.getElementById('lineMirror');
+  var caretPos = document.getElementById('caretPos');
+
+  function updateGutter() {
+    var lines = postContent.value.split('\n');
+    var style = getComputedStyle(postContent);
+    lineMirror.style.width = (postContent.clientWidth - parseFloat(style.paddingRight)) + 'px';
+    lineMirror.innerHTML = '';
+    lines.forEach(function(line) {
+      var d = document.createElement('div');
+      d.textContent = line || ' ';
+      lineMirror.appendChild(d);
+    });
+    var html = '';
+    var current = currentLine();
+    Array.prototype.forEach.call(lineMirror.children, function(d, i) {
+      html += '<div style="height:' + d.offsetHeight + 'px"' + (i === current ? ' class="text-text-secondary"' : '') + '>' + (i + 1) + '</div>';
+    });
+    lineGutter.innerHTML = html;
+    lineGutter.scrollTop = postContent.scrollTop;
+  }
+
+  function currentLine() {
+    return postContent.value.slice(0, postContent.selectionStart).split('\n').length - 1;
+  }
+
+  function updateCaret() {
+    var before = postContent.value.slice(0, postContent.selectionStart);
+    var line = before.split('\n').length - 1;
+    var col = before.length - before.lastIndexOf('\n');
+    caretPos.textContent = (line + 1) + ':' + col;
+    Array.prototype.forEach.call(lineGutter.children, function(d, i) {
+      d.className = i === line ? 'text-text-secondary' : '';
+    });
+  }
+
+  postContent.addEventListener('scroll', function() { lineGutter.scrollTop = postContent.scrollTop; });
+  ['keyup', 'click', 'select'].forEach(function(ev) { postContent.addEventListener(ev, updateCaret); });
+  window.addEventListener('resize', updateGutter);
+
+  // Tab 키: 들여쓰기 4칸
+  postContent.addEventListener('keydown', function(e) {
+    if (e.key !== 'Tab' || e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) return;
+    e.preventDefault();
+    var a = postContent.selectionStart, b = postContent.selectionEnd;
+    postContent.setRangeText('    ', a, b, 'end');
+    postContent.dispatchEvent(new Event('input'));
+  });
+
+  // 미리보기 머리말: 카테고리 · 제목 · 날짜 · 태그 (글 페이지와 같은 모양)
+  function splitList(v) {
+    return v.split(',').map(function(x) { return x.trim(); }).filter(Boolean);
+  }
+  var previewHeader = document.getElementById('previewHeader');
+  var previewCats = document.getElementById('previewCats');
+  var previewTitle = document.getElementById('previewTitle');
+  var previewDate = document.getElementById('previewDate');
+  var previewTags = document.getElementById('previewTags');
+  function updatePreviewHeader() {
+    var header = previewHeader;
+    var title = postTitle.value.trim();
+    var cats = splitList(postCategories.value);
+    var tags = splitList(postTags.value);
+    var shown = !!(title || cats.length || tags.length);
+    header.classList.toggle('hidden', !shown);
+    header.classList.toggle('flex', shown);
+    previewContent.classList.toggle('pt-6', !shown);
+    previewContent.classList.toggle('pt-2', shown);
+    if (!shown) return;
+    var catsEl = previewCats;
+    catsEl.innerHTML = '';
+    cats.forEach(function(c) {
+      var chip = document.createElement('span');
+      chip.className = 'px-2 py-0.5 rounded bg-secondary text-text-body';
+      chip.textContent = c;
+      catsEl.appendChild(chip);
+    });
+    catsEl.classList.toggle('hidden', !cats.length);
+    var titleEl = previewTitle;
+    titleEl.textContent = title || '제목 없음';
+    titleEl.classList.toggle('text-text-faint', !title);
+    previewDate.textContent = postDate;
+    previewTags.textContent = tags.length ? '· ' + tags.map(function(t) { return '#' + t; }).join(' ') : '';
+  }
+
+  // ---- frontmatter는 에디터 본문 맨 위 YAML에서 읽음 ----
+  var TODAY = (function() {
+    var d = new Date(), p = function(n) { return String(n).padStart(2, '0'); };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  })();
+
+  var postDate = TODAY; // 에디터 frontmatter의 date (저장 시 사용)
+
+  function setEditor(body, date) {
+    var t = postTitle.value;
+    // 따옴표로 시작하는 제목은 파싱 시 따옴표가 벗겨지지 않도록 감싸서 씀
+    if (/^["']/.test(t)) t = '"' + t.replace(/"/g, '\\"') + '"';
+    postContent.value = '---\n'
+      + 'title: ' + t + '\n'
+      + 'date: ' + ((/^\d{4}-\d{2}-\d{2}/.exec(date || '') || [TODAY])[0]) + '\n'
+      + 'categories: ' + postCategories.value + '\n'
+      + 'tags: ' + postTags.value + '\n'
+      + '---\n\n' + body;
+  }
+
+  /** 에디터의 frontmatter를 숨은 입력칸에 반영하고 본문만 돌려줌 */
+  function syncFrontmatter() {
+    var parsed = parseFrontmatter(postContent.value);
+    var titleChanged = parsed.title !== postTitle.value;
+    postTitle.value = parsed.title;
+    postCategories.value = parsed.categories;
+    postTags.value = parsed.tags;
+    postDate = /^\d{4}-\d{2}-\d{2}$/.test(parsed.date) ? parsed.date : TODAY;
+    if (titleChanged) postTitle.dispatchEvent(new Event('input')); // 새 글이면 파일명 자동 생성
+    return parsed.body.replace(/^\s*\n/, '');
+  }
+
+  var runConfigLabel = document.getElementById('runConfigLabel');
+  function updateRunLabel() {
+    var opt = postSelector.options[postSelector.selectedIndex];
+    runConfigLabel.textContent = opt ? opt.textContent : (postSlug.value.trim().replace(/\.md$/, '') || '새 글');
+  }
+  postSelector.addEventListener('change', updateRunLabel);
+
+  // 탭 이름 = 파일명
+  var editorTabName = document.getElementById('editorTabName');
+  function updateTabName() {
+    if (editorTabName) editorTabName.textContent = postSlug.value.trim() || 'new-post.md';
+  }
+  postSlug.addEventListener('input', updateTabName);
+
   // View switchers
   viewSplitBtn.addEventListener('click', function() {
     editorCol.classList.remove('hidden');
     previewCol.classList.remove('hidden');
-    workspaceContainer.className = 'grid grid-cols-1 lg:grid-cols-2 gap-4';
     setActiveViewBtn(viewSplitBtn);
   });
 
   viewEditBtn.addEventListener('click', function() {
     editorCol.classList.remove('hidden');
     previewCol.classList.add('hidden');
-    workspaceContainer.className = 'grid grid-cols-1 gap-4';
     setActiveViewBtn(viewEditBtn);
   });
 
   viewPreviewBtn.addEventListener('click', function() {
     editorCol.classList.add('hidden');
     previewCol.classList.remove('hidden');
-    workspaceContainer.className = 'grid grid-cols-1 gap-4';
     setActiveViewBtn(viewPreviewBtn);
   });
 
   function setActiveViewBtn(active) {
     [viewSplitBtn, viewEditBtn, viewPreviewBtn].forEach(function(btn) {
-      btn.className = 'px-2.5 py-1 rounded text-text-muted hover:text-text-primary';
+      btn.classList.remove('bg-accent/25', 'text-accent-soft');
+      btn.classList.add('text-text-secondary');
     });
-    active.className = 'px-2.5 py-1 rounded bg-card text-white font-medium';
+    active.classList.remove('text-text-secondary');
+    active.classList.add('bg-accent/25', 'text-accent-soft');
+    updateGutter();
   }
 
   // Auto-generate slug when typing title for new posts
   postTitle.addEventListener('input', function() {
     if (postSelector.value === '__NEW__') {
-      var now = new Date();
-      var pad = function(n) { return n.toString().padStart(2, '0'); };
-      var dateStr = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate());
       var cleanTitle = postTitle.value.trim().toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-');
-      postSlug.value = dateStr + (cleanTitle ? '-' + cleanTitle : '') + '.md';
+      postSlug.value = TODAY + (cleanTitle ? '-' + cleanTitle : '') + '.md';
+      updateTabName();
     }
   });
 
@@ -508,7 +625,7 @@ const postList = allPosts.map(p => ({
       postCategories.value = '';
       postTags.value = '';
       postSlug.value = '';
-      postContent.value = '';
+      setEditor('');
       publishBtnText.textContent = '발행하기';
       updatePreview();
       return;
@@ -525,7 +642,7 @@ const postList = allPosts.map(p => ({
       postCategories.value = Array.isArray(selected.categories) ? selected.categories.join(', ') : (selected.categories || '');
       postTags.value = Array.isArray(selected.tags) ? selected.tags.join(', ') : (selected.tags || '');
       postSlug.value = selected.id + '.md';
-      postContent.value = selected.body || '';
+      setEditor(selected.body || '', selected.date || selected.id); // 날짜가 없으면 파일명 앞 날짜
       publishBtnText.textContent = '수정 저장하기';
       updatePreview();
 
@@ -550,10 +667,17 @@ const postList = allPosts.map(p => ({
   }
 
   function showAlert(msg, isError) {
-    statusAlert.textContent = msg;
-    statusAlert.className = 'px-4 py-3 rounded-lg text-xs font-mono mb-6 ' + (isError ? 'bg-red-950/40 text-red-400 border border-red-900/50' : 'bg-emerald-950/40 text-emerald-400 border border-emerald-900/50');
-    statusAlert.classList.remove('hidden');
-    setTimeout(function() { statusAlert.classList.add('hidden'); }, 8000);
+    // JetBrains 알림 풍선 (오른쪽 아래)
+    statusAlert.className = 'fixed right-4 bottom-20 lg:bottom-10 z-50 max-w-sm flex items-start gap-2.5 px-4 py-3 rounded-lg bg-secondary border border-border shadow-2xl text-xs leading-relaxed text-text-primary';
+    statusAlert.innerHTML = '';
+    var dot = document.createElement('span');
+    dot.className = 'mt-1 w-2 h-2 shrink-0 rounded-full ' + (isError ? 'bg-[#db5c5c]' : 'bg-accent-green');
+    var text = document.createElement('span');
+    text.textContent = msg;
+    statusAlert.appendChild(dot);
+    statusAlert.appendChild(text);
+    clearTimeout(showAlert.timer);
+    showAlert.timer = setTimeout(function() { statusAlert.classList.add('hidden'); }, 8000);
   }
 
   // Publish / Save Button
@@ -564,9 +688,9 @@ const postList = allPosts.map(p => ({
       return;
     }
 
+    var content = syncFrontmatter().trim();
     var title = postTitle.value.trim();
     var slug = postSlug.value.trim();
-    var content = postContent.value.trim();
     var categories = postCategories.value.trim();
     var tags = postTags.value.trim();
 
@@ -578,14 +702,10 @@ const postList = allPosts.map(p => ({
     publishBtn.disabled = true;
     publishBtnText.textContent = '저장 중...';
 
-    // Construct Frontmatter
-    var now = new Date();
-    var pad = function(n) { return n.toString().padStart(2, '0'); };
-    var dateStr = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate());
-
+    // Construct Frontmatter (date는 에디터 frontmatter 값)
     var frontmatter = '---\n';
     frontmatter += 'title: "' + title.replace(/"/g, '\\"') + '"\n';
-    frontmatter += 'date: ' + dateStr + '\n';
+    frontmatter += 'date: ' + postDate + '\n';
     if (categories) {
       frontmatter += 'categories: [' + categories.split(',').map(function(s){ return '"' + s.trim() + '"'; }).join(', ') + ']\n';
     }
@@ -691,9 +811,10 @@ const postList = allPosts.map(p => ({
   });
 
   // Init
-  var today = new Date();
-  var pad = function(n) { return n.toString().padStart(2, '0'); };
-  postSlug.value = today.getFullYear() + '-' + pad(today.getMonth()+1) + '-' + pad(today.getDate()) + '-new-post.md';
+  postSlug.value = TODAY + '-new-post.md';
+  setEditor('');
+  (window.innerWidth < 1024 ? viewEditBtn : viewSplitBtn).click();
+  updatePreview();
 
   loadSecretList().then(function() {
     var secretId = new URLSearchParams(location.search).get('secret');
