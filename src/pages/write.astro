@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
 import { getCollection } from 'astro:content';
 
 const allPosts = await getCollection('blog');
@@ -13,160 +14,135 @@ const postList = allPosts.map(p => ({
 })).sort((a, b) => b.id.localeCompare(a.id));
 ---
 
-<BaseLayout title="Post Editor" description="Write or edit blog posts" wide={true}>
-  <div class="max-w-6xl mx-auto py-2">
-    <!-- Editor Header Toolbar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 mb-6 border-b border-borderSubtle">
-      <div class="flex items-center gap-3">
-        <span class="w-2.5 h-2.5 rounded-xs bg-gradient-to-tr from-[#f48924] via-[#f03a69] to-[#3574f0]"></span>
-        <h1 class="text-xl font-bold text-white tracking-tight">Blog Post Editor</h1>
-        <span class="text-xs font-mono text-text-muted px-2 py-0.5 rounded bg-secondary border border-borderSubtle">
-          Markdown
-        </span>
-      </div>
+<BaseLayout title="Post Editor" description="Write or edit blog posts" tab="new-post.md" status={['Markdown', 'UTF-8', 'LF', '4 spaces']} bleed={true}>
+  <!-- Editor toolbar (run configuration style) -->
+  <div class="shrink-0 flex flex-wrap items-center gap-x-2 gap-y-1.5 px-3 py-1.5 border-b border-borderSubtle">
+    <label class="flex-1 sm:flex-none flex items-center gap-1.5 h-7 pl-2 pr-1 rounded-md bg-secondary hover:bg-border transition-colors min-w-0">
+      <Icon name="file" size={13} class="text-text-secondary shrink-0" />
+      <select
+        id="postSelector"
+        class="w-full sm:w-auto bg-transparent text-xs font-mono text-text-primary focus:outline-none sm:max-w-[16rem] cursor-pointer"
+      >
+        <option value="__NEW__">새 글 작성</option>
+        <optgroup id="secretGroup" label="비밀글 수정" hidden></optgroup>
+        <optgroup label="기존 글 수정">
+          {postList.map(p => (
+            <option value={p.id}>{p.id} ({p.title.substring(0, 24)}...)</option>
+          ))}
+        </optgroup>
+      </select>
+    </label>
 
-      <div class="flex items-center gap-3">
-        <!-- Post Mode Selector -->
-        <select 
-          id="postSelector" 
-          class="bg-secondary border border-borderSubtle text-xs font-mono text-text-primary rounded-md px-3 py-1.5 focus:outline-none focus:border-accent max-w-xs"
-        >
-          <option value="__NEW__">✨ 새 글 작성</option>
-          <optgroup id="secretGroup" label="비밀글 수정" hidden></optgroup>
-          <optgroup label="기존 글 수정">
-            {postList.map(p => (
-              <option value={p.id}>{p.id} ({p.title.substring(0, 24)}...)</option>
-            ))}
-          </optgroup>
-        </select>
-
-        <button 
-          id="publishBtn" 
-          class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-accent hover:bg-accent-hover text-white rounded-md text-xs font-semibold tracking-wide transition-colors shadow-xs"
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-          <span id="publishBtnText">발행하기</span>
-        </button>
-      </div>
+    <!-- File path: <저장 위치> / <파일명> -->
+    <div class="order-last sm:order-none basis-full sm:basis-0 flex items-center min-w-0 flex-1 h-7 px-2 rounded-md bg-primary border border-borderSubtle focus-within:border-accent font-mono text-xs">
+      <Icon name="folder" size={13} class="text-text-secondary shrink-0 mr-1.5" />
+      <span id="saveLocation" class="text-text-muted whitespace-nowrap truncate min-w-0">src/content/blog/</span>
+      <input
+        type="text"
+        id="postSlug"
+        aria-label="파일명"
+        class="flex-1 min-w-[8rem] bg-transparent text-text-primary focus:outline-none"
+        placeholder="2026-10-01-my-first-post.md"
+      />
     </div>
 
-    <!-- Metadata Fields (JetBrains form panel) -->
-    <div class="bg-card border border-borderSubtle rounded-xl p-5 mb-6 shadow-xs">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Title -->
-        <div class="lg:col-span-2">
-          <label class="block text-xs font-mono text-text-muted mb-1.5">제목 (Title)</label>
-          <input 
-            type="text" 
-            id="postTitle" 
-            class="w-full bg-primary border border-borderSubtle rounded-md px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent"
-            placeholder="포스트 제목을 입력하세요"
-          />
-        </div>
+    <label title="비밀글: 비공개 저장소(Nekonic.github.io.data)에만 저장되고 이미지도 함께 비공개로 저장됩니다." class="flex items-center gap-1.5 h-7 px-2 rounded-md text-xs text-text-secondary hover:bg-secondary cursor-pointer select-none has-[:checked]:bg-accent/20 has-[:checked]:text-accent-soft has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed">
+      <input type="checkbox" id="postSecret" class="sr-only peer" />
+      <Icon name="lock" size={13} />
+      <span>Private</span>
+    </label>
 
-        <!-- Categories -->
-        <div>
-          <label class="block text-xs font-mono text-text-muted mb-1.5">카테고리 (Categories)</label>
-          <input 
-            type="text" 
-            id="postCategories" 
-            class="w-full bg-primary border border-borderSubtle rounded-md px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent"
-            placeholder="C++, Algorithm"
-          />
-        </div>
+    <button
+      id="publishBtn"
+      class="inline-flex items-center gap-1.5 h-7 px-3 bg-accent hover:bg-accent-hover disabled:opacity-60 text-white rounded-md text-xs font-semibold transition-colors"
+    >
+      <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9.5-5.5z" fill="currentColor"/></svg>
+      <span id="publishBtnText">발행하기</span>
+    </button>
+  </div>
 
-        <!-- Tags -->
-        <div>
-          <label class="block text-xs font-mono text-text-muted mb-1.5">태그 (Tags)</label>
-          <input 
-            type="text" 
-            id="postTags" 
-            class="w-full bg-primary border border-borderSubtle rounded-md px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent"
-            placeholder="Linux, Network"
-          />
-        </div>
-
-        <!-- Filename / Slug -->
-        <div class="lg:col-span-4">
-          <div class="flex items-center justify-between mb-1">
-            <label class="block text-xs font-mono text-text-muted">파일명 (Filename)</label>
-            <span id="saveLocation" class="text-[11px] font-mono text-text-muted">저장 위치: src/content/blog/</span>
-          </div>
-          <input 
-            type="text" 
-            id="postSlug" 
-            class="w-full bg-primary border border-borderSubtle rounded-md px-3 py-2 text-xs font-mono text-text-primary focus:outline-none focus:border-accent"
-            placeholder="2026-10-01-my-first-post.md"
-          />
-        </div>
-
-        <!-- Secret toggle -->
-        <div class="lg:col-span-4">
-          <label class="flex items-start gap-3 p-3 rounded-md bg-primary border border-borderSubtle cursor-pointer has-[:checked]:border-accent has-[:disabled]:opacity-70 has-[:disabled]:cursor-not-allowed">
-            <input type="checkbox" id="postSecret" class="mt-0.5 accent-[#3574f0] w-4 h-4" />
-            <span class="flex flex-col gap-0.5">
-              <span class="text-sm text-text-primary font-medium">비밀글로 저장</span>
-              <span class="text-xs text-text-muted leading-relaxed">메모처럼 비공개 저장소(Nekonic.github.io.data)에만 저장돼요. 사이트에는 올라가지 않고, 토큰으로 로그인한 브라우저에서만 목록과 본문이 보입니다. 이미지도 비공개 저장소에 함께 저장됩니다.</span>
-            </span>
-          </label>
-        </div>
+  <!-- Frontmatter (YAML) -->
+  <div class="shrink-0 flex font-mono text-[13px] leading-6 border-b border-borderSubtle bg-primary">
+    <div class="w-12 shrink-0 text-right pr-3 text-text-faint select-none py-1.5" aria-hidden="true">
+      <div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div>
+    </div>
+    <div class="flex-1 min-w-0 py-1.5 pr-4">
+      <div class="text-text-faint">---</div>
+      <label class="flex items-center">
+        <span class="text-syntax-key shrink-0">title</span><span class="text-text-body shrink-0 mr-2">:</span>
+        <input type="text" id="postTitle" class="flex-1 min-w-0 bg-transparent text-syntax-string placeholder:text-text-faint focus:outline-none focus:bg-secondary/60 rounded-sm" placeholder="포스트 제목을 입력하세요" />
+      </label>
+      <div class="flex items-center">
+        <span class="text-syntax-key">date</span><span class="text-text-body mr-2">:</span>
+        <span id="fmDate" class="text-syntax-number"></span>
+        <span class="ml-3 text-text-faint"># 저장 시 오늘 날짜</span>
       </div>
+      <label class="flex items-center">
+        <span class="text-syntax-key shrink-0">categories</span><span class="text-text-body shrink-0 mr-2">:</span>
+        <input type="text" id="postCategories" class="flex-1 min-w-0 bg-transparent text-syntax-string placeholder:text-text-faint focus:outline-none focus:bg-secondary/60 rounded-sm" placeholder="C++, Algorithm" />
+      </label>
+      <label class="flex items-center">
+        <span class="text-syntax-key shrink-0">tags</span><span class="text-text-body shrink-0 mr-2">:</span>
+        <input type="text" id="postTags" class="flex-1 min-w-0 bg-transparent text-syntax-string placeholder:text-text-faint focus:outline-none focus:bg-secondary/60 rounded-sm" placeholder="Linux, Network" />
+      </label>
+      <div class="text-text-faint">---</div>
+    </div>
+  </div>
+
+  <!-- Main Workspace (Editor + Live Preview) -->
+  <div class="relative flex flex-col lg:flex-row h-[calc(100vh-7.5rem)] min-h-[420px]" id="workspaceContainer">
+    <!-- Floating editor toolbar (JetBrains Markdown) -->
+    <div class="absolute top-2 right-3 z-10 flex items-center gap-0.5 p-0.5 rounded-md bg-secondary border border-border shadow-lg">
+      <button id="imageBtn" type="button" title="이미지 추가 (붙여넣기·드래그도 가능)" class="w-7 h-6 flex items-center justify-center rounded text-text-secondary hover:bg-border hover:text-text-primary">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5"/><circle cx="6" cy="6.5" r="1"/><path d="M2.5 12l3.5-3.5 2.5 2.5 2-2 3 3"/></svg>
+      </button>
+      <input type="file" id="imageInput" accept="image/*" multiple class="hidden" />
+      <span class="w-px h-4 bg-border mx-0.5"></span>
+      <button id="viewEditBtn" type="button" title="Editor Only" class="w-7 h-6 flex items-center justify-center rounded text-text-secondary hover:bg-border hover:text-text-primary">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" aria-hidden="true"><path d="M3 4h10M3 7h7M3 10h10M3 13h5"/></svg>
+      </button>
+      <button id="viewSplitBtn" type="button" title="Editor and Preview" class="w-7 h-6 flex items-center justify-center rounded text-text-secondary hover:bg-border hover:text-text-primary">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M8 2.5v11"/></svg>
+      </button>
+      <button id="viewPreviewBtn" type="button" title="Preview Only" class="w-7 h-6 flex items-center justify-center rounded text-text-secondary hover:bg-border hover:text-text-primary">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg>
+      </button>
     </div>
 
-    <!-- Status Alert Bar -->
-    <div id="statusAlert" class="hidden px-4 py-3 rounded-lg text-xs font-mono mb-6"></div>
-
-    <!-- Editor & Live Preview Toolbar -->
-    <div class="flex items-center justify-between mb-2">
-      <div class="flex items-center gap-1 bg-secondary p-1 rounded-md border border-borderSubtle text-xs font-mono">
-        <button id="viewSplitBtn" class="px-2.5 py-1 rounded bg-card text-white font-medium">좌우 분할</button>
-        <button id="viewEditBtn" class="px-2.5 py-1 rounded text-text-muted hover:text-text-primary">에디터만</button>
-        <button id="viewPreviewBtn" class="px-2.5 py-1 rounded text-text-muted hover:text-text-primary">미리보기만</button>
-      </div>
-
-      <div class="text-xs font-mono text-text-muted flex items-center gap-3">
-        <button id="imageBtn" type="button" class="px-2.5 py-1 rounded border border-borderSubtle bg-secondary hover:text-text-primary">🖼 이미지 추가</button>
-        <input type="file" id="imageInput" accept="image/*" multiple class="hidden" />
-        <span id="charCount">0 characters</span>
-      </div>
+    <!-- Editor Column -->
+    <div id="editorCol" class="flex-1 min-w-0 min-h-0 flex relative">
+      <div id="lineGutter" class="w-12 shrink-0 overflow-hidden text-right pr-3 py-3 font-mono text-[13px] leading-6 text-text-faint select-none" aria-hidden="true"></div>
+      <textarea
+        id="postContent"
+        spellcheck="false"
+        class="flex-1 min-w-0 h-full bg-transparent py-3 pr-4 font-mono text-[13px] leading-6 text-text-primary placeholder:text-text-faint focus:outline-none resize-none"
+        placeholder="## 1. 개요
+내용을 입력하면 오른쪽 미리보기에 실시간으로 렌더링됩니다."
+      ></textarea>
+      <!-- 줄 높이 측정용 (soft wrap 대응) -->
+      <div id="lineMirror" class="absolute invisible pointer-events-none top-0 font-mono text-[13px] leading-6 whitespace-pre-wrap break-words" aria-hidden="true"></div>
     </div>
 
-    <!-- Main Workspace (Editor + Live Preview) -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4" id="workspaceContainer">
-      <!-- Editor Column -->
-      <div id="editorCol" class="flex flex-col">
-        <div class="bg-secondary px-3 py-2 border border-b-0 border-borderSubtle rounded-t-lg text-xs font-mono text-text-muted flex items-center justify-between">
-          <span>Markdown Source</span>
-          <span class="text-[11px]">UTF-8</span>
-        </div>
-        <textarea 
-          id="postContent" 
-          class="w-full bg-[#1e1f22] border border-borderSubtle rounded-b-lg p-4 font-mono text-sm leading-relaxed text-[#dfe1e5] focus:outline-none focus:border-accent min-h-[500px] resize-y"
-          placeholder="여기에 마크다운 본문을 작성하세요...
-## 1. 개요
-내용을 입력하면 우측 미리보기에 실시간으로 렌더링됩니다."
-        ></textarea>
-      </div>
-
-      <!-- Live Preview Column -->
-      <div id="previewCol" class="flex flex-col">
-        <div class="bg-secondary px-3 py-2 border border-b-0 border-borderSubtle rounded-t-lg text-xs font-mono text-text-muted flex items-center justify-between">
-          <span>Live Preview</span>
-          <span class="text-[11px] text-accent">Real-time</span>
-        </div>
-        <div 
-          id="previewContent" 
-          class="w-full bg-card border border-borderSubtle rounded-b-lg p-6 min-h-[500px] overflow-y-auto article-content"
-        >
-          <div class="text-text-muted text-center py-20 font-mono text-xs">
-            마크다운을 입력하면 실시간 미리보기가 표시됩니다.
-          </div>
+    <!-- Live Preview Column -->
+    <div id="previewCol" class="flex-1 min-w-0 min-h-0 overflow-y-auto border-t lg:border-t-0 lg:border-l border-borderSubtle">
+      <div id="previewContent" class="px-6 lg:px-8 py-6 article-content">
+        <div class="text-text-muted text-center py-20 font-mono text-xs">
+          마크다운을 입력하면 실시간 미리보기가 표시됩니다.
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Editor status row -->
+  <div class="shrink-0 h-7 flex items-center gap-4 px-4 border-t border-borderSubtle font-mono text-[11px] text-text-muted">
+    <span id="caretPos">7:1</span>
+    <span id="charCount">0 characters</span>
+    <span class="flex-1"></span>
+    <span class="hidden sm:inline">Markdown</span>
+  </div>
+
+  <!-- Notification balloon -->
+  <div id="statusAlert" class="hidden" role="status"></div>
 </BaseLayout>
 
 <!-- Lightweight Marked CDN for Live Markdown Parsing -->
@@ -212,8 +188,9 @@ const postList = allPosts.map(p => ({
 
   function updateSaveLocation() {
     saveLocation.textContent = postSecret.checked
-      ? '저장 위치: Nekonic.github.io.data/_posts/ (비공개)'
-      : '저장 위치: src/content/blog/';
+      ? 'Nekonic.github.io.data/_posts/'
+      : 'src/content/blog/';
+    saveLocation.className = postSecret.checked ? 'text-accent-soft whitespace-nowrap truncate min-w-0' : 'text-text-muted whitespace-nowrap truncate min-w-0';
     publishBtnText.textContent = currentEditingSha ? '수정 저장하기' : (postSecret.checked ? '비밀글 저장' : '발행하기');
   }
   postSecret.addEventListener('change', updateSaveLocation);
@@ -431,6 +408,9 @@ const postList = allPosts.map(p => ({
   function updatePreview() {
     var raw = postContent.value;
     charCount.textContent = raw.length + ' characters';
+    updateGutter();
+    updateCaret();
+    updateTabName();
 
     if (!raw.trim()) {
       previewContent.innerHTML = '<div class="text-text-muted text-center py-20 font-mono text-xs">마크다운을 입력하면 실시간 미리보기가 표시됩니다.</div>';
@@ -452,33 +432,92 @@ const postList = allPosts.map(p => ({
 
   postContent.addEventListener('input', updatePreview);
 
+  // ---- Line number gutter (soft wrap 대응: 미러로 줄마다 높이를 잼) ----
+  var lineGutter = document.getElementById('lineGutter');
+  var lineMirror = document.getElementById('lineMirror');
+  var caretPos = document.getElementById('caretPos');
+  var FM_LINES = 6; // 위 frontmatter 줄 수 (본문은 7번째 줄부터)
+
+  function updateGutter() {
+    var lines = postContent.value.split('\n');
+    var style = getComputedStyle(postContent);
+    lineMirror.style.width = (postContent.clientWidth - parseFloat(style.paddingRight)) + 'px';
+    lineMirror.innerHTML = '';
+    lines.forEach(function(line) {
+      var d = document.createElement('div');
+      d.textContent = line || ' ';
+      lineMirror.appendChild(d);
+    });
+    var html = '';
+    var current = currentLine();
+    Array.prototype.forEach.call(lineMirror.children, function(d, i) {
+      html += '<div style="height:' + d.offsetHeight + 'px"' + (i === current ? ' class="text-text-secondary"' : '') + '>' + (i + 1 + FM_LINES) + '</div>';
+    });
+    lineGutter.innerHTML = html;
+    lineGutter.scrollTop = postContent.scrollTop;
+  }
+
+  function currentLine() {
+    return postContent.value.slice(0, postContent.selectionStart).split('\n').length - 1;
+  }
+
+  function updateCaret() {
+    var before = postContent.value.slice(0, postContent.selectionStart);
+    var line = before.split('\n').length - 1;
+    var col = before.length - before.lastIndexOf('\n');
+    caretPos.textContent = (line + 1 + FM_LINES) + ':' + col;
+    Array.prototype.forEach.call(lineGutter.children, function(d, i) {
+      d.className = i === line ? 'text-text-secondary' : '';
+    });
+  }
+
+  postContent.addEventListener('scroll', function() { lineGutter.scrollTop = postContent.scrollTop; });
+  ['keyup', 'click', 'select'].forEach(function(ev) { postContent.addEventListener(ev, updateCaret); });
+  window.addEventListener('resize', updateGutter);
+
+  // Tab 키: 들여쓰기 4칸
+  postContent.addEventListener('keydown', function(e) {
+    if (e.key !== 'Tab' || e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) return;
+    e.preventDefault();
+    var a = postContent.selectionStart, b = postContent.selectionEnd;
+    postContent.setRangeText('    ', a, b, 'end');
+    postContent.dispatchEvent(new Event('input'));
+  });
+
+  // 탭 이름 = 파일명
+  var editorTabName = document.getElementById('editorTabName');
+  function updateTabName() {
+    if (editorTabName) editorTabName.textContent = postSlug.value.trim() || 'new-post.md';
+  }
+  postSlug.addEventListener('input', updateTabName);
+
   // View switchers
   viewSplitBtn.addEventListener('click', function() {
     editorCol.classList.remove('hidden');
     previewCol.classList.remove('hidden');
-    workspaceContainer.className = 'grid grid-cols-1 lg:grid-cols-2 gap-4';
     setActiveViewBtn(viewSplitBtn);
   });
 
   viewEditBtn.addEventListener('click', function() {
     editorCol.classList.remove('hidden');
     previewCol.classList.add('hidden');
-    workspaceContainer.className = 'grid grid-cols-1 gap-4';
     setActiveViewBtn(viewEditBtn);
   });
 
   viewPreviewBtn.addEventListener('click', function() {
     editorCol.classList.add('hidden');
     previewCol.classList.remove('hidden');
-    workspaceContainer.className = 'grid grid-cols-1 gap-4';
     setActiveViewBtn(viewPreviewBtn);
   });
 
   function setActiveViewBtn(active) {
     [viewSplitBtn, viewEditBtn, viewPreviewBtn].forEach(function(btn) {
-      btn.className = 'px-2.5 py-1 rounded text-text-muted hover:text-text-primary';
+      btn.classList.remove('bg-accent/25', 'text-accent-soft');
+      btn.classList.add('text-text-secondary');
     });
-    active.className = 'px-2.5 py-1 rounded bg-card text-white font-medium';
+    active.classList.remove('text-text-secondary');
+    active.classList.add('bg-accent/25', 'text-accent-soft');
+    updateGutter();
   }
 
   // Auto-generate slug when typing title for new posts
@@ -489,6 +528,7 @@ const postList = allPosts.map(p => ({
       var dateStr = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate());
       var cleanTitle = postTitle.value.trim().toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-');
       postSlug.value = dateStr + (cleanTitle ? '-' + cleanTitle : '') + '.md';
+      updateTabName();
     }
   });
 
@@ -550,10 +590,17 @@ const postList = allPosts.map(p => ({
   }
 
   function showAlert(msg, isError) {
-    statusAlert.textContent = msg;
-    statusAlert.className = 'px-4 py-3 rounded-lg text-xs font-mono mb-6 ' + (isError ? 'bg-red-950/40 text-red-400 border border-red-900/50' : 'bg-emerald-950/40 text-emerald-400 border border-emerald-900/50');
-    statusAlert.classList.remove('hidden');
-    setTimeout(function() { statusAlert.classList.add('hidden'); }, 8000);
+    // JetBrains 알림 풍선 (오른쪽 아래)
+    statusAlert.className = 'fixed right-4 bottom-20 lg:bottom-10 z-50 max-w-sm flex items-start gap-2.5 px-4 py-3 rounded-lg bg-secondary border border-border shadow-2xl text-xs leading-relaxed text-text-primary';
+    statusAlert.innerHTML = '';
+    var dot = document.createElement('span');
+    dot.className = 'mt-1 w-2 h-2 shrink-0 rounded-full ' + (isError ? 'bg-[#db5c5c]' : 'bg-accent-green');
+    var text = document.createElement('span');
+    text.textContent = msg;
+    statusAlert.appendChild(dot);
+    statusAlert.appendChild(text);
+    clearTimeout(showAlert.timer);
+    showAlert.timer = setTimeout(function() { statusAlert.classList.add('hidden'); }, 8000);
   }
 
   // Publish / Save Button
@@ -694,6 +741,9 @@ const postList = allPosts.map(p => ({
   var today = new Date();
   var pad = function(n) { return n.toString().padStart(2, '0'); };
   postSlug.value = today.getFullYear() + '-' + pad(today.getMonth()+1) + '-' + pad(today.getDate()) + '-new-post.md';
+  document.getElementById('fmDate').textContent = today.getFullYear() + '-' + pad(today.getMonth()+1) + '-' + pad(today.getDate());
+  setActiveViewBtn(viewSplitBtn);
+  updatePreview();
 
   loadSecretList().then(function() {
     var secretId = new URLSearchParams(location.search).get('secret');
