@@ -112,7 +112,8 @@ const postList = allPosts.map(p => ({
       <!-- Preview pane -->
       <div id="previewCol" class="flex-1 min-w-0 min-h-0 flex flex-col border-t lg:border-t-0 lg:border-l border-borderSubtle">
         <div class="shrink-0 h-8 flex items-center px-3 text-xs text-text-muted border-b border-borderSubtle">Preview</div>
-        <div class="flex-1 min-h-0 overflow-y-auto">
+        <div id="previewScroll" class="relative flex-1 min-h-0 overflow-y-auto">
+          <button id="previewImgEdit" type="button" title="이 이미지 다시 편집" class="hidden absolute z-10 -translate-x-full whitespace-nowrap h-7 px-2.5 rounded-md text-xs font-semibold text-white bg-black/70 border border-border hover:bg-accent hover:border-accent">편집</button>
           <header id="previewHeader" class="hidden mx-6 lg:mx-8 mt-6 flex-col gap-3.5 pb-6 border-b border-borderSubtle">
             <div id="previewCats" class="flex gap-1.5 flex-wrap font-mono text-xs"></div>
             <h1 id="previewTitle" class="text-[28px] lg:text-[34px] leading-tight font-bold tracking-tight text-white"></h1>
@@ -140,6 +141,96 @@ const postList = allPosts.map(p => ({
     </div>
   </div>
 
+  <!-- Image editor dialog: 가리기 · 모자이크 · 박스 · 텍스트 -->
+  <div id="imgEditor" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/60 p-2 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="imgEditorTitle">
+    <div class="w-full max-w-5xl max-h-full flex flex-col bg-primary border border-border rounded-xl shadow-2xl overflow-hidden">
+      <div class="shrink-0 h-10 flex items-center gap-2 px-4 border-b border-borderSubtle">
+        <span id="imgEditorTitle" class="font-semibold truncate">Edit Image</span>
+        <span id="imgEditorQueue" class="text-xs text-text-muted"></span>
+        <span class="flex-1"></span>
+        <button id="imgEdClose" type="button" aria-label="닫기" title="닫기 (Esc)" class="w-7 h-7 flex items-center justify-center rounded-md text-text-secondary hover:bg-secondary hover:text-text-primary"><Icon name="close" size={14} /></button>
+      </div>
+
+      <!-- tools -->
+      <div class="shrink-0 flex flex-wrap items-center gap-1 px-3 py-1.5 border-b border-borderSubtle text-xs">
+        <button type="button" data-tool="select" aria-label="선택" class="img-tool h-7 px-2 sm:px-2.5 rounded-md flex items-center gap-1.5" title="선택 · 드래그로 이동, 모서리로 크기 조절, 더블클릭으로 텍스트 수정 (V)">
+          <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M3.5 2l9 6.2-4 .8 2.4 4.6-1.6.8-2.4-4.6-3.4 2.6z"/></svg><span class="hidden sm:inline">선택</span>
+        </button>
+        <span class="w-px h-4 bg-border mx-1"></span>
+        <button type="button" data-tool="redact" aria-label="가리기" class="img-tool h-7 px-2 sm:px-2.5 rounded-md flex items-center gap-1.5" title="단색으로 덮어 가리기 · IP 등 민감 정보 (R)">
+          <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="4" width="12" height="8" rx="1" fill="currentColor"/></svg><span class="hidden sm:inline">가리기</span>
+        </button>
+        <button type="button" data-tool="mosaic" aria-label="모자이크" class="img-tool h-7 px-2 sm:px-2.5 rounded-md flex items-center gap-1.5" title="모자이크 · 사진용, 글자는 가리기 권장 (M)">
+          <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><rect x="2" y="2" width="4" height="4"/><rect x="10" y="2" width="4" height="4"/><rect x="6" y="6" width="4" height="4"/><rect x="2" y="10" width="4" height="4"/><rect x="10" y="10" width="4" height="4"/></svg><span class="hidden sm:inline">모자이크</span>
+        </button>
+        <button type="button" data-tool="box" aria-label="박스" class="img-tool h-7 px-2 sm:px-2.5 rounded-md flex items-center gap-1.5" title="네모 박스로 강조 (B)">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="9" rx="1"/></svg><span class="hidden sm:inline">박스</span>
+        </button>
+        <button type="button" data-tool="arrow" aria-label="화살표" class="img-tool h-7 px-2 sm:px-2.5 rounded-md flex items-center gap-1.5" title="드래그해서 화살표 그리기 (A)">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13L12.5 3.5M7 3.5h5.5V9"/></svg><span class="hidden sm:inline">화살표</span>
+        </button>
+        <button type="button" data-tool="text" aria-label="텍스트" class="img-tool h-7 px-2 sm:px-2.5 rounded-md flex items-center gap-1.5" title="클릭한 곳에 텍스트 입력, 기존 텍스트를 누르면 수정 (T)">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3 3.5h10M8 3.5v9.5"/></svg><span class="hidden sm:inline">텍스트</span>
+        </button>
+        <button type="button" data-tool="crop" aria-label="자르기" class="img-tool h-7 px-2 sm:px-2.5 rounded-md flex items-center gap-1.5" title="드래그해서 남길 영역 지정 · 적용할 때 잘라냄 (C)">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4.5 1.5v10h10M1.5 4.5h10v10"/></svg><span class="hidden sm:inline">자르기</span>
+        </button>
+
+        <span class="w-px h-4 bg-border mx-1.5"></span>
+
+        <div id="imgEdColors" class="flex items-center gap-1">
+          <button type="button" data-color="#000000" class="img-color" style="background:#000000" aria-label="검정"></button>
+          <button type="button" data-color="#ffffff" class="img-color" style="background:#ffffff" aria-label="흰색"></button>
+          <button type="button" data-color="#ff3b30" class="img-color" style="background:#ff3b30" aria-label="빨강"></button>
+          <button type="button" data-color="#ffcc00" class="img-color" style="background:#ffcc00" aria-label="노랑"></button>
+          <button type="button" data-color="#34c759" class="img-color" style="background:#34c759" aria-label="초록"></button>
+          <button type="button" data-color="#3574f0" class="img-color" style="background:#3574f0" aria-label="파랑"></button>
+          <label class="img-color relative overflow-hidden cursor-pointer" title="다른 색" style="background:conic-gradient(#f03a69,#f48924,#ffcc00,#34c759,#3574f0,#7f52ff,#f03a69)">
+            <input id="imgEdColorInput" type="color" class="absolute inset-0 opacity-0 cursor-pointer" />
+          </label>
+        </div>
+
+        <div id="imgEdSizeWrap" class="invisible flex items-center gap-1.5 ml-1 sm:ml-2">
+          <span id="imgEdSizeLabel" class="hidden sm:inline text-text-muted">굵기</span>
+          <div class="flex rounded-md border border-border overflow-hidden">
+            <button type="button" data-size="s" class="img-size" title="얇게 / 작게">S</button>
+            <button type="button" data-size="m" class="img-size" title="보통">M</button>
+            <button type="button" data-size="l" class="img-size" title="굵게 / 크게">L</button>
+          </div>
+        </div>
+
+        <span class="flex-1"></span>
+
+        <button id="imgEdDelete" type="button" title="선택한 도형 삭제 (Delete)" aria-label="삭제" class="invisible w-7 h-7 flex items-center justify-center rounded-md text-text-secondary hover:bg-secondary hover:text-text-primary disabled:opacity-40 disabled:hover:bg-transparent">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 4.5h11M6.5 4.5V2.5h3v2M4 4.5l.7 9h6.6l.7-9"/></svg>
+        </button>
+        <button id="imgEdUndo" type="button" title="되돌리기 (Ctrl+Z)" aria-label="되돌리기" class="w-7 h-7 flex items-center justify-center rounded-md text-text-secondary hover:bg-secondary hover:text-text-primary disabled:opacity-40 disabled:hover:bg-transparent">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 3.5L2.5 6.5l3 3M2.5 6.5h7a4 4 0 010 8H7"/></svg>
+        </button>
+        <button id="imgEdRedo" type="button" title="다시 실행 (Ctrl+Shift+Z)" aria-label="다시 실행" class="w-7 h-7 flex items-center justify-center rounded-md text-text-secondary hover:bg-secondary hover:text-text-primary disabled:opacity-40 disabled:hover:bg-transparent">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 3.5l3 3-3 3M13.5 6.5h-7a4 4 0 000 8H9"/></svg>
+        </button>
+      </div>
+
+      <!-- canvas -->
+      <div id="imgEdStage" class="flex-1 min-h-0 overflow-auto bg-ground flex items-center justify-center p-4">
+        <div class="relative inline-block">
+          <canvas id="imgEdCanvas" class="block max-w-full touch-none cursor-crosshair shadow-lg"></canvas>
+          <input id="imgEdTextInput" type="text" class="hidden absolute min-w-[8rem] px-1 py-0.5 bg-black/70 border border-accent rounded text-white font-bold outline-none" placeholder="텍스트 입력 후 Enter" />
+        </div>
+      </div>
+
+      <div class="shrink-0 flex flex-wrap md:flex-nowrap items-center gap-2 px-4 py-2.5 border-t border-borderSubtle">
+        <button id="imgEdClear" type="button" class="shrink-0 h-8 px-2.5 rounded-md text-xs text-text-secondary hover:bg-secondary hover:text-text-primary disabled:opacity-40 disabled:hover:bg-transparent">모두 지우기</button>
+        <button id="imgEdCropClear" type="button" title="자르기 영역 해제" class="hidden shrink-0 h-8 px-2.5 rounded-md text-xs text-text-secondary hover:bg-secondary hover:text-text-primary">자르기 해제</button>
+        <span class="hidden md:inline min-w-0 truncate text-xs text-text-muted">V로 선택해 이동·크기 조절 · 적용하면 편집된 이미지만 올라가요 (메타데이터 제거)</span>
+        <span class="flex-1"></span>
+        <button id="imgEdOriginal" type="button" class="shrink-0 h-8 px-3 rounded-md text-xs text-text-primary bg-secondary hover:bg-border">원본 그대로 넣기</button>
+        <button id="imgEdApply" type="button" class="shrink-0 h-8 px-4 rounded-md text-xs font-semibold text-white bg-accent hover:bg-accent-hover">적용해서 넣기</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Notification balloon -->
   <div id="statusAlert" class="hidden" role="status"></div>
 </BaseLayout>
@@ -147,6 +238,16 @@ const postList = allPosts.map(p => ({
 <style>
   /* 영문·코드는 JetBrains Mono, 한글은 Pretendard로 */
   .editor-font { font-family: "JetBrains Mono", "Pretendard Variable", Pretendard, ui-monospace, monospace; }
+
+  .img-tool { color: #9da0a8; }
+  .img-tool:hover { background: #2b2d30; color: #dfe1e5; }
+  .img-tool[aria-pressed="true"] { background: rgb(53 116 240 / 0.25); color: #8cb4f0; }
+  .img-color { width: 20px; height: 20px; border-radius: 9999px; border: 1px solid #4e5157; }
+  .img-color[aria-pressed="true"] { outline: 2px solid #3574f0; outline-offset: 2px; }
+  .img-size { width: 24px; height: 22px; color: #9da0a8; font-family: "JetBrains Mono", ui-monospace, monospace; }
+  .img-size + .img-size { border-left: 1px solid #393b40; }
+  .img-size:hover { background: #2b2d30; color: #dfe1e5; }
+  .img-size[aria-pressed="true"] { background: rgb(53 116 240 / 0.25); color: #8cb4f0; }
 </style>
 
 <!-- Lightweight Marked CDN for Live Markdown Parsing -->
@@ -308,7 +409,7 @@ const postList = allPosts.map(p => ({
 
   // ---- Image upload (원본 파일 그대로 public/assets/images/posts/<slug>/ 에 저장) ----
   var REPO_API = 'https://api.github.com/repos/Nekonic/Nekonic.github.io';
-  var pendingImages = {}; // publicPath -> { file, blobUrl, repoPath }
+  var pendingImages = {}; // publicPath -> { file, blobUrl, repoPath, origFile, edit }
 
   function sanitizeName(name) {
     var dot = name.lastIndexOf('.');
@@ -318,9 +419,9 @@ const postList = allPosts.map(p => ({
     return base + '-' + Date.now().toString(36) + '.' + ext;
   }
 
-  function addImageFiles(files) {
+  function insertImageFiles(files) {
     var folder = (postSlug.value.trim().replace(/\.md$/, '')) || 'untitled';
-    var inserts = [];
+    var inserts = [], paths = [];
     Array.prototype.forEach.call(files, function(file) {
       if (!file.type.startsWith('image/')) return;
       var fileName = sanitizeName(file.name || 'image.png');
@@ -328,18 +429,784 @@ const postList = allPosts.map(p => ({
       pendingImages[publicPath] = {
         file: file,
         blobUrl: URL.createObjectURL(file),
-        repoPath: 'public' + publicPath
+        repoPath: 'public' + publicPath,
+        origFile: file, // 다시 편집할 때 쓰는 원본 (업로드되지 않음)
+        edit: null      // 다시 편집할 때 복원할 도형들
       };
+      paths.push(publicPath);
       inserts.push('![](' + publicPath + ')');
     });
-    if (!inserts.length) return;
+    if (!inserts.length) return paths;
     var start = postContent.selectionStart, end = postContent.selectionEnd;
     var text = inserts.join('\n\n') + '\n';
     postContent.value = postContent.value.slice(0, start) + text + postContent.value.slice(end);
     postContent.selectionStart = postContent.selectionEnd = start + text.length;
     postContent.focus();
     updatePreview();
+    return paths;
   }
+
+  // ---- Image editor: 넣기 전에 가리기/모자이크/박스/화살표/텍스트/자르기 편집 ----
+  var imgEd = document.getElementById('imgEditor');
+  var imgEdCanvas = document.getElementById('imgEdCanvas');
+  var imgEdCtx = imgEdCanvas.getContext('2d');
+  var imgEdTextInput = document.getElementById('imgEdTextInput');
+  var imgEdUndo = document.getElementById('imgEdUndo');
+  var imgEdRedo = document.getElementById('imgEdRedo');
+  var imgEdClear = document.getElementById('imgEdClear');
+  var imgEdDelete = document.getElementById('imgEdDelete');
+  var imgEdCropClear = document.getElementById('imgEdCropClear');
+  var imgEdSizeWrap = document.getElementById('imgEdSizeWrap');
+  var imgEdColorInput = document.getElementById('imgEdColorInput');
+  var imgEdQueue = [];       // 편집을 기다리는 { file, target, state }
+  var imgEdFile = null;      // 지금 편집 중인 파일
+  var imgEdTarget = null;    // 다시 편집 중이면 그 이미지의 publicPath
+  var imgEdImage = null;     // 원본 이미지 (HTMLImageElement)
+  var imgEdShapes = [];      // { type, x, y, w, h, x1, y1, x2, y2, color, size, text }
+  var imgEdCrop = null;      // 남길 영역 { x, y, w, h }
+  var imgEdSel = -1;         // 선택한 도형 index
+  var imgEdDraft = null;     // 드래그로 그리는 중인 도형
+  var imgEdDrag = null;      // 진행 중인 드래그 (그리기/이동/크기 조절/자르기)
+  var imgEdTextPos = null;   // 열린 텍스트 입력 { x, y, index, color, size }
+  var imgEdHistory = [], imgEdFuture = []; // 되돌리기/다시 실행용 스냅샷
+  var imgEdBusy = false;     // 이미지 로딩·내보내기 중 (적용/취소 중복 실행 방지)
+  var imgEdColorBefore = null; // 색상 피커로 바꾸기 전 스냅샷 (되돌리기 한 번에 묶음)
+  var imgEdTool = 'redact';
+  var imgEdColors = { redact: '#000000', mosaic: '#000000', box: '#ff3b30', arrow: '#ff3b30', text: '#ff3b30' };
+  var imgEdSizes = { box: 'm', arrow: 'm', text: 'm' };
+  var IMG_ED_KEYS = { v: 'select', r: 'redact', m: 'mosaic', b: 'box', a: 'arrow', t: 'text', c: 'crop' };
+  var IMG_ED_EMPTY = '{"s":[],"c":null}';
+
+  function addImageFiles(files) {
+    Array.prototype.forEach.call(files, function(f) { if (f.type.startsWith('image/')) imgEdQueue.push({ file: f }); });
+    if (!imgEdFile) openNextImage();
+  }
+
+  // 이번 세션에 넣은 (아직 안 올라간) 이미지를 원본부터 다시 편집
+  function reopenPendingImage(path) {
+    var entry = pendingImages[path];
+    if (!entry) return;
+    imgEdQueue.push({ file: entry.origFile || entry.file, target: path, state: entry.edit });
+    if (!imgEdFile) openNextImage();
+  }
+
+  function openNextImage() {
+    var item = imgEdQueue.shift() || null;
+    imgEdFile = item ? item.file : null;
+    imgEdTarget = item ? item.target || null : null;
+    imgEdBusy = !!imgEdFile;
+    if (!imgEdFile) { imgEd.classList.add('hidden'); imgEd.classList.remove('flex'); postContent.focus(); return; }
+    var url = URL.createObjectURL(imgEdFile);
+    var img = new Image();
+    img.onload = function() {
+      imgEdImage = img;
+      imgEdBusy = false;
+      restoreSnapshot(item.state || IMG_ED_EMPTY);
+      imgEdHistory = []; imgEdFuture = [];
+      imgEdDraft = imgEdDrag = null;
+      imgEdCanvas.width = img.naturalWidth;
+      imgEdCanvas.height = img.naturalHeight;
+      document.getElementById('imgEditorTitle').textContent = (imgEdTarget ? '다시 편집 · ' : '') + (imgEdFile.name || 'image.png');
+      document.getElementById('imgEditorQueue').textContent = imgEdQueue.length ? '+' + imgEdQueue.length + '장 대기' : '';
+      document.getElementById('imgEdOriginal').textContent = imgEdTarget ? '원본으로 되돌리기' : '원본 그대로 넣기';
+      document.getElementById('imgEdApply').textContent = imgEdTarget ? '적용' : '적용해서 넣기';
+      imgEd.classList.remove('hidden'); imgEd.classList.add('flex');
+      postContent.blur(); // 편집 중 키 입력이 뒤의 에디터로 새지 않게
+      fitCanvas();
+      renderImgEd();
+    };
+    img.onerror = function() {
+      URL.revokeObjectURL(url);
+      if (!imgEdTarget) insertImageFiles([imgEdFile]);
+      openNextImage();
+    };
+    img.src = url;
+  }
+
+  // 화면에 맞게 표시 크기 조정 (실제 해상도는 원본 그대로)
+  function fitCanvas() {
+    var stage = document.getElementById('imgEdStage');
+    var maxW = stage.clientWidth - 32, maxH = stage.clientHeight - 32;
+    var scale = Math.min(1, maxW / imgEdCanvas.width, maxH / imgEdCanvas.height);
+    imgEdCanvas.style.width = Math.round(imgEdCanvas.width * scale) + 'px';
+    imgEdCanvas.style.height = Math.round(imgEdCanvas.height * scale) + 'px';
+  }
+  window.addEventListener('resize', function() { if (imgEdFile) { fitCanvas(); if (imgEdImage) renderImgEd(); } });
+
+  // 표시 px → 캔버스 px 비율 (핸들·선택 테두리를 화면 기준 크기로 그리기 위해)
+  function displayScale() {
+    var w = imgEdCanvas.getBoundingClientRect().width;
+    return w ? w / imgEdCanvas.width : 1;
+  }
+  function imgMaxDim() { return Math.max(imgEdCanvas.width, imgEdCanvas.height); }
+  function strokePx(size) {
+    var base = Math.max(3, Math.round(imgMaxDim() / 300));
+    return Math.max(2, Math.round(base * ({ s: 0.6, m: 1, l: 1.8 }[size || 'm'])));
+  }
+  function fontPx(size) {
+    return Math.round(Math.max(16, imgMaxDim() / 40) * ({ s: 0.7, m: 1, l: 1.45 }[size || 'm']));
+  }
+  function textFont(size) { return 'bold ' + fontPx(size) + 'px "Pretendard Variable", Pretendard, sans-serif'; }
+
+  function normRect(r) {
+    return { x: Math.min(r.x, r.x + r.w), y: Math.min(r.y, r.y + r.h), w: Math.abs(r.w), h: Math.abs(r.h) };
+  }
+  // 이미지 밖으로 나간 부분을 잘라낸 정수 사각형
+  function clampRect(r) {
+    var x = Math.max(0, Math.round(r.x)), y = Math.max(0, Math.round(r.y));
+    return {
+      x: x, y: y,
+      w: Math.max(0, Math.min(imgEdCanvas.width, Math.round(r.x + r.w)) - x),
+      h: Math.max(0, Math.min(imgEdCanvas.height, Math.round(r.y + r.h)) - y)
+    };
+  }
+  function inRect(r, p, pad) {
+    pad = pad || 0;
+    return p.x >= r.x - pad && p.x <= r.x + r.w + pad && p.y >= r.y - pad && p.y <= r.y + r.h + pad;
+  }
+  function isLight(hex) {
+    var n = parseInt(hex.slice(1), 16);
+    return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 > 150;
+  }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+  // ---- 도형 그리기 ----
+  function drawShape(sh) {
+    var c = imgEdCtx;
+    if (sh.type === 'text') { drawText(c, sh); return; }
+    if (sh.type === 'arrow') { drawArrow(c, sh); return; }
+    var r = normRect(sh);
+    if (sh.type === 'redact') {
+      c.fillStyle = sh.color;
+      c.fillRect(r.x, r.y, r.w, r.h);
+    } else if (sh.type === 'mosaic') {
+      // 원본 영역을 작게 줄였다가 그대로 키워서 픽셀화
+      var block = Math.max(8, Math.round(imgMaxDim() / 80));
+      var sw = Math.max(1, Math.round(r.w / block)), shh = Math.max(1, Math.round(r.h / block));
+      var tmp = document.createElement('canvas');
+      tmp.width = sw; tmp.height = shh;
+      tmp.getContext('2d').drawImage(imgEdImage, r.x, r.y, r.w, r.h, 0, 0, sw, shh);
+      c.imageSmoothingEnabled = false;
+      c.drawImage(tmp, 0, 0, sw, shh, r.x, r.y, r.w, r.h);
+      c.imageSmoothingEnabled = true;
+    } else if (sh.type === 'box') {
+      var lw = strokePx(sh.size);
+      c.lineWidth = lw;
+      c.strokeStyle = sh.color;
+      c.strokeRect(r.x + lw / 2, r.y + lw / 2, Math.max(0, r.w - lw), Math.max(0, r.h - lw));
+    }
+  }
+
+  function drawText(c, sh) {
+    var fs = fontPx(sh.size);
+    c.font = textFont(sh.size);
+    c.textBaseline = 'top';
+    c.lineJoin = 'round';
+    c.lineWidth = Math.max(2, fs / 6);
+    c.strokeStyle = isLight(sh.color) ? 'rgba(0,0,0,0.75)' : 'rgba(255,255,255,0.85)';
+    c.strokeText(sh.text, sh.x, sh.y);
+    c.fillStyle = sh.color;
+    c.fillText(sh.text, sh.x, sh.y);
+  }
+
+  function drawArrow(c, sh) {
+    var dx = sh.x2 - sh.x1, dy = sh.y2 - sh.y1, len = Math.sqrt(dx * dx + dy * dy);
+    if (len < 1) return;
+    var lw = strokePx(sh.size), ux = dx / len, uy = dy / len;
+    var head = Math.min(len, Math.max(lw * 4, 14)), hw = head * 0.55;
+    var bx = sh.x2 - ux * head, by = sh.y2 - uy * head;
+    c.strokeStyle = c.fillStyle = sh.color;
+    c.lineWidth = lw;
+    c.lineCap = 'round';
+    c.beginPath();
+    c.moveTo(sh.x1, sh.y1);
+    c.lineTo(sh.x2 - ux * head * 0.6, sh.y2 - uy * head * 0.6); // 머리 끝으로 선이 삐져나오지 않게
+    c.stroke();
+    c.beginPath();
+    c.moveTo(sh.x2, sh.y2);
+    c.lineTo(bx - uy * hw, by + ux * hw);
+    c.lineTo(bx + uy * hw, by - ux * hw);
+    c.closePath();
+    c.fill();
+    c.lineCap = 'butt';
+  }
+
+  // ---- 선택 · 히트 테스트 ----
+  function shapeBounds(sh) {
+    if (sh.type === 'text') {
+      imgEdCtx.font = textFont(sh.size);
+      var pad = Math.max(2, fontPx(sh.size) / 12);
+      return { x: sh.x - pad, y: sh.y - pad, w: imgEdCtx.measureText(sh.text).width + pad * 2, h: fontPx(sh.size) * 1.2 + pad * 2 };
+    }
+    if (sh.type === 'arrow') {
+      return normRect({ x: sh.x1, y: sh.y1, w: sh.x2 - sh.x1, h: sh.y2 - sh.y1 });
+    }
+    return normRect(sh);
+  }
+
+  function segDist(p, a, b) {
+    var dx = b.x - a.x, dy = b.y - a.y, l2 = dx * dx + dy * dy;
+    var t = l2 ? Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / l2)) : 0;
+    var qx = a.x + t * dx - p.x, qy = a.y + t * dy - p.y;
+    return Math.sqrt(qx * qx + qy * qy);
+  }
+
+  function hitTest(sh, p) {
+    var tol = 6 / displayScale();
+    if (sh.type === 'arrow') {
+      return segDist(p, { x: sh.x1, y: sh.y1 }, { x: sh.x2, y: sh.y2 }) <= Math.max(strokePx(sh.size), tol);
+    }
+    return inRect(shapeBounds(sh), p, sh.type === 'text' ? 0 : tol);
+  }
+
+  // 위에 그려진 도형부터 찾음
+  function hitShape(p, onlyType) {
+    for (var i = imgEdShapes.length - 1; i >= 0; i--) {
+      if (onlyType && imgEdShapes[i].type !== onlyType) continue;
+      if (hitTest(imgEdShapes[i], p)) return i;
+    }
+    return -1;
+  }
+
+  function handleSize() { return 10 / displayScale(); }
+
+  // 크기 조절 핸들: 화살표는 양 끝점, 사각형(+자르기 영역)은 네 모서리, 텍스트는 없음
+  function handlesOf(o) {
+    if (o.type === 'arrow') return [{ id: 'p1', x: o.x1, y: o.y1 }, { id: 'p2', x: o.x2, y: o.y2 }];
+    if (o.type === 'text') return [];
+    var r = normRect(o);
+    return [
+      { id: 'nw', x: r.x, y: r.y }, { id: 'ne', x: r.x + r.w, y: r.y },
+      { id: 'sw', x: r.x, y: r.y + r.h }, { id: 'se', x: r.x + r.w, y: r.y + r.h }
+    ];
+  }
+  function hitHandle(o, p) {
+    var hs = handleSize() * 0.9;
+    var hs2 = handlesOf(o);
+    for (var i = 0; i < hs2.length; i++) {
+      if (Math.abs(p.x - hs2[i].x) <= hs && Math.abs(p.y - hs2[i].y) <= hs) return hs2[i].id;
+    }
+    return null;
+  }
+  function handleCursor(id) {
+    return id === 'nw' || id === 'se' ? 'nwse-resize' : id === 'ne' || id === 'sw' ? 'nesw-resize' : 'move';
+  }
+
+  function moveShape(o, orig, dx, dy) {
+    if (o.type === 'arrow') { o.x1 = orig.x1 + dx; o.y1 = orig.y1 + dy; o.x2 = orig.x2 + dx; o.y2 = orig.y2 + dy; }
+    else { o.x = orig.x + dx; o.y = orig.y + dy; }
+  }
+
+  function resizeShape(o, orig, id, p) {
+    if (id === 'p1') { o.x1 = p.x; o.y1 = p.y; return; }
+    if (id === 'p2') { o.x2 = p.x; o.y2 = p.y; return; }
+    // 끌고 있는 모서리의 반대쪽을 고정
+    var r = normRect(orig);
+    var fx = id === 'nw' || id === 'sw' ? r.x + r.w : r.x;
+    var fy = id === 'nw' || id === 'ne' ? r.y + r.h : r.y;
+    var n = normRect({ x: fx, y: fy, w: p.x - fx, h: p.y - fy });
+    o.x = n.x; o.y = n.y; o.w = Math.max(1, n.w); o.h = Math.max(1, n.h);
+  }
+
+  function selectedShape() { return imgEdSel >= 0 ? imgEdShapes[imgEdSel] || null : null; }
+
+  // ---- 선택 표시 · 자르기 표시 ----
+  function drawHandles(o) {
+    var c = imgEdCtx, s = 1 / displayScale(), hs = handleSize();
+    c.lineWidth = 1.5 * s;
+    handlesOf(o).forEach(function(h) {
+      c.fillStyle = '#ffffff';
+      c.strokeStyle = '#3574f0';
+      c.fillRect(h.x - hs / 2, h.y - hs / 2, hs, hs);
+      c.strokeRect(h.x - hs / 2, h.y - hs / 2, hs, hs);
+    });
+  }
+
+  function drawSelection(sh) {
+    var c = imgEdCtx, s = 1 / displayScale();
+    var b = shapeBounds(sh), pad = 4 * s;
+    c.save();
+    if (sh.type === 'arrow') {
+      c.lineCap = 'round';
+      c.strokeStyle = 'rgba(53,116,240,0.3)';
+      c.lineWidth = strokePx(sh.size) + 6 * s;
+      c.beginPath(); c.moveTo(sh.x1, sh.y1); c.lineTo(sh.x2, sh.y2); c.stroke();
+    } else {
+      c.strokeStyle = '#ffffff';
+      c.lineWidth = 3 * s;
+      c.strokeRect(b.x - pad, b.y - pad, b.w + pad * 2, b.h + pad * 2);
+      c.strokeStyle = '#3574f0';
+      c.lineWidth = 1.5 * s;
+      c.setLineDash([6 * s, 4 * s]);
+      c.strokeRect(b.x - pad, b.y - pad, b.w + pad * 2, b.h + pad * 2);
+    }
+    c.restore();
+    drawHandles(sh);
+  }
+
+  function drawCropOverlay() {
+    if (!imgEdCrop) return;
+    var c = imgEdCtx, s = 1 / displayScale(), r = clampRect(normRect(imgEdCrop)); // 드래그 중 이미지 밖으로 나가도 어둡게 칠하는 영역이 겹치지 않게
+    var W = imgEdCanvas.width, H = imgEdCanvas.height;
+    c.fillStyle = 'rgba(0,0,0,0.6)';
+    c.fillRect(0, 0, W, r.y);
+    c.fillRect(0, r.y + r.h, W, H - r.y - r.h);
+    c.fillRect(0, r.y, r.x, r.h);
+    c.fillRect(r.x + r.w, r.y, W - r.x - r.w, r.h);
+    c.save();
+    c.strokeStyle = '#ffffff';
+    c.lineWidth = 1.5 * s;
+    c.setLineDash([6 * s, 4 * s]);
+    c.strokeRect(r.x, r.y, r.w, r.h);
+    c.restore();
+    if (imgEdTool === 'crop') drawHandles(r);
+  }
+
+  // clean: 내보낼 때는 선택·자르기 표시 없이 그림
+  function renderImgEd(clean) {
+    var c = imgEdCtx;
+    c.clearRect(0, 0, imgEdCanvas.width, imgEdCanvas.height);
+    c.drawImage(imgEdImage, 0, 0);
+    imgEdShapes.forEach(function(sh, i) {
+      if (!(imgEdTextPos && imgEdTextPos.index === i)) drawShape(sh); // 수정 중인 텍스트는 입력창으로 대신 보임
+    });
+    if (imgEdDraft) drawShape(imgEdDraft);
+    if (!clean) {
+      drawCropOverlay();
+      var sh = selectedShape();
+      if (sh && !imgEdTextPos) drawSelection(sh);
+    }
+    updateImgEdUi();
+  }
+
+  // 툴바 상태: 색/굵기는 [텍스트 입력 중 > 선택한 도형 > 현재 도구] 기준으로 표시
+  function updateImgEdUi() {
+    var t = imgEdTextPos, sh = selectedShape();
+    var key = t ? 'text' : sh ? sh.type : imgEdTool;
+    var color = t ? t.color : sh ? sh.color : imgEdColors[imgEdTool];
+    var size = t ? t.size : sh ? sh.size || 'm' : imgEdSizes[imgEdTool];
+    document.querySelectorAll('#imgEdColors [data-color]').forEach(function(b) { b.setAttribute('aria-pressed', String(b.dataset.color === color)); });
+    document.getElementById('imgEdColors').style.opacity = color && key !== 'mosaic' ? '' : '0.4';
+    if (color) imgEdColorInput.value = color;
+    var sized = imgEdSizes.hasOwnProperty(key);
+    imgEdSizeWrap.classList.toggle('invisible', !sized); // 자리는 유지해서 툴바가 흔들리지 않게
+    document.getElementById('imgEdSizeLabel').textContent = key === 'text' ? '크기' : '굵기';
+    imgEdSizeWrap.querySelectorAll('[data-size]').forEach(function(b) { b.setAttribute('aria-pressed', String(b.dataset.size === size)); });
+    imgEdUndo.disabled = !imgEdHistory.length;
+    imgEdRedo.disabled = !imgEdFuture.length;
+    imgEdClear.disabled = !imgEdShapes.length && !imgEdCrop;
+    imgEdDelete.classList.toggle('invisible', !sh);
+    if (imgEdCropClear.classList.contains('hidden') === !!imgEdCrop) {
+      imgEdCropClear.classList.toggle('hidden', !imgEdCrop);
+      fitCanvas(); // 하단 줄바꿈이 바뀌면 캔버스 크기 다시 맞춤
+    }
+    if (imgEdCrop) {
+      var r = clampRect(normRect(imgEdCrop));
+      imgEdCropClear.textContent = '자르기 해제 · ' + r.w + '×' + r.h;
+    } else imgEdCropClear.textContent = '자르기 해제';
+  }
+
+  // ---- 되돌리기 / 다시 실행 (도형 + 자르기 영역 스냅샷) ----
+  function snapshot() { return JSON.stringify({ s: imgEdShapes, c: imgEdCrop }); }
+  function restoreSnapshot(str) {
+    var o = JSON.parse(str);
+    imgEdShapes = o.s; imgEdCrop = o.c; imgEdSel = -1;
+  }
+  function pushHistory(before) {
+    imgEdHistory.push(before || snapshot());
+    imgEdFuture = [];
+  }
+  function undoImgEd() {
+    commitTextInput();
+    if (!imgEdHistory.length) return;
+    imgEdFuture.push(snapshot());
+    restoreSnapshot(imgEdHistory.pop());
+    renderImgEd();
+  }
+  function redoImgEd() {
+    commitTextInput();
+    if (!imgEdFuture.length) return;
+    imgEdHistory.push(snapshot());
+    restoreSnapshot(imgEdFuture.pop());
+    renderImgEd();
+  }
+  function deleteSelected() {
+    if (!selectedShape()) return;
+    pushHistory();
+    imgEdShapes.splice(imgEdSel, 1);
+    imgEdSel = -1;
+    renderImgEd();
+  }
+
+  // ---- 도구 · 색 · 굵기 ----
+  function canvasPoint(e) {
+    var rect = imgEdCanvas.getBoundingClientRect();
+    return {
+      x: (e.clientX - rect.left) * imgEdCanvas.width / rect.width,
+      y: (e.clientY - rect.top) * imgEdCanvas.height / rect.height
+    };
+  }
+
+  function toolCursor() { return imgEdTool === 'text' ? 'text' : imgEdTool === 'select' ? 'default' : 'crosshair'; }
+
+  function setImgTool(tool) {
+    commitTextInput();
+    if (tool !== 'select') imgEdSel = -1;
+    imgEdTool = tool;
+    document.querySelectorAll('.img-tool').forEach(function(b) { b.setAttribute('aria-pressed', String(b.dataset.tool === tool)); });
+    imgEdCanvas.style.cursor = toolCursor();
+    if (imgEdImage) renderImgEd(); else updateImgEdUi();
+  }
+
+  // live: 색상 피커 드래그 중 — 기록은 change 때 한 번만 남김
+  function setImgColor(color, live) {
+    var t = imgEdTextPos, sh = selectedShape();
+    if (t) { t.color = color; imgEdColors.text = color; imgEdTextInput.style.color = color; }
+    else if (sh) {
+      if (sh.color !== color) {
+        if (!live) pushHistory();
+        else if (!imgEdColorBefore) imgEdColorBefore = snapshot();
+        sh.color = color;
+      }
+    }
+    else if (imgEdColors[imgEdTool]) imgEdColors[imgEdTool] = color;
+    if (imgEdImage) renderImgEd(); else updateImgEdUi();
+  }
+
+  function setImgSize(size) {
+    var t = imgEdTextPos, sh = selectedShape();
+    if (t) { t.size = size; imgEdSizes.text = size; imgEdTextInput.style.fontSize = Math.max(12, fontPx(size) * displayScale()) + 'px'; }
+    else if (sh && imgEdSizes.hasOwnProperty(sh.type)) { if ((sh.size || 'm') !== size) { pushHistory(); sh.size = size; } }
+    else if (imgEdSizes.hasOwnProperty(imgEdTool)) imgEdSizes[imgEdTool] = size;
+    if (imgEdImage) renderImgEd(); else updateImgEdUi();
+  }
+
+  document.querySelectorAll('.img-tool').forEach(function(b) { b.addEventListener('click', function() { setImgTool(b.dataset.tool); }); });
+  document.querySelectorAll('#imgEdColors [data-color]').forEach(function(b) {
+    b.addEventListener('click', function() { setImgColor(b.dataset.color); if (imgEdTextPos) imgEdTextInput.focus(); });
+  });
+  imgEdColorInput.addEventListener('input', function(e) { setImgColor(e.target.value, true); });
+  imgEdColorInput.addEventListener('change', function(e) {
+    if (imgEdColorBefore && snapshot() !== imgEdColorBefore) pushHistory(imgEdColorBefore);
+    imgEdColorBefore = null;
+    setImgColor(e.target.value); // input 없이 change만 온 경우
+  });
+  imgEdSizeWrap.querySelectorAll('[data-size]').forEach(function(b) {
+    b.addEventListener('click', function() { setImgSize(b.dataset.size); if (imgEdTextPos) imgEdTextInput.focus(); });
+  });
+
+  // ---- 포인터: 그리기 / 선택·이동·크기 조절 / 자르기 ----
+  function newDraft(p) {
+    var d = { type: imgEdTool, color: imgEdColors[imgEdTool] };
+    if (imgEdTool === 'arrow') { d.x1 = d.x2 = p.x; d.y1 = d.y2 = p.y; }
+    else { d.x = p.x; d.y = p.y; d.w = 0; d.h = 0; }
+    if (imgEdSizes.hasOwnProperty(imgEdTool)) d.size = imgEdSizes[imgEdTool];
+    return d;
+  }
+
+  // 선택 도구에서 누른 곳에 따라 크기 조절/이동 시작
+  function startSelectDrag(drag, p) {
+    var cur = selectedShape();
+    var h = cur && hitHandle(cur, p);
+    if (h) { drag.mode = 'resize'; drag.target = cur; drag.handle = h; return true; }
+    imgEdSel = hitShape(p);
+    if (imgEdSel < 0) return false;
+    drag.mode = 'move'; drag.target = imgEdShapes[imgEdSel];
+    return true;
+  }
+
+  function startCropDrag(drag, p) {
+    var h = imgEdCrop && hitHandle(imgEdCrop, p);
+    if (h) { drag.mode = 'resize'; drag.handle = h; }
+    else if (imgEdCrop && inRect(normRect(imgEdCrop), p)) drag.mode = 'move';
+    else { drag.mode = 'newcrop'; drag.prevCrop = imgEdCrop; imgEdCrop = { x: p.x, y: p.y, w: 0, h: 0 }; }
+    drag.target = imgEdCrop;
+  }
+
+  imgEdCanvas.addEventListener('pointerdown', function(e) {
+    if (e.button > 0 || !imgEdImage || imgEdBusy) return;
+    var p = canvasPoint(e);
+    if (imgEdTool === 'text') {
+      e.preventDefault();
+      var ti = hitShape(p, 'text');
+      if (ti >= 0) editText(ti); else openTextInput(p);
+      return;
+    }
+    commitTextInput();
+    var drag = { start: p, before: snapshot() };
+    if (imgEdTool === 'select') {
+      if (!startSelectDrag(drag, p)) { renderImgEd(); return; }
+    } else if (imgEdTool === 'crop') {
+      startCropDrag(drag, p);
+    } else {
+      drag.mode = 'draw';
+      imgEdDraft = newDraft(p);
+    }
+    if (drag.target) drag.orig = clone(drag.target);
+    imgEdDrag = drag;
+    imgEdCanvas.setPointerCapture(e.pointerId);
+    renderImgEd();
+  });
+
+  function updateHoverCursor(p) {
+    var cur = toolCursor(), h;
+    if (imgEdTool === 'select') {
+      var sh = selectedShape();
+      h = sh && hitHandle(sh, p);
+      if (h) cur = handleCursor(h); else if (hitShape(p) >= 0) cur = 'move';
+    } else if (imgEdTool === 'crop' && imgEdCrop) {
+      h = hitHandle(imgEdCrop, p);
+      if (h) cur = handleCursor(h); else if (inRect(normRect(imgEdCrop), p)) cur = 'move';
+    }
+    imgEdCanvas.style.cursor = cur;
+  }
+
+  imgEdCanvas.addEventListener('pointermove', function(e) {
+    if (!imgEdImage) return;
+    var p = canvasPoint(e), d = imgEdDrag;
+    if (!d) { updateHoverCursor(p); return; }
+    if (d.mode === 'draw') {
+      if (imgEdDraft.type === 'arrow') { imgEdDraft.x2 = p.x; imgEdDraft.y2 = p.y; }
+      else { imgEdDraft.w = p.x - imgEdDraft.x; imgEdDraft.h = p.y - imgEdDraft.y; }
+    } else if (d.mode === 'newcrop') {
+      d.target.w = p.x - d.start.x; d.target.h = p.y - d.start.y;
+    } else if (d.mode === 'move') {
+      var dx = p.x - d.start.x, dy = p.y - d.start.y;
+      if (d.target === imgEdCrop) { // 자르기 영역은 이미지 안에서만 이동
+        dx = Math.max(-d.orig.x, Math.min(imgEdCanvas.width - d.orig.x - d.orig.w, dx));
+        dy = Math.max(-d.orig.y, Math.min(imgEdCanvas.height - d.orig.y - d.orig.h, dy));
+      }
+      moveShape(d.target, d.orig, dx, dy);
+    } else if (d.mode === 'resize') {
+      resizeShape(d.target, d.orig, d.handle, p);
+    }
+    renderImgEd();
+  });
+
+  function isValidDraft(sh) {
+    if (sh.type === 'arrow') return Math.abs(sh.x2 - sh.x1) + Math.abs(sh.y2 - sh.y1) > 6;
+    var r = normRect(sh);
+    return r.w > 3 && r.h > 3;
+  }
+
+  function endDrag() {
+    var d = imgEdDrag;
+    if (!d) return;
+    imgEdDrag = null;
+    if (d.mode === 'draw') {
+      var sh = imgEdDraft;
+      imgEdDraft = null;
+      if (isValidDraft(sh)) imgEdShapes.push(sh.type === 'arrow' ? sh : Object.assign({}, sh, normRect(sh)));
+    } else if (d.target === imgEdCrop && imgEdCrop) {
+      var r = clampRect(normRect(imgEdCrop));
+      // 그냥 클릭이거나 너무 작게 줄이면 드래그 전 영역 유지
+      imgEdCrop = r.w > 8 && r.h > 8 ? r : (d.mode === 'newcrop' ? d.prevCrop : d.orig) || null;
+    }
+    if (snapshot() !== d.before) pushHistory(d.before);
+    renderImgEd();
+  }
+  imgEdCanvas.addEventListener('pointerup', endDrag);
+  imgEdCanvas.addEventListener('pointercancel', endDrag);
+  imgEdCanvas.addEventListener('dblclick', function(e) {
+    var i = hitShape(canvasPoint(e), 'text');
+    if (i >= 0) { e.preventDefault(); editText(i); }
+  });
+
+  // ---- 텍스트 입력 (새로 넣기 / 기존 텍스트 수정) ----
+  function showTextInput(t, value) {
+    var scale = displayScale();
+    imgEdTextPos = t;
+    imgEdTextInput.style.left = (t.x * scale - 5) + 'px'; // 입력창 안쪽 여백만큼 보정
+    imgEdTextInput.style.top = (t.y * scale - 3) + 'px';
+    imgEdTextInput.style.fontSize = Math.max(12, fontPx(t.size) * scale) + 'px';
+    imgEdTextInput.style.color = t.color;
+    imgEdTextInput.value = value;
+    imgEdTextInput.classList.remove('hidden');
+    imgEdTextInput.focus();
+    imgEdTextInput.select();
+    renderImgEd();
+  }
+  function openTextInput(p) {
+    commitTextInput();
+    imgEdSel = -1;
+    showTextInput({ x: p.x, y: p.y, index: -1, color: imgEdColors.text, size: imgEdSizes.text }, '');
+  }
+  function editText(i) {
+    var sh = imgEdShapes[i];
+    commitTextInput();
+    i = imgEdShapes.indexOf(sh); // 앞의 입력이 지워지면서 순서가 바뀌었을 수 있음
+    if (i < 0) return;
+    imgEdSel = i;
+    showTextInput({ x: sh.x, y: sh.y, index: i, color: sh.color, size: sh.size || 'm' }, sh.text);
+  }
+  function closeTextInput() {
+    imgEdTextPos = null;
+    if (document.activeElement === imgEdTextInput) imgEdTextInput.blur(); // 단축키가 바로 먹도록
+    imgEdTextInput.classList.add('hidden');
+  }
+  function commitTextInput() {
+    var t = imgEdTextPos;
+    if (!t) return;
+    closeTextInput();
+    var text = imgEdTextInput.value.trim();
+    if (imgEdTool !== 'select') imgEdSel = -1;
+    var sh = t.index >= 0 ? imgEdShapes[t.index] : null;
+    if (sh) {
+      if (!text) { pushHistory(); imgEdShapes.splice(t.index, 1); imgEdSel = -1; }
+      else if (text !== sh.text || t.color !== sh.color || t.size !== (sh.size || 'm')) {
+        pushHistory();
+        sh.text = text; sh.color = t.color; sh.size = t.size;
+      }
+    } else if (text) {
+      pushHistory();
+      imgEdShapes.push({ type: 'text', x: t.x, y: t.y, text: text, color: t.color, size: t.size });
+    }
+    renderImgEd();
+  }
+  imgEdTextInput.addEventListener('keydown', function(e) {
+    if (e.isComposing) return; // 한글 조합 중 Enter는 무시
+    if (e.key === 'Enter') { e.preventDefault(); commitTextInput(); }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeTextInput(); renderImgEd(); }
+  });
+
+  imgEdUndo.addEventListener('click', undoImgEd);
+  imgEdRedo.addEventListener('click', redoImgEd);
+  imgEdDelete.addEventListener('click', deleteSelected);
+  imgEdClear.addEventListener('click', function() {
+    commitTextInput();
+    pushHistory();
+    imgEdShapes = []; imgEdCrop = null; imgEdSel = -1;
+    renderImgEd();
+  });
+  imgEdCropClear.addEventListener('click', function() {
+    pushHistory();
+    imgEdCrop = null;
+    renderImgEd();
+  });
+
+  // ---- 적용 / 원본 / 취소 ----
+  function fileExt(file) {
+    if (file.type === 'image/jpeg') return 'jpg';
+    if (file.type === 'image/png') return 'png';
+    var m = /\.([^.]+)$/.exec(file.name || '');
+    return m ? m[1].toLowerCase().replace('jpeg', 'jpg') : 'png';
+  }
+
+  // 다시 편집한 결과로 같은 경로의 대기 이미지를 교체 (확장자가 달라질 때만 경로 변경)
+  function replacePendingImage(path, file, state) {
+    var entry = pendingImages[path];
+    if (!entry) return;
+    URL.revokeObjectURL(entry.blobUrl);
+    entry.file = file;
+    entry.blobUrl = URL.createObjectURL(file);
+    entry.edit = state;
+    var m = /\.([^.\/]+)$/.exec(path);
+    var ext = fileExt(file);
+    if (!m || m[1].toLowerCase().replace('jpeg', 'jpg') !== ext) {
+      var newPath = path.replace(/(\.[^.\/]+)?$/, '.' + ext);
+      delete pendingImages[path];
+      pendingImages[newPath] = entry;
+      entry.repoPath = 'public' + newPath;
+      postContent.value = postContent.value.split(path).join(newPath);
+    }
+    updatePreview();
+  }
+
+  function finishImage(file, state) {
+    URL.revokeObjectURL(imgEdImage.src);
+    if (imgEdTarget) {
+      replacePendingImage(imgEdTarget, file, state);
+    } else {
+      var orig = imgEdFile;
+      insertImageFiles([file]).forEach(function(p) { pendingImages[p].origFile = orig; pendingImages[p].edit = state; });
+    }
+    openNextImage();
+  }
+  document.getElementById('imgEdOriginal').addEventListener('click', function() {
+    if (imgEdBusy) return;
+    closeTextInput();
+    finishImage(imgEdFile, null);
+  });
+  document.getElementById('imgEdApply').addEventListener('click', function() {
+    if (imgEdBusy) return;
+    imgEdBusy = true; // toBlob이 끝나기 전 다시 누르거나 Esc로 넘어가지 않게
+    commitTextInput();
+    imgEdSel = -1;
+    var state = snapshot();
+    var jpeg = imgEdFile.type === 'image/jpeg';
+    var name = (imgEdFile.name || 'image').replace(/\.[^.]+$/, '') + (jpeg ? '.jpg' : '.png');
+    // 다시 그린 캔버스로 내보내므로 EXIF 등 메타데이터는 남지 않음
+    renderImgEd(true);
+    var out = imgEdCanvas;
+    if (imgEdCrop) {
+      var r = clampRect(normRect(imgEdCrop));
+      out = document.createElement('canvas');
+      out.width = r.w; out.height = r.h;
+      out.getContext('2d').drawImage(imgEdCanvas, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+    }
+    out.toBlob(function(blob) {
+      imgEdBusy = false;
+      if (!blob) { showAlert('이미지를 내보내지 못했어요. 자르기로 크기를 줄여서 다시 시도해 주세요.', true); renderImgEd(); return; }
+      finishImage(new File([blob], name, { type: blob.type }), state);
+    }, jpeg ? 'image/jpeg' : 'image/png', 0.92);
+  });
+  function cancelImage() {
+    if (imgEdBusy) return;
+    closeTextInput();
+    URL.revokeObjectURL(imgEdImage.src);
+    openNextImage();
+  }
+  document.getElementById('imgEdClose').addEventListener('click', cancelImage);
+
+  document.addEventListener('keydown', function(e) {
+    if (!imgEdFile || imgEdBusy || imgEdDrag || imgEd.classList.contains('hidden') || document.activeElement === imgEdTextInput) return;
+    var k = (e.key || '').toLowerCase(), mod = e.ctrlKey || e.metaKey;
+    if (mod && k === 'z') { e.preventDefault(); if (e.shiftKey) redoImgEd(); else undoImgEd(); return; }
+    if (mod && k === 'y') { e.preventDefault(); redoImgEd(); return; }
+    if (mod || e.altKey) return;
+    var sh = selectedShape();
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      if (sh) { imgEdSel = -1; renderImgEd(); } else cancelImage();
+    } else if ((e.key === 'Delete' || e.key === 'Backspace') && sh) {
+      e.preventDefault(); deleteSelected();
+    } else if (e.key === 'Enter' && sh && sh.type === 'text') {
+      e.preventDefault(); editText(imgEdSel);
+    } else if (IMG_ED_KEYS[k] && !e.shiftKey && document.activeElement !== imgEdColorInput) {
+      e.preventDefault(); setImgTool(IMG_ED_KEYS[k]);
+    }
+  });
+  setImgTool('redact');
+
+  // ---- 미리보기의 대기 이미지에 '편집' 버튼 ----
+  var previewScroll = document.getElementById('previewScroll');
+  var previewImgEdit = document.getElementById('previewImgEdit');
+  var previewImgPath = null;
+  function pendingPathForSrc(src) {
+    var keys = Object.keys(pendingImages);
+    for (var i = 0; i < keys.length; i++) if (pendingImages[keys[i]].blobUrl === src) return keys[i];
+    return null;
+  }
+  function hidePreviewImgEdit() {
+    previewImgPath = null;
+    if (previewImgEdit) previewImgEdit.classList.add('hidden');
+  }
+  document.getElementById('previewContent').addEventListener('mouseover', function(e) {
+    var img = e.target.tagName === 'IMG' ? e.target : null;
+    var path = img && pendingPathForSrc(img.getAttribute('src'));
+    if (!path) { hidePreviewImgEdit(); return; }
+    var cr = previewScroll.getBoundingClientRect(), ir = img.getBoundingClientRect();
+    previewImgPath = path;
+    previewImgEdit.style.top = (ir.top - cr.top + previewScroll.scrollTop + 8) + 'px';
+    previewImgEdit.style.left = (ir.right - cr.left + previewScroll.scrollLeft - 8) + 'px';
+    previewImgEdit.classList.remove('hidden');
+  });
+  previewScroll.addEventListener('mouseleave', hidePreviewImgEdit);
+  previewImgEdit.addEventListener('click', function() {
+    var path = previewImgPath;
+    hidePreviewImgEdit();
+    if (path) reopenPendingImage(path);
+  });
 
   postContent.addEventListener('paste', function(e) {
     var items = e.clipboardData && e.clipboardData.files;
@@ -411,6 +1278,7 @@ const postList = allPosts.map(p => ({
   // Live Markdown Preview
   function updatePreview() {
     var raw = syncFrontmatter();
+    hidePreviewImgEdit();
     charCount.textContent = postContent.value.length + ' characters';
     updateRunLabel();
     updatePreviewHeader();
