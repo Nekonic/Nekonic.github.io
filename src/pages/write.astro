@@ -92,6 +92,10 @@ const postList = allPosts.map(p => ({
         <button id="viewPreviewBtn" type="button" title="Preview Only" class="w-7 h-6 flex items-center justify-center rounded text-text-secondary hover:bg-secondary hover:text-text-primary">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg>
         </button>
+        <span class="w-px h-4 bg-border mx-1"></span>
+        <button id="viewDiffBtn" type="button" title="Diff: 저장된 글과 비교" class="h-6 px-1.5 flex items-center gap-1 rounded text-text-secondary hover:bg-secondary hover:text-text-primary text-[11px] font-mono">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M4.5 2.5v6M1.5 5.5h6M8.5 12.5h6"/></svg>Diff
+        </button>
       </div>
 
       <!-- Editor pane -->
@@ -127,6 +131,30 @@ const postList = allPosts.map(p => ({
           </header>
           <div id="previewContent" class="px-6 lg:px-8 pt-6 pb-10 article-content"></div>
         </div>
+      </div>
+
+      <!-- Diff pane (저장된 원본 ↔ 현재) -->
+      <div id="diffCol" class="hidden flex-1 min-w-0 min-h-0 flex-col">
+        <div class="shrink-0 flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-1 px-3 pt-9 pb-1.5 sm:h-8 sm:p-0 sm:pl-3 sm:pr-64 text-xs text-text-muted border-b border-borderSubtle whitespace-nowrap">
+          <span class="hidden sm:inline">Diff</span>
+          <div id="diffModes" class="flex items-center rounded-md border border-border overflow-hidden shrink-0">
+            <button type="button" data-diff-mode="unified" class="diff-mode px-2 h-5">Unified</button>
+            <button type="button" data-diff-mode="split" class="diff-mode px-2 h-5 border-l border-border hidden md:block">Side-by-side</button>
+            <button type="button" data-diff-mode="rendered" class="diff-mode px-2 h-5 border-l border-border">Rendered</button>
+          </div>
+          <div class="flex items-center shrink-0">
+            <button id="diffPrev" type="button" title="이전 변경 (Shift+F7)" class="w-6 h-6 flex items-center justify-center rounded text-text-secondary hover:bg-secondary hover:text-text-primary disabled:opacity-40 disabled:hover:bg-transparent">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V3M3.5 7.5L8 3l4.5 4.5"/></svg>
+            </button>
+            <button id="diffNext" type="button" title="다음 변경 (F7)" class="w-6 h-6 flex items-center justify-center rounded text-text-secondary hover:bg-secondary hover:text-text-primary disabled:opacity-40 disabled:hover:bg-transparent">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v10M3.5 8.5L8 13l4.5-4.5"/></svg>
+            </button>
+            <span id="diffPos" class="ml-1 font-mono text-[11px]"></span>
+          </div>
+          <span id="diffStat" class="font-mono shrink-0"></span>
+          <span id="diffBaseLabel" class="hidden lg:inline truncate"></span>
+        </div>
+        <div id="diffBody" class="flex-1 min-h-0 overflow-auto"></div>
       </div>
     </div>
 
@@ -235,9 +263,35 @@ const postList = allPosts.map(p => ({
   <div id="statusAlert" class="hidden" role="status"></div>
 </BaseLayout>
 
-<style>
+<style is:global>
   /* 영문·코드는 JetBrains Mono, 한글은 Pretendard로 */
   .editor-font { font-family: "JetBrains Mono", "Pretendard Variable", Pretendard, ui-monospace, monospace; }
+
+  /* diff 모드 */
+  .diff-mode { color: #9da0a8; }
+  .diff-mode:hover { color: #dfe1e5; background: #2b2d30; }
+  .diff-mode[aria-pressed="true"] { color: #8cb4f0; background: rgb(53 116 240 / 0.25); }
+  .diff-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 13px; line-height: 1.6rem; }
+  .diff-table td { padding: 0 8px; vertical-align: top; white-space: pre-wrap; word-break: break-word; }
+  .diff-table td.dn { width: 3.25rem; text-align: right; color: #6f737a; user-select: none; padding-right: 10px; }
+  .diff-table td.ds { width: 1.25rem; padding: 0; text-align: center; user-select: none; }
+  .diff-table td.dt { color: #dfe1e5; }
+  .diff-add { background: rgb(87 150 92 / 0.16); }
+  .diff-add td.ds, .diff-add td.dn { color: #6aab73; }
+  .diff-del { background: rgb(219 92 92 / 0.14); }
+  .diff-del td.ds, .diff-del td.dn { color: #db5c5c; }
+  .diff-add ins { background: rgb(87 150 92 / 0.45); text-decoration: none; border-radius: 2px; }
+  .diff-del del { background: rgb(219 92 92 / 0.45); text-decoration: none; border-radius: 2px; }
+  .diff-hunk td { background: rgb(53 116 240 / 0.10); color: #8cb4f0; font-size: 12px; }
+  .diff-cur td.ds { box-shadow: inset 3px 0 0 #3574f0; }
+  .rdiff-cur { outline: 2px solid #3574f0 !important; outline-offset: 2px; }
+  .diff-empty { background: repeating-linear-gradient(135deg, transparent 0 6px, rgb(255 255 255 / 0.03) 6px 12px); }
+  .diff-split td.dt { width: calc(50% - 4.5rem); }
+  .diff-split td.mid { width: 1px; padding: 0; background: #2b2d30; }
+  .rdiff-add { border-left: 3px solid #57965c; background: rgb(87 150 92 / 0.12); padding: 2px 14px; margin: 0 -17px; border-radius: 0 4px 4px 0; }
+  .rdiff-del { border-left: 3px solid #db5c5c; background: rgb(219 92 92 / 0.10); padding: 6px 14px; margin: 8px -17px; border-radius: 0 4px 4px 0; color: #9da0a8; font-size: .9em; text-decoration: line-through; text-decoration-color: rgb(219 92 92 / .7); }
+  .rdiff-add > :first-child { margin-top: .5rem; }
+  .rdiff-li { background: rgb(87 150 92 / 0.16); border-radius: 4px; outline: 1px solid rgb(87 150 92 / 0.35); }
 
   .img-tool { color: #9da0a8; }
   .img-tool:hover { background: #2b2d30; color: #dfe1e5; }
@@ -370,6 +424,7 @@ const postList = allPosts.map(p => ({
       postTags.value = parsed.tags;
       postSlug.value = id + '.md';
       setEditor(parsed.body.trim(), parsed.date);
+      setDiffBase('비밀글 ' + id + '.md');
       updateSaveLocation();
       updatePreview();
     } catch (e) {
@@ -378,10 +433,10 @@ const postList = allPosts.map(p => ({
   }
 
   // 미리보기에서 /_private/... 이미지를 토큰으로 불러와 표시
-  function resolvePreviewImages() {
+  function resolvePreviewImages(root) {
     var pat = localStorage.getItem('github_pat');
     if (!pat) return;
-    previewContent.querySelectorAll('img[src^="/_private/"]').forEach(function(img) {
+    root.querySelectorAll('img[src^="/_private/"]').forEach(function(img) {
       var src = img.getAttribute('src');
       if (privateImageCache[src]) { img.src = privateImageCache[src]; return; }
       fetch(PRIVATE_API + encodePath(PRIVATE_DIR + '/' + src.slice('/_private/'.length)), {
@@ -1292,15 +1347,18 @@ const postList = allPosts.map(p => ({
     }
 
     if (window.marked) {
-      var src = raw;
-      // 업로드 대기 중인 이미지는 blob URL로 미리보기
-      Object.keys(pendingImages).forEach(function(p) { src = src.split(p).join(pendingImages[p].blobUrl); });
-      // 정렬 문법: ![alt](url){left|right|center} (기존 {: .align-left} 도 지원)
-      src = src.replace(/!\[([^\]]*)\]\(([^)\s]+)\)\{:?\s*\.?(?:align-)?(left|right|center)(?:-block)?\s*:?\}/g,
-        function(_, alt, url, a) { return '<img src="' + url + '" alt="' + alt + '" class="img-' + a + '">'; });
-      previewContent.innerHTML = marked.parse(src);
-      resolvePreviewImages();
+      previewContent.innerHTML = marked.parse(previewSrc(raw));
+      resolvePreviewImages(previewContent);
     }
+  }
+
+  /** 미리보기용 마크다운 변환 (줄바꿈 수는 바꾸지 않음) */
+  function previewSrc(src) {
+    // 업로드 대기 중인 이미지는 blob URL로 미리보기
+    Object.keys(pendingImages).forEach(function(p) { src = src.split(p).join(pendingImages[p].blobUrl); });
+    // 정렬 문법: ![alt](url){left|right|center} (기존 {: .align-left} 도 지원)
+    return src.replace(/!\[([^\]]*)\]\(([^)\s]+)\)\{:?\s*\.?(?:align-)?(left|right|center)(?:-block)?\s*:?\}/g,
+      function(_, alt, url, a) { return '<img src="' + url + '" alt="' + alt + '" class="img-' + a + '">'; });
   }
 
 
@@ -1439,27 +1497,275 @@ const postList = allPosts.map(p => ({
   }
   postSlug.addEventListener('input', updateTabName);
 
+  // ---- Diff 모드: 불러온 원본(저장본)과 지금 에디터 내용을 비교 ----
+  var diffBase = '';
+  var diffMode = 'unified';
+  try { diffMode = localStorage.getItem('write_diff_mode') || 'unified'; } catch (e) {}
+  var diffHunks = [], diffIdx = -1;
+  var diffBody = document.getElementById('diffBody');
+
+  // text를 주면 그 내용(저장 시점의 스냅샷)을 기준으로 삼음
+  function setDiffBase(label, text) {
+    diffBase = text != null ? text : postContent.value;
+    document.getElementById('diffBaseLabel').textContent = '기준: ' + label;
+    if (!diffCol.classList.contains('hidden')) renderDiff();
+  }
+
+  // LCS 기반 diff → [{op:'eq'|'del'|'add', a, b}]
+  function diffSeq(a, b, eq) {
+    // 공통 앞/뒤는 LCS 표에서 빼서 O(n·m) 비용을 바뀐 구간으로 한정
+    var pre = 0, suf = 0;
+    while (pre < a.length && pre < b.length && eq(a[pre], b[pre])) pre++;
+    while (suf < a.length - pre && suf < b.length - pre && eq(a[a.length - 1 - suf], b[b.length - 1 - suf])) suf++;
+    var head = [], tail = [], k;
+    for (k = 0; k < pre; k++) head.push({ op: 'eq', a: k, b: k });
+    for (k = suf; k > 0; k--) tail.push({ op: 'eq', a: a.length - k, b: b.length - k });
+    var mid = diffCore(a.slice(pre, a.length - suf), b.slice(pre, b.length - suf), eq);
+    mid.forEach(function(d) { if (d.a != null) d.a += pre; if (d.b != null) d.b += pre; });
+    return head.concat(mid, tail);
+  }
+  function diffCore(a, b, eq) {
+    var n = a.length, m = b.length, i, j;
+    var dp = new Array(n + 1);
+    for (i = 0; i <= n; i++) dp[i] = new Uint32Array(m + 1);
+    for (i = n - 1; i >= 0; i--)
+      for (j = m - 1; j >= 0; j--)
+        dp[i][j] = eq(a[i], b[j]) ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+    var out = [];
+    i = 0; j = 0;
+    while (i < n && j < m) {
+      if (eq(a[i], b[j])) { out.push({ op: 'eq', a: i++, b: j++ }); }
+      else if (dp[i + 1][j] >= dp[i][j + 1]) out.push({ op: 'del', a: i++ });
+      else out.push({ op: 'add', b: j++ });
+    }
+    while (i < n) out.push({ op: 'del', a: i++ });
+    while (j < m) out.push({ op: 'add', b: j++ });
+    return out;
+  }
+  function same(x, y) { return x === y; }
+
+  function esc(t) {
+    return t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // 바뀐 줄 안에서 단어 단위로 강조
+  function wordDiff(oldLine, newLine) {
+    var ta = oldLine.split(/(\s+|[^\s\w가-힣])/).filter(Boolean);
+    var tb = newLine.split(/(\s+|[^\s\w가-힣])/).filter(Boolean);
+    var ops = diffSeq(ta, tb, same), o = '', n = '';
+    ops.forEach(function(d) {
+      if (d.op === 'eq') { o += esc(ta[d.a]); n += esc(tb[d.b]); }
+      else if (d.op === 'del') o += '<del>' + esc(ta[d.a]) + '</del>';
+      else n += '<ins>' + esc(tb[d.b]) + '</ins>';
+    });
+    return { o: o, n: n };
+  }
+
+  // 연속된 삭제/추가 묶음을 짝지어 줄 단위 행으로 변환
+  function diffRows(a, b) {
+    var ops = diffSeq(a, b, same), rows = [], k = 0;
+    while (k < ops.length) {
+      if (ops[k].op === 'eq') { rows.push({ t: 'eq', a: ops[k].a, b: ops[k].b }); k++; continue; }
+      var dels = [], adds = [];
+      while (k < ops.length && ops[k].op !== 'eq') { (ops[k].op === 'del' ? dels : adds).push(ops[k]); k++; }
+      var pairs = Math.max(dels.length, adds.length);
+      for (var p = 0; p < pairs; p++) {
+        var d = dels[p], ad = adds[p];
+        var wd = d && ad ? wordDiff(a[d.a], b[ad.b]) : null;
+        rows.push({ t: 'chg', a: d ? d.a : null, b: ad ? ad.b : null,
+          oh: d ? (wd ? wd.o : esc(a[d.a])) : null, nh: ad ? (wd ? wd.n : esc(b[ad.b])) : null });
+      }
+    }
+    return rows;
+  }
+
+  function renderDiff() {
+    renderDiffBody();
+    collectHunks();
+  }
+
+  // 바뀐 덩어리(연속된 변경 줄) 시작점 모으기 → 이전/다음 이동
+  function collectHunks() {
+    var isChg = function(el) { return !!el && (el.matches('.diff-add, .diff-del') || !!el.querySelector('.diff-add, .diff-del')); };
+    diffHunks = [];
+    if (diffMode === 'rendered') {
+      diffHunks = Array.prototype.slice.call(diffBody.querySelectorAll('.rdiff-add, .rdiff-del, .rdiff-li'));
+    } else {
+      Array.prototype.forEach.call(diffBody.querySelectorAll('tr'), function(tr) {
+        if (isChg(tr) && !isChg(tr.previousElementSibling)) diffHunks.push(tr);
+      });
+    }
+    diffIdx = -1;
+    updateDiffNav();
+  }
+
+  function updateDiffNav() {
+    document.getElementById('diffPrev').disabled = diffIdx <= 0;
+    document.getElementById('diffNext').disabled = diffIdx >= diffHunks.length - 1;
+    document.getElementById('diffPos').textContent = diffHunks.length ? (diffIdx < 0 ? '–' : diffIdx + 1) + '/' + diffHunks.length : '';
+  }
+
+  function gotoHunk(i) {
+    if (!diffHunks.length) return;
+    diffIdx = Math.max(0, Math.min(diffHunks.length - 1, i));
+    diffBody.querySelectorAll('.diff-cur, .rdiff-cur').forEach(function(el) { el.classList.remove('diff-cur', 'rdiff-cur'); });
+    var el = diffHunks[diffIdx];
+    el.classList.add(diffMode === 'rendered' ? 'rdiff-cur' : 'diff-cur');
+    diffBody.scrollTop += el.getBoundingClientRect().top - diffBody.getBoundingClientRect().top - diffBody.clientHeight / 3;
+    updateDiffNav();
+  }
+  document.getElementById('diffPrev').addEventListener('click', function() { gotoHunk(diffIdx - 1); });
+  document.getElementById('diffNext').addEventListener('click', function() { gotoHunk(diffIdx + 1); });
+  document.addEventListener('keydown', function(e) {
+    if (e.key !== 'F7' || diffCol.classList.contains('hidden')) return;
+    e.preventDefault();
+    gotoHunk(diffIdx + (e.shiftKey ? -1 : 1));
+  });
+
+  function renderDiffBody() {
+    if (diffMode === 'split' && window.innerWidth < 768) diffMode = 'unified'; // 좁은 화면은 한 줄 보기
+    var a = diffBase.split('\n'), b = postContent.value.split('\n');
+    var rows = diffRows(a, b), plus = 0, minus = 0;
+    rows.forEach(function(r) { if (r.t === 'chg') { if (r.a !== null) minus++; if (r.b !== null) plus++; } });
+    document.getElementById('diffStat').innerHTML = '<span style="color:#6aab73">+' + plus + '</span> <span style="color:#db5c5c">−' + minus + '</span>';
+    document.querySelectorAll('.diff-mode').forEach(function(btn) { btn.setAttribute('aria-pressed', String(btn.dataset.diffMode === diffMode)); });
+    if (!plus && !minus) { diffBody.innerHTML = '<div class="text-text-muted text-center py-20 font-mono text-xs">저장된 글과 달라진 곳이 없어요.</div>'; return; }
+    if (diffMode === 'rendered') { renderRenderedDiff(a, b, rows); return; }
+    // 바뀐 곳 주변 3줄만 남기고 접기
+    var keep = rows.map(function() { return false; });
+    rows.forEach(function(r, i) { if (r.t === 'chg') for (var x = Math.max(0, i - 3); x <= Math.min(rows.length - 1, i + 3); x++) keep[x] = true; });
+    var html = '<table class="diff-table editor-font' + (diffMode === 'split' ? ' diff-split' : '') + '">'
+      + (diffMode === 'split'
+        ? '<colgroup><col style="width:3.25rem"><col style="width:1.25rem"><col><col style="width:1px"><col style="width:3.25rem"><col style="width:1.25rem"><col></colgroup>'
+        : '<colgroup><col style="width:3.25rem"><col style="width:3.25rem"><col style="width:1.25rem"><col></colgroup>');
+    var skipping = false;
+    rows.forEach(function(r, i) {
+      if (!keep[i]) {
+        if (!skipping) html += '<tr class="diff-hunk"><td colspan="' + (diffMode === 'split' ? 7 : 4) + '">⋯ 바뀌지 않은 줄 접힘</td></tr>';
+        skipping = true; return;
+      }
+      skipping = false;
+      if (diffMode === 'unified') {
+        if (r.t === 'eq') html += '<tr><td class="dn">' + (r.a + 1) + '</td><td class="dn">' + (r.b + 1) + '</td><td class="ds"></td><td class="dt">' + esc(a[r.a]) + '</td></tr>';
+        else {
+          if (r.a !== null) html += '<tr class="diff-del"><td class="dn">' + (r.a + 1) + '</td><td class="dn"></td><td class="ds">−</td><td class="dt">' + r.oh + '</td></tr>';
+          if (r.b !== null) html += '<tr class="diff-add"><td class="dn"></td><td class="dn">' + (r.b + 1) + '</td><td class="ds">+</td><td class="dt">' + r.nh + '</td></tr>';
+        }
+      } else {
+        var left = r.t === 'eq' ? ['', r.a + 1, '', esc(a[r.a])] : (r.a !== null ? ['diff-del', r.a + 1, '−', r.oh] : ['diff-empty', '', '', '']);
+        var right = r.t === 'eq' ? ['', r.b + 1, '', esc(b[r.b])] : (r.b !== null ? ['diff-add', r.b + 1, '+', r.nh] : ['diff-empty', '', '', '']);
+        html += '<tr>' + cell(left) + '<td class="mid"></td>' + cell(right) + '</tr>';
+      }
+    });
+    diffBody.innerHTML = html + '</table>';
+    function cell(c) {
+      return '<td class="dn ' + c[0] + '">' + c[1] + '</td><td class="ds ' + c[0] + '">' + c[2] + '</td><td class="dt ' + c[0] + '">' + c[3] + '</td>';
+    }
+  }
+
+  // 렌더링된 글 기준 diff: 현재 글을 그대로 렌더링하고, 바뀐 블록·목록 항목에 표시
+  function renderRenderedDiff(a, b, rows) {
+    var text = postContent.value;
+    var rawBody = parseFrontmatter(text).body;
+    var offset = text.length - rawBody.length; // 본문 시작 위치
+    var bodyStart = text.slice(0, offset).split('\n').length - 1;
+    // 미리보기와 같은 변환(대기 이미지 blob URL, 정렬 문법) — 줄바꿈 수는 그대로라 줄 번호 매핑이 유지됨
+    var body = previewSrc(rawBody);
+    var changed = {}, dels = {};
+    var pendingDel = [];
+    rows.forEach(function(r) {
+      if (r.t === 'eq') { flush(r.b); return; }
+      if (r.b !== null) { flush(r.b); changed[r.b] = r.a === null ? 'add' : 'mod'; }
+      else if (a[r.a].trim()) pendingDel.push(a[r.a]);
+    });
+    flush(b.length);
+    function flush(at) { if (pendingDel.length) { dels[at] = (dels[at] || []).concat(pendingDel); pendingDel = []; } }
+
+    if (!window.marked) { diffBody.innerHTML = '<p class="p-6 text-text-muted">marked를 불러오지 못했어요.</p>'; return; }
+    var tokens = marked.lexer(body), pos = 0, covered = bodyStart, html = '';
+    // 토큰 raw가 본문 어디에 있는지 찾아 줄 번호로 변환
+    var nls = [];
+    for (var q = body.indexOf('\n'); q >= 0; q = body.indexOf('\n', q + 1)) nls.push(q);
+    var lineAt = function(i) { // i 앞의 줄바꿈 개수 (이진 탐색)
+      var lo = 0, hi = nls.length;
+      while (lo < hi) { var md = (lo + hi) >> 1; if (nls[md] < i) lo = md + 1; else hi = md; }
+      return bodyStart + lo;
+    };
+    // raw가 차지하는 줄의 끝(뒤따르는 빈 줄 포함) — 토큰 사이에 빠지는 줄이 없도록
+    var lineEnd = function(at, raw) { return lineAt(at + raw.length) + (/\n$/.test(raw) ? 0 : 1); };
+    var delHtml = function(from, to) {
+      var out = [];
+      for (var i = from; i < to; i++) if (dels[i]) out = out.concat(dels[i]);
+      return out.length ? '<div class="rdiff-del">' + out.map(function(l) { return '<div>' + esc(l) + '</div>'; }).join('') + '</div>' : '';
+    };
+    var hasChange = function(from, to) {
+      for (var i = from; i < to; i++) if (changed[i]) return true;
+      return false;
+    };
+    // frontmatter(제목·태그 등)의 변경도 표시
+    html += delHtml(0, bodyStart);
+    var fmAdded = [];
+    for (var f = 0; f < bodyStart; f++) if (changed[f]) fmAdded.push(b[f]);
+    if (fmAdded.length) html += '<div class="rdiff-add"><pre>' + esc(fmAdded.join('\n')) + '</pre></div>';
+    tokens.forEach(function(tok) {
+      var at = body.indexOf(tok.raw, pos);
+      if (at < 0) at = pos;
+      pos = at + tok.raw.length;
+      var from = lineAt(at), to = lineEnd(at, tok.raw);
+      html += delHtml(Math.max(from, covered), to);
+      covered = Math.max(covered, to);
+      if (tok.type === 'space') return;
+      var one = [tok]; one.links = tokens.links;
+      var part = marked.parser(one);
+      if (tok.type === 'list') {
+        // 목록은 바뀐 항목만 표시
+        var box = document.createElement('div');
+        box.innerHTML = part;
+        var lis = box.querySelectorAll(':scope > ul > li, :scope > ol > li');
+        var ip = at;
+        tok.items.forEach(function(it, idx) {
+          var ia = body.indexOf(it.raw, ip);
+          if (ia < 0) ia = ip;
+          ip = ia + it.raw.length;
+          var l2 = lineAt(ia);
+          if (lis[idx] && hasChange(l2, lineEnd(ia, it.raw))) lis[idx].classList.add('rdiff-li');
+        });
+        html += box.innerHTML;
+      } else if (hasChange(from, to)) {
+        html += '<div class="rdiff-add">' + part + '</div>';
+      } else {
+        html += part;
+      }
+    });
+    html += delHtml(covered, b.length + 1);
+    diffBody.innerHTML = '<div class="px-6 lg:px-10 py-6 article-content max-w-3xl">' + html + '</div>';
+    resolvePreviewImages(diffBody);
+  }
+
+  document.querySelectorAll('.diff-mode').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      diffMode = btn.dataset.diffMode;
+      try { localStorage.setItem('write_diff_mode', diffMode); } catch (e) {}
+      renderDiff();
+    });
+  });
+
   // View switchers
-  viewSplitBtn.addEventListener('click', function() {
-    editorCol.classList.remove('hidden');
-    previewCol.classList.remove('hidden');
-    setActiveViewBtn(viewSplitBtn);
-  });
-
-  viewEditBtn.addEventListener('click', function() {
-    editorCol.classList.remove('hidden');
-    previewCol.classList.add('hidden');
-    setActiveViewBtn(viewEditBtn);
-  });
-
-  viewPreviewBtn.addEventListener('click', function() {
-    editorCol.classList.add('hidden');
-    previewCol.classList.remove('hidden');
-    setActiveViewBtn(viewPreviewBtn);
-  });
+  var viewDiffBtn = document.getElementById('viewDiffBtn');
+  var diffCol = document.getElementById('diffCol');
+  function showPanes(editor, preview, diff) {
+    editorCol.classList.toggle('hidden', !editor);
+    previewCol.classList.toggle('hidden', !preview);
+    diffCol.classList.toggle('hidden', !diff);
+    diffCol.classList.toggle('flex', diff);
+  }
+  viewSplitBtn.addEventListener('click', function() { showPanes(true, true, false); setActiveViewBtn(viewSplitBtn); });
+  viewEditBtn.addEventListener('click', function() { showPanes(true, false, false); setActiveViewBtn(viewEditBtn); });
+  viewPreviewBtn.addEventListener('click', function() { showPanes(false, true, false); setActiveViewBtn(viewPreviewBtn); });
+  viewDiffBtn.addEventListener('click', function() { showPanes(false, false, true); setActiveViewBtn(viewDiffBtn); renderDiff(); });
 
   function setActiveViewBtn(active) {
-    [viewSplitBtn, viewEditBtn, viewPreviewBtn].forEach(function(btn) {
+    [viewSplitBtn, viewEditBtn, viewPreviewBtn, viewDiffBtn].forEach(function(btn) {
       btn.classList.remove('bg-accent/25', 'text-accent-soft');
       btn.classList.add('text-text-secondary');
     });
@@ -1494,6 +1800,7 @@ const postList = allPosts.map(p => ({
       postTags.value = '';
       postSlug.value = '';
       setEditor('');
+      setDiffBase('새 글');
       publishBtnText.textContent = '발행하기';
       updatePreview();
       return;
@@ -1511,6 +1818,7 @@ const postList = allPosts.map(p => ({
       postTags.value = Array.isArray(selected.tags) ? selected.tags.join(', ') : (selected.tags || '');
       postSlug.value = selected.id + '.md';
       setEditor(selected.body || '', selected.date || selected.id); // 날짜가 없으면 파일명 앞 날짜
+      setDiffBase(selected.id + '.md');
       publishBtnText.textContent = '수정 저장하기';
       updatePreview();
 
@@ -1557,6 +1865,7 @@ const postList = allPosts.map(p => ({
     }
 
     var content = syncFrontmatter().trim();
+    var savedText = postContent.value; // 저장되는 시점의 에디터 내용 (저장 중 추가로 고친 부분은 diff에 남도록)
     var title = postTitle.value.trim();
     var slug = postSlug.value.trim();
     var categories = postCategories.value.trim();
@@ -1596,6 +1905,7 @@ const postList = allPosts.map(p => ({
           var privatePath = '/_private/' + rel;
           fullFileContent = fullFileContent.split(publicPath).join(privatePath);
           postContent.value = postContent.value.split(publicPath).join(privatePath);
+          savedText = savedText.split(publicPath).join(privatePath);
           privateImageCache[privatePath] = img.blobUrl;
           delete pendingImages[publicPath];
         }
@@ -1610,6 +1920,7 @@ const postList = allPosts.map(p => ({
         currentEditingSha = saved.content ? saved.content.sha : null;
         postSecret.disabled = true;
         showAlert('비밀글이 비공개 저장소에 저장되었습니다. Blog 목록의 private 그룹에서 볼 수 있어요.', false);
+        setDiffBase(slug + ' (저장됨)', savedText);
         publishBtnText.textContent = '저장 완료!';
         setTimeout(function() { publishBtnText.textContent = '수정 저장하기'; }, 3000);
       } catch (e) {
@@ -1630,6 +1941,7 @@ const postList = allPosts.map(p => ({
         currentEditingSha = null;
         fetchFileSha(slug);
         showAlert('글과 이미지가 한 커밋으로 저장되었습니다! GitHub Actions 배포 후 반영됩니다.', false);
+        setDiffBase(slug + ' (저장됨)', savedText);
         publishBtnText.textContent = '발행 완료!';
         setTimeout(function() { publishBtnText.textContent = '수정 저장하기'; }, 3000);
       } catch(e) {
@@ -1663,6 +1975,7 @@ const postList = allPosts.map(p => ({
         var data = await res.json();
         currentEditingSha = data.content ? data.content.sha : null;
         showAlert('성공적으로 저장되었습니다! GitHub Actions 배포 후 사이트에 자동 반영됩니다.', false);
+        setDiffBase(slug + ' (저장됨)', savedText);
         publishBtnText.textContent = '발행 완료!';
         setTimeout(function() { publishBtnText.textContent = currentEditingSha ? '수정 저장하기' : '발행하기'; }, 3000);
       } else {
@@ -1681,6 +1994,7 @@ const postList = allPosts.map(p => ({
   // Init
   postSlug.value = TODAY + '-new-post.md';
   setEditor('');
+  setDiffBase('새 글');
   (window.innerWidth < 1024 ? viewEditBtn : viewSplitBtn).click();
   updatePreview();
 
