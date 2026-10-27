@@ -1,8 +1,8 @@
 ---
 layout: post
 title: 알고리즘 강의 - 1 [알고리즘의 복잡도 분석] - 해(解)
-categories: [Algorithm]
-tags: [lecture, complexity, solution]
+categories: ["Algorithm"]
+tags: ["lecture", "complexity", "solution"]
 ---
 
 ## 1 .다음 계산시간(t)을 Big O표기법으로 나타내라.(입력크기는 n)

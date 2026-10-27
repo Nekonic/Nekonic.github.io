@@ -39,10 +39,16 @@ function authHeaders(pat: string, accept = 'application/vnd.github+json') {
 function parseList(v?: string): string[] {
   if (!v) return [];
   const t = v.trim();
-  if (t.startsWith('[')) {
+  // 기본 형식은 ["a", "b"]
+  if (t.startsWith('[') && t.endsWith(']')) {
+    try {
+      const arr = JSON.parse(t);
+      if (Array.isArray(arr)) return arr.map((s) => String(s).trim()).filter(Boolean);
+    } catch {}
     return t.slice(1, -1).split(',').map((s) => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
   }
-  return t.replace(/^["']|["']$/g, '').split(/[\s,]+/).filter(Boolean);
+  // 쉼표로만 나눔 (이름 안의 공백은 그대로)
+  return t.split(',').map((s) => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
 }
 
 export function parseFrontmatter(text: string, id: string) {

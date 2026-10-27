@@ -1,8 +1,8 @@
 ---
 layout: post
 title: 리버스 프록시(Reverse Proxy)
-categories: [Network, Security]
-tags: [reverse_proxy, server, hacking]
+categories: ["Network", "Security"]
+tags: ["reverse_proxy", "server", "hacking"]
 ---
 
 ## 1. 리버스 프록시란 무엇인가?

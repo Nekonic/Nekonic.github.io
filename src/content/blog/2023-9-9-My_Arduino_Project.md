@@ -1,8 +1,8 @@
 ---
 layout: post
 title: 내가 만들었던 아두이노 프로젝트들 모음
-categories: [Arduino]
-tags: [arduino, music]
+categories: ["Arduino"]
+tags: ["arduino", "music"]
 ---
 ## 1. 에니그마
 

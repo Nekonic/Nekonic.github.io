@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
 import { getCollection } from 'astro:content';
-import { toArray, categoryStyle } from '../lib/utils';
+import { toArray, categoryStyle, HSKF_CATEGORIES, HSKF_SET } from '../lib/utils';
 
 const allPosts = await getCollection('blog');
 const postList = allPosts.map(p => ({
@@ -18,11 +18,18 @@ const postList = allPosts.map(p => ({
 function countNames(key: 'categories' | 'tags') {
   const counts = new Map<string, number>();
   for (const p of allPosts) for (const n of toArray(p.data[key])) counts.set(n, (counts.get(n) ?? 0) + 1);
-  return [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([name, count]) => ({ name, count }));
+  return counts;
 }
+const byCount = (counts: Map<string, number>) =>
+  [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([name, count]) => ({ name, count }));
+// HSKF 분류 6개는 글이 없어도 맨 앞에
+const catCounts = countNames('categories');
 const metaOptions = {
-  categories: countNames('categories').map((c) => ({ ...c, style: categoryStyle(c.name) })),
-  tags: countNames('tags'),
+  categories: [
+    ...HSKF_CATEGORIES.map((name) => ({ name, count: catCounts.get(name) ?? 0 })),
+    ...byCount(catCounts).filter((c) => !HSKF_SET.has(c.name)),
+  ].map((c) => ({ ...c, style: categoryStyle(c.name) })),
+  tags: byCount(countNames('tags')),
 };
 ---
 
@@ -432,8 +439,16 @@ const metaOptions = {
       var r = fm.match(new RegExp('^' + k + '[ \\t]*:[ \\t]*(.*)$', 'm'));
       return r ? r[1].trim() : '';
     };
+    // ["a", "b"] (기본) · [a, b] · a, b 모두 받음. 이름에 [ ] 가 들어갈 수 있어 JSON 먼저
     var list = function(v) {
-      v = v.replace(/^\[/, '').replace(/\]$/, '');
+      v = v.trim();
+      if (/^\[[\s\S]*\]$/.test(v)) {
+        try {
+          var arr = JSON.parse(v);
+          if (Array.isArray(arr)) return arr.map(function(x) { return String(x).trim(); }).filter(Boolean).join(', ');
+        } catch (e) {}
+        v = v.slice(1, -1);
+      }
       return v.split(',').map(function(x) { return x.trim().replace(/^["']|["']$/g, ''); }).filter(Boolean).join(', ');
     };
     return {
@@ -1652,8 +1667,8 @@ const metaOptions = {
     postContent.value = '---\n'
       + 'title: ' + t + '\n'
       + 'date: ' + normDate(date) + '\n'
-      + 'categories: ' + postCategories.value + '\n'
-      + 'tags: ' + postTags.value + '\n'
+      + 'categories: ' + fmArray(splitList(postCategories.value)) + '\n'
+      + 'tags: ' + fmArray(splitList(postTags.value)) + '\n'
       + '---\n\n' + body;
   }
 
@@ -1662,11 +1677,16 @@ const metaOptions = {
   try { metaOptions = JSON.parse(document.getElementById('metaOptions').textContent); } catch (e) {}
 
   /** frontmatter의 key 줄을 바꿈 (없으면 닫는 --- 앞에 추가). 커서 위치는 유지 */
+  /** frontmatter 목록 형식: ["a", "b"] */
+  function fmArray(list) {
+    return '[' + list.map(function(x) { return JSON.stringify(x); }).join(', ') + ']';
+  }
+
   function setFmField(key, list) {
     var text = postContent.value;
     var m = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
     if (!m) { setEditor(text); text = postContent.value; m = text.match(/^---\r?\n([\s\S]*?)\r?\n---/); }
-    var line = key + ': ' + list.join(', ');
+    var line = key + ': ' + fmArray(list);
     // key 줄 + 그 아래 '  - x' 형식 목록 줄까지
     var re = new RegExp('^' + key + '[ \\t]*:.*(?:\\r?\\n[ \\t]+-.*)*', 'm');
     var fm = re.test(m[1]) ? m[1].replace(re, function() { return line; }) : (m[1] ? m[1] + '\n' : '') + line;
@@ -2208,10 +2228,10 @@ const metaOptions = {
     frontmatter += 'title: "' + title.replace(/"/g, '\\"') + '"\n';
     frontmatter += 'date: ' + postDate + '\n';
     if (categories) {
-      frontmatter += 'categories: [' + categories.split(',').map(function(s){ return '"' + s.trim() + '"'; }).join(', ') + ']\n';
+      frontmatter += 'categories: ' + fmArray(splitList(categories)) + '\n';
     }
     if (tags) {
-      frontmatter += 'tags: [' + tags.split(',').map(function(s){ return '"' + s.trim() + '"'; }).join(', ') + ']\n';
+      frontmatter += 'tags: ' + fmArray(splitList(tags)) + '\n';
     }
     frontmatter += '---\n\n';
 

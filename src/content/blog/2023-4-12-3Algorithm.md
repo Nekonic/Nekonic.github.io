@@ -1,8 +1,8 @@
 ---
 layout: post
 title: 알고리즘 강의 - 3 [알고리즘의 정당성과 증명]
-categories: [Algorithm]
-tags: [lecture, proof]
+categories: ["Algorithm"]
+tags: ["lecture", "proof"]
 ---
 
 ## 서론

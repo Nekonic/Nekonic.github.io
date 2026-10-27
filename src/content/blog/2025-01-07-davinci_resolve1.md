@@ -1,8 +1,8 @@
 ---
 layout: post
 title: davinci resolve GPU initialization error
-categories: [Troubleshooting]
-tags: [davinci_resolve, gpu, error]
+categories: ["Troubleshooting"]
+tags: ["davinci_resolve", "gpu", "error"]
 ---
 ## 설치부터 오류가 일어났다..
 다빈치 리졸브를 설치하려는데, 설치부터 해쉬값이 안맞아서 설치 자체가 안되는 오류가 발생했지만 얼마 지나고 해결됨.  

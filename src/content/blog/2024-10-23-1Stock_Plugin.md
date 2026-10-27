@@ -1,8 +1,8 @@
 ---
 layout: post
 title: -1- 플러그인을 만들어보자! (Minecraft Stock Plugin)
-categories: [Minecraft]
-tags: [plugin, stock_plugin]
+categories: ["Minecraft"]
+tags: ["plugin", "stock_plugin"]
 ---
 
 ## 화폐 시스템

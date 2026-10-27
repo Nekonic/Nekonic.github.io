@@ -24,12 +24,26 @@ export function formatDate(date: Date): string {
 }
 
 /**
+ * HSPACE Knights Frontier(HSKF) 전용 분류. 기존 카테고리와 섞이지 않게 [HSKF] 를 붙이고,
+ * 해당하는 글의 첫 번째 카테고리로 씁니다. 목록·고르기에서 맨 앞에 둡니다.
+ */
+export const HSKF_PREFIX = '[HSKF]';
+export const HSKF_CATEGORIES = ['개발', 'CTF/Wargame', 'Bug_Bounty', '블로그/기술문서', '논문/컨퍼런스', '공모전/자격증'].map((c) => HSKF_PREFIX + c);
+export const HSKF_SET = new Set(HSKF_CATEGORIES);
+
+/** 바로찾기 버튼에 보일 이름 ([HSKF]Bug_Bounty → Bug Bounty) */
+export function hskfLabel(name: string) {
+  return name.slice(HSKF_PREFIX.length).replace(/_/g, ' ');
+}
+
+/**
  * categories/tags 문자열 또는 배열을 배열로 통일합니다.
+ * 문자열은 쉼표로 나눕니다 ("Incident Report, Security" → 2개). 이름 안의 공백은 그대로 둡니다.
  */
 export function toArray(value?: string | string[]): string[] {
   if (!value) return [];
   if (Array.isArray(value)) return value;
-  return value.split(/\s+/).filter(Boolean);
+  return value.split(',').map((s) => s.trim()).filter(Boolean);
 }
 
 /**
@@ -47,6 +61,9 @@ const CATEGORY_PALETTE = [
 
 export function categoryStyle(name?: string) {
   if (!name) return { tile: '#4e5157', chipBg: '#2b2d30', chipText: '#bcbec4' };
+  // HSKF 6개는 서로 다른 색
+  const hskf = HSKF_CATEGORIES.indexOf(name);
+  if (hskf !== -1) return CATEGORY_PALETTE[hskf % CATEGORY_PALETTE.length];
   let h = 0;
   for (const ch of name.toLowerCase()) h = (h * 31 + ch.codePointAt(0)!) >>> 0;
   return CATEGORY_PALETTE[h % CATEGORY_PALETTE.length];

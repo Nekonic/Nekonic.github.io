@@ -1,8 +1,8 @@
 ---
 layout: post
 title: 알고리즘 강의 - 0 [개요]
-categories: [Algorithm]
-tags: [lecture]
+categories: ["Algorithm"]
+tags: ["lecture"]
 ---
 
 ## 알고리즘 강의글을 쓰는 이유

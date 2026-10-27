@@ -1,8 +1,8 @@
 ---
 layout: post
 title: -3- 인공지능을 활용한 개발 (Minecraft Stock Plugin)
-categories: [Minecraft]
-tags: [plugin, stock_plugin, ai]
+categories: ["Minecraft"]
+tags: ["plugin", "stock_plugin", "ai"]
 ---
 ## 인공지능을 활용한 개발에 대한 나의 생각
 난 실무에서 인공지능**만** 사용하는 사람은 없다고 생각한다.  

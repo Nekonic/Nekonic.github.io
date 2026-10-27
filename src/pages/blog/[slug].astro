@@ -42,7 +42,7 @@ const year = String(date.getFullYear());
         <div class="flex gap-1.5 flex-wrap font-mono text-xs">
           {categories.map((c) => {
             const s = categoryStyle(c);
-            return <a href={`/blog?q=${encodeURIComponent(c)}`} class="px-2 py-0.5 rounded" style={`background:${s.chipBg};color:${s.chipText}`}>{c}</a>;
+            return <a href={`/blog?cat=${encodeURIComponent(c)}`} class="px-2 py-0.5 rounded" style={`background:${s.chipBg};color:${s.chipText}`}>{c}</a>;
           })}
         </div>
       )}

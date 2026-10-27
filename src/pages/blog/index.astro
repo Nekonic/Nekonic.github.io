@@ -2,7 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Icon from '../../components/Icon.astro';
 import { getCollection } from 'astro:content';
-import { getDateFromId, toArray, categoryStyle } from '../../lib/utils';
+import { getDateFromId, toArray, categoryStyle, HSKF_CATEGORIES, HSKF_SET, hskfLabel } from '../../lib/utils';
 
 const allPosts = await getCollection('blog');
 const posts = allPosts
@@ -30,7 +30,8 @@ for (const p of posts) {
 
 const catCounts = new Map<string, number>();
 for (const p of posts) for (const c of p.cats) catCounts.set(c, (catCounts.get(c) ?? 0) + 1);
-const topCats = [...catCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
+const hskfCats = HSKF_CATEGORIES.map((c) => ({ name: c, label: hskfLabel(c), count: catCounts.get(c) ?? 0, style: categoryStyle(c) }));
+const topCats = [...catCounts.entries()].filter(([c]) => !HSKF_SET.has(c)).sort((a, b) => b[1] - a[1]).slice(0, 10);
 
 const firstYear = posts.at(-1)?.date.getFullYear();
 const lastYear = posts[0]?.date.getFullYear();
@@ -44,6 +45,27 @@ const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String
       <span class="font-mono text-[13px] text-text-secondary">{posts.length} files · {firstYear} — {lastYear}</span>
     </div>
 
+    <!-- HSKF 바로찾기: HSPACE Knights Frontier 분류 6개 -->
+    <section aria-labelledby="hskfTitle" class="flex flex-col gap-2">
+      <h2 id="hskfTitle" class="px-0.5 font-mono text-xs font-medium text-text-secondary">HSKF 바로찾기</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5">
+        {hskfCats.map((c) => (
+          <button
+            type="button"
+            data-cat={c.name}
+            aria-pressed="false"
+            class:list={["cat-chip hskf-btn flex flex-col items-start gap-1 px-3 py-2.5 rounded-lg border border-border text-left hover:border-borderHover transition-colors", c.count === 0 && "opacity-50"]}
+          >
+            <span class="flex items-center gap-1.5 text-[13px] font-semibold text-text-primary">
+              <span class="w-2 h-2 rounded-full" style={`background:${c.style.tile}`}></span>
+              {c.label}
+            </span>
+            <span class="font-mono text-[11px] text-text-muted">{c.count} posts</span>
+          </button>
+        ))}
+      </div>
+    </section>
+
     <!-- Find toolbar -->
     <div id="filter" class="flex flex-col gap-2.5 p-2.5 bg-secondary rounded-lg scroll-mt-16">
       <label class="flex items-center gap-2 h-8 px-2.5 bg-primary border border-border rounded-md focus-within:border-accent transition-colors">
@@ -52,9 +74,9 @@ const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String
         <span id="matchCount" class="font-mono text-[11px] text-text-muted"></span>
       </label>
       <div class="flex flex-wrap gap-1.5" id="catChips">
-        <button type="button" data-cat="" class="cat-chip h-[26px] px-2.5 rounded-full text-xs border border-transparent bg-accent text-white">전체 {posts.length}</button>
+        <button type="button" data-cat="" aria-pressed="true" class="cat-chip h-[26px] px-2.5 rounded-full text-xs border border-transparent bg-accent text-white">전체 {posts.length}</button>
         {topCats.map(([c, n]) => (
-          <button type="button" data-cat={c} class="cat-chip h-[26px] px-2.5 rounded-full text-xs border border-border text-text-body hover:border-borderHover">{c} {n}</button>
+          <button type="button" data-cat={c} aria-pressed="false" class="cat-chip h-[26px] px-2.5 rounded-full text-xs border border-border text-text-body hover:border-borderHover">{c} {n}</button>
         ))}
       </div>
     </div>
@@ -86,6 +108,7 @@ const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String
               <span class="text-sm font-medium text-text-primary truncate">{p.title}</span>
               <span class="col-start-2 sm:col-start-auto flex gap-1.5 font-mono text-[11px] min-w-0">
                 {p.cats[0] && <span class="px-1.5 py-0.5 rounded whitespace-nowrap" style={`background:${p.style.chipBg};color:${p.style.chipText}`}>{p.cats[0]}</span>}
+                {p.cats[1] && <span class="px-1.5 py-0.5 rounded whitespace-nowrap bg-secondary text-text-body hidden sm:inline">{p.cats[1]}</span>}
                 {p.tags.length > 0 && <span class="py-0.5 text-text-secondary truncate hidden md:inline">{p.tags.slice(0, 2).map((t) => `#${t}`).join(' ')}</span>}
               </span>
             </a>
@@ -109,6 +132,26 @@ const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String
 
   const ACTIVE = ['bg-accent', 'text-white', 'border-transparent'];
   const IDLE = ['border-border', 'text-text-body', 'hover:border-borderHover'];
+  // 바로찾기 버튼은 배경 대신 테두리로 선택 표시
+  const H_ACTIVE = ['border-accent', 'bg-accent/15'];
+  const H_IDLE = ['border-border', 'hover:border-borderHover'];
+
+  function selectCat(cat: string) {
+    activeCat = cat;
+    chips.forEach((c) => {
+      const on = (c.dataset.cat || '') === cat;
+      const [act, idle] = c.classList.contains('hskf-btn') ? [H_ACTIVE, H_IDLE] : [ACTIVE, IDLE];
+      c.classList.remove(...(on ? idle : act));
+      c.classList.add(...(on ? act : idle));
+      c.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    const url = new URL(location.href);
+    if (cat) url.searchParams.set('cat', cat); else url.searchParams.delete('cat');
+    const q = input.value.trim();
+    if (q) url.searchParams.set('q', q); else url.searchParams.delete('q');
+    history.replaceState(null, '', url);
+    apply();
+  }
 
   function apply() {
     const q = input.value.trim().toLowerCase();
@@ -137,23 +180,21 @@ const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String
   }
 
   chips.forEach((chip) => {
+    // 이미 고른 바로찾기 버튼을 다시 누르면 전체로
     chip.addEventListener('click', () => {
-      activeCat = chip.dataset.cat || '';
-      chips.forEach((c) => {
-        const on = c === chip;
-        c.classList.remove(...(on ? IDLE : ACTIVE));
-        c.classList.add(...(on ? ACTIVE : IDLE));
-      });
-      apply();
+      const cat = chip.dataset.cat || '';
+      selectCat(chip.classList.contains('hskf-btn') && cat === activeCat ? '' : cat);
     });
   });
   input.addEventListener('input', apply);
 
-  const q = new URLSearchParams(location.search).get('q');
-  if (q) {
-    input.value = q;
-    apply();
-  }
+  const params = new URLSearchParams(location.search);
+  const q = params.get('q');
+  if (q) input.value = q;
+  // 칩이 없는 카테고리(상위 10개 밖)도 ?cat= 으로 거를 수 있음
+  const cat = params.get('cat');
+  if (cat) selectCat(cat);
+  else if (q) apply();
   if (location.hash === '#filter') input.focus();
 
   // 비밀글: 토큰이 있는 브라우저에서만 비공개 저장소에서 불러옵니다

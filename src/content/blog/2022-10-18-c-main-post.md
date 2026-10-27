@@ -1,8 +1,8 @@
 ---
 layout: post
 title: main function error in c
-categories: [Troubleshooting]
-tags: [c, error]
+categories: ["Troubleshooting"]
+tags: ["c", "error"]
 ---
 
 오늘 해커톤에 같이 나가는 동아리 부원이 나에게 질문을 했다.

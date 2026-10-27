@@ -1,8 +1,8 @@
 ---
 layout: post
 title: 알고리즘 강의 - 2 [자료구조]
-categories: [Algorithm]
-tags: [lecture, data_structure]
+categories: ["Algorithm"]
+tags: ["lecture", "data_structure"]
 ---
 
 ## 자료구조란?

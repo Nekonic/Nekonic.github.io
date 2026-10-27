@@ -1,8 +1,8 @@
 ---
 layout: post
 title: 겨울방학 프로젝트 - 1 OLED 제어
-categories: [Arduino]
-tags: [arduino, oled, fft, spectrum_analyzer]
+categories: ["Arduino"]
+tags: ["arduino", "oled", "fft", "spectrum_analyzer"]
 ---
 ## 준비물
 - Arduino uno
