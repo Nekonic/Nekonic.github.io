@@ -46,21 +46,24 @@ const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String
     </div>
 
     <!-- HSKF 바로찾기: HSPACE Knights Frontier 분류 6개 -->
-    <section aria-labelledby="hskfTitle" class="flex flex-col gap-2">
-      <h2 id="hskfTitle" class="px-0.5 font-mono text-xs font-medium text-text-secondary">HSKF 바로찾기</h2>
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5">
+    <section aria-labelledby="hskfTitle" class="flex flex-col gap-3">
+      <div class="flex items-baseline gap-2.5 flex-wrap px-0.5">
+        <h2 id="hskfTitle" class="text-[17px] font-bold text-white">HSKF 바로찾기</h2>
+        <span class="text-xs text-text-secondary">HSPACE Knights Frontier</span>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
         {hskfCats.map((c) => (
           <button
             type="button"
             data-cat={c.name}
             aria-pressed="false"
-            class:list={["cat-chip hskf-btn flex flex-col items-start gap-1 px-3 py-2.5 rounded-lg border border-border text-left hover:border-borderHover transition-colors", c.count === 0 && "opacity-50"]}
+            class="cat-chip hskf-btn group flex flex-col items-start justify-between gap-3 min-h-[92px] px-4 py-3.5 rounded-xl border-2 bg-secondary border-border hover:border-borderHover aria-pressed:bg-[#2b5bc4] aria-pressed:border-[#2b5bc4] text-left transition-colors"
           >
-            <span class="flex items-center gap-1.5 text-[13px] font-semibold text-text-primary">
-              <span class="w-2 h-2 rounded-full" style={`background:${c.style.tile}`}></span>
+            <span class="flex items-center gap-2 text-[15px] font-semibold text-white">
+              <span class="w-3 h-3 shrink-0 rounded-[4px] group-aria-pressed:ring-2 group-aria-pressed:ring-white/80" style={`background:${c.style.tile}`}></span>
               {c.label}
             </span>
-            <span class="font-mono text-[11px] text-text-muted">{c.count} posts</span>
+            <span class="font-mono text-xs text-text-secondary group-aria-pressed:text-white">{c.count} posts</span>
           </button>
         ))}
       </div>
@@ -132,18 +135,16 @@ const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String
 
   const ACTIVE = ['bg-accent', 'text-white', 'border-transparent'];
   const IDLE = ['border-border', 'text-text-body', 'hover:border-borderHover'];
-  // 바로찾기 버튼은 배경 대신 테두리로 선택 표시
-  const H_ACTIVE = ['border-accent', 'bg-accent/15'];
-  const H_IDLE = ['border-border', 'hover:border-borderHover'];
 
   function selectCat(cat: string) {
     activeCat = cat;
     chips.forEach((c) => {
       const on = (c.dataset.cat || '') === cat;
-      const [act, idle] = c.classList.contains('hskf-btn') ? [H_ACTIVE, H_IDLE] : [ACTIVE, IDLE];
-      c.classList.remove(...(on ? idle : act));
-      c.classList.add(...(on ? act : idle));
       c.setAttribute('aria-pressed', on ? 'true' : 'false');
+      // 바로찾기 버튼은 aria-pressed: 스타일로 표시
+      if (c.classList.contains('hskf-btn')) return;
+      c.classList.remove(...(on ? IDLE : ACTIVE));
+      c.classList.add(...(on ? ACTIVE : IDLE));
     });
     const url = new URL(location.href);
     if (cat) url.searchParams.set('cat', cat); else url.searchParams.delete('cat');
