@@ -123,6 +123,24 @@
   line-height: 1.7;
 }
 
+/* 코드 블록 줄 번호 (JetBrains 거터). 출력 결과·text 블록은 제외, 복사할 때는 안 들어감 */
+.article-content pre.astro-code:not(.plain-code) { padding-left: 0; }
+.article-content pre.astro-code:not(.plain-code) code { counter-reset: ln; }
+.article-content pre.astro-code:not(.plain-code) .line::before {
+  counter-increment: ln;
+  content: counter(ln);
+  position: sticky;
+  left: 0;
+  display: inline-block;
+  width: 3.25em;
+  padding-right: 1.25em;
+  margin-right: 0.25em;
+  text-align: right;
+  color: #6f737a;
+  background: #191a1c;
+  user-select: none;
+}
+
 /* 코드 블록 헤더 (언어 + 복사 버튼) — 스크립트가 .code-frame 으로 감쌉니다 */
 .article-content .code-frame {
   margin: 1.5rem 0;
@@ -280,3 +298,9 @@
 .article-content img.img-left { float: left; margin: 0.5rem 1.5rem 1rem 0; }
 .article-content img.img-right { float: right; margin: 0.5rem 0 1rem 1.5rem; }
 .article-content img.img-center { display: block; margin: 1.75rem auto; }
+
+/* Project 도구 창: 폴더 아이콘으로 열고 닫음 (상태는 <html data-tree>) */
+@media (min-width: 1024px) {
+  html[data-tree="open"] .project-tree { display: flex; }
+}
+html[data-tree="open"] .tree-toggle { background: rgb(53 116 240 / 0.2); color: #8cb4f0; }

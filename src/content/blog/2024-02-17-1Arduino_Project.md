@@ -1,8 +1,8 @@
 ---
 layout: post
 title: 겨울방학 프로젝트 - 1 OLED 제어
-categories: arduino Spectrum_Analyzer
-tags: arduino music FFT Fast_Fourier_Transform Spectrum_Analyzer
+categories: [Arduino]
+tags: [arduino, oled, fft, spectrum_analyzer]
 ---
 ## 준비물
 - Arduino uno

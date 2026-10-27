@@ -1,8 +1,8 @@
 ---
 layout: post
 title: 알고리즘 강의 - 1 [알고리즘의 복잡도 분석]
-categories: Algorithm
-tags: ps Algorithm
+categories: [Algorithm]
+tags: [lecture, complexity]
 ---
 
 ## 서론

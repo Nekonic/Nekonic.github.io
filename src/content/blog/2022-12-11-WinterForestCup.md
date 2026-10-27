@@ -1,8 +1,8 @@
 ---
 layout: post
 title: 겨울 숲의 초대
-categories: ps Programming_Contest
-tags: ps boj Programming_Contest greedy ad_hoc
+categories: [PS]
+tags: [boj, contest, greedy, ad_hoc]
 ---
 ## 소감
 대회에서 우승하기에는 아직 멀었다.  

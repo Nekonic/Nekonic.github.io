@@ -1,8 +1,8 @@
 ---
 layout: post
 title: 알고리즘 강의 - 4 [정렬]
-categories: Algorithm
-tags: ps Algorithm
+categories: [Algorithm]
+tags: [lecture, sort]
 ---
 
 ## 서론

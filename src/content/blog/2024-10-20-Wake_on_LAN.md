@@ -1,8 +1,8 @@
 ---
 layout: post
 title: WOL(Wake-on-LAN) in Archlinux
-categories: Archlinux
-tags: network Archlinux
+categories: [Linux]
+tags: [arch_linux, wol, network]
 ---
 
 ## Software configuration

@@ -1,8 +1,8 @@
 ---
 layout: post
 title: 운영체제와 컴퓨터구조 - 1 [개요]
-categories: Operating_System
-tags: Operating_System 
+categories: [OS]
+tags: [operating_system, computer_architecture]
 ---
 ## 운영체제란?
 

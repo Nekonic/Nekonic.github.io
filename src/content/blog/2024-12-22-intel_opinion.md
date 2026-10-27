@@ -1,8 +1,8 @@
 ---
 layout: post
 title: intel이 망할 수 없는 이유 
-categories: opinion
-tags: Intel
+categories: [Essay]
+tags: [intel, semiconductor, opinion]
 ---
 ## 인텔은 삼성과 다르다.
 인텔은 미국기업 이라는 것을 잊지 말자.  

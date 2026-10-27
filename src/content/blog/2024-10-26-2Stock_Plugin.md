@@ -1,8 +1,8 @@
 ---
 layout: post
 title: -2- Todo List (Minecraft Stock Plugin)
-categories: Minecraft_Plugin
-tags: Minecraft_Plugin Minecraft
+categories: [Minecraft]
+tags: [plugin, stock_plugin, todo]
 ---
 ## Mineconomy-Core Mark 시스템 TODO 리스트
 
