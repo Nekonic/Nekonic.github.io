@@ -12,9 +12,7 @@
     font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
   }
 
-  code, pre, kbd {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-  }
+  /* code, pre, kbd 글꼴은 Tailwind preflight가 fontFamily.mono(tailwind.config.mjs)로 적용 */
 
   summary::-webkit-details-marker { display: none; }
 }
@@ -70,7 +68,7 @@
 }
 .article-content h2::before {
   content: '## ';
-  font-family: 'JetBrains Mono', monospace;
+  @apply font-mono;
   font-size: 0.75em;
   font-weight: 500;
   color: #6f737a;
@@ -78,7 +76,7 @@
 .article-content h3 { scroll-margin-top: 4rem; }
 .article-content h3::before {
   content: '### ';
-  font-family: 'JetBrains Mono', monospace;
+  @apply font-mono;
   font-size: 0.75em;
   font-weight: 500;
   color: #6f737a;
@@ -120,7 +118,7 @@
   margin-top: 1.5rem;
   margin-bottom: 1.5rem;
   overflow-x: auto;
-  font-family: 'JetBrains Mono', monospace;
+  color: var(--c-text);
   font-size: 0.85rem;
   line-height: 1.7;
 }
@@ -146,7 +144,7 @@
   padding: 0 0.5rem 0 0.75rem;
   background: #232427;
   border-bottom: 1px solid #2b2d30;
-  font-family: 'JetBrains Mono', monospace;
+  @apply font-mono;
   font-size: 0.75rem;
   color: #9da0a8;
 }
@@ -171,7 +169,7 @@
   cursor: pointer;
   list-style: none;
   padding: 0.6rem 0.9rem;
-  font-family: 'JetBrains Mono', monospace;
+  @apply font-mono;
   font-size: 0.85rem;
   color: #bcbec4;
 }
@@ -191,11 +189,35 @@
 .article-content code:not(pre code) {
   background-color: #2b2d30;
   border: 0;
-  color: #cf8e6d; /* Darcula keyword tone */
+  color: var(--c-text);
   padding: 0.15rem 0.45rem;
   border-radius: 4px;
-  font-family: 'JetBrains Mono', monospace;
   font-size: 0.88em;
+}
+
+/* JetBrains Dark 코드 색 (Shiki 테마 src/lib/shiki-jetbrains-dark.json 과 같은 값) */
+:root {
+  --c-text: #bcbec4;
+  --c-kw: #cf8e6d;
+  --c-str: #6aab73;
+  --c-num: #2aacb8;
+  --c-fn: #56a8f5;
+  --c-com: #7a7e85;
+  --c-prop: #c77dbb;
+  --c-meta: #b3ae60;
+  --c-tag: #d5b778;
+}
+.tok-kw { color: var(--c-kw); }
+.tok-str { color: var(--c-str); }
+.tok-num { color: var(--c-num); }
+.tok-fn { color: var(--c-fn); }
+.tok-com { color: var(--c-com); }
+
+/* 본문 속 연산자(!=, >= 등)는 코드 글꼴로 */
+.article-content .op {
+  @apply font-mono;
+  font-size: 0.92em;
+  color: #dfe1e5;
 }
 
 .article-content blockquote {
@@ -240,7 +262,7 @@
   background-color: #2b2d30;
   color: #dfe1e5;
   font-weight: 600;
-  font-family: 'JetBrains Mono', monospace;
+  @apply font-mono;
   font-size: 0.85rem;
   border-bottom: 2px solid #393b40;
 }

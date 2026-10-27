@@ -42,7 +42,8 @@ export default {
       },
       fontFamily: {
         sans: ['"Pretendard Variable"', 'Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', '"Segoe UI"', 'sans-serif'],
-        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        // 영문·기호는 JetBrains Mono, 한글은 Pretendard. 합자(!= → ≠ 등)는 끔
+        mono: [['"JetBrains Mono"', '"Pretendard Variable"', 'Pretendard', 'ui-monospace', 'monospace'], { fontFeatureSettings: '"liga" 0, "calt" 0' }],
       },
     },
   },

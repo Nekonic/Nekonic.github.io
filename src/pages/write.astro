@@ -102,14 +102,16 @@ const postList = allPosts.map(p => ({
       <div id="editorCol" class="flex-1 min-w-0 min-h-0 flex flex-col">
         <div class="shrink-0 h-8 flex items-center px-3 text-xs text-text-muted border-b border-borderSubtle">Markdown</div>
         <div class="relative flex-1 min-h-0 flex">
-          <div id="lineGutter" class="editor-font w-12 shrink-0 overflow-hidden text-right pr-3 py-3 text-[13px] leading-6 text-text-faint select-none" aria-hidden="true"></div>
+          <div id="lineGutter" class="font-mono w-12 shrink-0 overflow-hidden text-right pr-3 py-3 text-[13px] leading-6 text-text-faint select-none" aria-hidden="true"></div>
+          <!-- 구문 색 레이어: 투명한 textarea 뒤에서 같은 글자를 색칠해 보여줌 -->
+          <div id="editorHl" class="font-mono absolute top-0 overflow-hidden pointer-events-none py-3 pr-4 text-[13px] leading-6 text-text-primary whitespace-pre-wrap break-words" aria-hidden="true"></div>
           <textarea
             id="postContent"
             spellcheck="false"
-            class="editor-font flex-1 min-w-0 h-full bg-transparent py-3 pr-4 text-[13px] leading-6 text-text-primary placeholder:text-text-faint focus:outline-none resize-none"
+            class="font-mono flex-1 min-w-0 h-full bg-transparent py-3 pr-4 text-[13px] leading-6 text-text-primary placeholder:text-text-faint focus:outline-none resize-none"
           ></textarea>
           <!-- 줄 높이 측정용 (soft wrap 대응) -->
-          <div id="lineMirror" class="editor-font absolute invisible pointer-events-none top-0 text-[13px] leading-6 whitespace-pre-wrap break-words" aria-hidden="true"></div>
+          <div id="lineMirror" class="font-mono absolute invisible pointer-events-none top-0 text-[13px] leading-6 whitespace-pre-wrap break-words" aria-hidden="true"></div>
         </div>
       </div>
 
@@ -221,9 +223,9 @@ const postList = allPosts.map(p => ({
         <div id="imgEdSizeWrap" class="invisible flex items-center gap-1.5 ml-1 sm:ml-2">
           <span id="imgEdSizeLabel" class="hidden sm:inline text-text-muted">굵기</span>
           <div class="flex rounded-md border border-border overflow-hidden">
-            <button type="button" data-size="s" class="img-size" title="얇게 / 작게">S</button>
-            <button type="button" data-size="m" class="img-size" title="보통">M</button>
-            <button type="button" data-size="l" class="img-size" title="굵게 / 크게">L</button>
+            <button type="button" data-size="s" class="img-size font-mono" title="얇게 / 작게">S</button>
+            <button type="button" data-size="m" class="img-size font-mono" title="보통">M</button>
+            <button type="button" data-size="l" class="img-size font-mono" title="굵게 / 크게">L</button>
           </div>
         </div>
 
@@ -264,8 +266,24 @@ const postList = allPosts.map(p => ({
 </BaseLayout>
 
 <style is:global>
-  /* 영문·코드는 JetBrains Mono, 한글은 Pretendard로 */
-  .editor-font { font-family: "JetBrains Mono", "Pretendard Variable", Pretendard, ui-monospace, monospace; }
+  /* 에디터 구문 색 레이어 (색 레이어가 준비된 뒤에만 글자를 투명하게). 색은 global.css의 --c-* / .tok-* */
+  #postContent.hl-on { color: transparent; caret-color: #dfe1e5; position: relative; z-index: 1; }
+  #postContent.hl-on::selection { color: transparent; background: rgb(53 116 240 / 0.35); }
+  #editorHl .md-quote { color: #9da0a8; }
+  #editorHl .md-strong { color: #ffffff; }
+  #editorHl .md-tag { color: var(--c-tag); }
+  #editorHl .md-key { color: var(--c-prop); }
+
+  /* 미리보기 코드 색: highlight.js 클래스 → 같은 JetBrains Dark 색 */
+  .hljs-comment, .hljs-quote { color: var(--c-com); }
+  .hljs-keyword, .hljs-literal, .hljs-type, .hljs-selector-tag, .hljs-section, .hljs-char.escape_, .hljs-subst { color: var(--c-kw); }
+  .hljs-string, .hljs-regexp, .hljs-addition, .hljs-meta .hljs-string { color: var(--c-str); }
+  .hljs-number { color: var(--c-num); }
+  .hljs-title.function_, .hljs-function .hljs-title { color: var(--c-fn); }
+  .hljs-attr, .hljs-property, .hljs-variable, .hljs-symbol { color: var(--c-prop); }
+  .hljs-meta, .hljs-meta .hljs-keyword { color: var(--c-meta); }
+  .hljs-tag, .hljs-name, .hljs-selector-class, .hljs-selector-id { color: var(--c-tag); }
+  .hljs-deletion { color: #f75464; }
 
   /* diff 모드 */
   .diff-mode { color: #9da0a8; }
@@ -298,7 +316,7 @@ const postList = allPosts.map(p => ({
   .img-tool[aria-pressed="true"] { background: rgb(53 116 240 / 0.25); color: #8cb4f0; }
   .img-color { width: 20px; height: 20px; border-radius: 9999px; border: 1px solid #4e5157; }
   .img-color[aria-pressed="true"] { outline: 2px solid #3574f0; outline-offset: 2px; }
-  .img-size { width: 24px; height: 22px; color: #9da0a8; font-family: "JetBrains Mono", ui-monospace, monospace; }
+  .img-size { width: 24px; height: 22px; color: #9da0a8; }
   .img-size + .img-size { border-left: 1px solid #393b40; }
   .img-size:hover { background: #2b2d30; color: #dfe1e5; }
   .img-size[aria-pressed="true"] { background: rgb(53 116 240 / 0.25); color: #8cb4f0; }
@@ -306,6 +324,14 @@ const postList = allPosts.map(p => ({
 
 <!-- Lightweight Marked CDN for Live Markdown Parsing -->
 <script is:inline src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<!-- 미리보기·에디터 코드 색 (블로그 글의 JetBrains Dark 테마와 같은 색) -->
+<script is:inline defer src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11.10.0/highlight.min.js"></script>
+<script>
+  import * as nkTokens from '../lib/code-tokens.mjs';
+  (window as any).nkTokens = nkTokens;
+  // highlight.js·토큰 규칙이 준비됐으니 에디터·미리보기를 한 번 다시 그림
+  if (typeof (window as any).updatePreview === 'function') (window as any).updatePreview();
+</script>
 
 <!-- Embedded existing posts data -->
 <script is:inline id="postsData" type="application/json" set:html={JSON.stringify(postList)}></script>
@@ -1340,16 +1366,57 @@ const postList = allPosts.map(p => ({
     updateGutter();
     updateCaret();
     updateTabName();
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(function() { renderPreview(raw); }, 120);
+  }
 
+  var previewTimer = 0;
+  function renderPreview(raw) {
     if (!raw.trim()) {
       previewContent.innerHTML = '<div class="text-text-muted text-center py-20 font-mono text-xs">마크다운을 입력하면 실시간 미리보기가 표시됩니다.</div>';
       return;
     }
-
     if (window.marked) {
       previewContent.innerHTML = marked.parse(previewSrc(raw));
+      highlightCode(previewContent);
       resolvePreviewImages(previewContent);
     }
+  }
+
+  /**
+   * 미리보기 코드 색: 언어 있는 블록은 highlight.js, 출력·text 블록과 인라인 코드는
+   * 블로그 빌드와 같은 토큰 규칙(src/lib/code-tokens.mjs → window.nkTokens), 본문 연산자는 코드 글꼴.
+   */
+  function highlightCode(root) {
+    var t = window.nkTokens;
+    root.querySelectorAll('pre code').forEach(function(el) {
+      var lang = (el.className.match(/language-([\w+#-]+)/) || [])[1];
+      if (t && t.isPlainLang(lang)) {
+        el.innerHTML = t.tokenizeToHtml(el.textContent, { keywords: false });
+        el.parentElement.classList.add('plain-code');
+        return;
+      }
+      if (!window.hljs || !lang || !hljs.getLanguage(lang)) return;
+      try { hljs.highlightElement(el); } catch (e) {}
+    });
+    if (!t) return;
+    root.querySelectorAll('code').forEach(function(el) {
+      if (!el.closest('pre, h1, h2, h3, h4, h5, h6')) el.innerHTML = t.tokenizeToHtml(el.textContent);
+    });
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: function(n) {
+        return n.parentElement.closest('pre, code, h1, h2, h3, h4, h5, h6, script, style, .op') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    var texts = [];
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function(n) {
+      var html = t.wrapOperators(n.nodeValue);
+      if (!html) return;
+      var tpl = document.createElement('template');
+      tpl.innerHTML = html;
+      n.replaceWith(tpl.content);
+    });
   }
 
   /** 미리보기용 마크다운 변환 (줄바꿈 수는 바꾸지 않음) */
@@ -1386,6 +1453,77 @@ const postList = allPosts.map(p => ({
     });
     lineGutter.innerHTML = html;
     lineGutter.scrollTop = postContent.scrollTop;
+    updateEditorHl();
+  }
+
+  // ---- 에디터 구문 색 (JetBrains 마크다운 편집기 느낌) ----
+  var editorHl = document.getElementById('editorHl');
+  var hlCache = new Map();
+
+  // 한 줄 안의 인라인 문법: `코드`, **굵게**, [링크](url), ![이미지](url), <태그>
+  function mdInline(line) {
+    var re = /(`+)([^`]*?)\1|(\*\*|__)(?=\S)(.+?)\3|(!?\[)([^\]]*)(\]\()([^)\s]*)(\))|(<\/?[A-Za-z][^>]*>)/g;
+    var out = '', last = 0, m;
+    while ((m = re.exec(line))) {
+      out += esc(line.slice(last, m.index));
+      if (m[1]) out += '<span class="tok-str">' + esc(m[0]) + '</span>';
+      else if (m[3]) out += '<span class="tok-com">' + m[3] + '</span><span class="md-strong">' + esc(m[4]) + '</span><span class="tok-com">' + m[3] + '</span>';
+      else if (m[5]) out += '<span class="tok-com">' + esc(m[5]) + '</span><span class="tok-fn">' + esc(m[6]) + '</span><span class="tok-com">' + m[7] + '</span><span class="tok-com">' + esc(m[8]) + '</span><span class="tok-com">)</span>';
+      else out += '<span class="md-tag">' + esc(m[0]) + '</span>';
+      last = m.index + m[0].length;
+    }
+    return out + esc(line.slice(last));
+  }
+
+  // 코드 블록 안 한 줄: 언어가 있으면 highlight.js, 없으면 블로그와 같은 토큰 규칙
+  function codeLine(line, lang) {
+    var t = window.nkTokens;
+    if (!t) return esc(line); // 색칠 규칙이 아직 안 불러와졌으면 캐시하지 않음
+    var key = lang + '\u0000' + line;
+    if (hlCache.has(key)) return hlCache.get(key);
+    var plain = t.isPlainLang(lang), useHljs = !plain && lang && window.hljs && hljs.getLanguage(lang);
+    if (!plain && !window.hljs) return esc(line); // highlight.js를 기다리는 중
+    var html = useHljs ? hljs.highlight(line, { language: lang, ignoreIllegals: true }).value : t.tokenizeToHtml(line, { keywords: !plain });
+    if (hlCache.size > 5000) hlCache.clear();
+    hlCache.set(key, html);
+    return html;
+  }
+
+  function mdHighlight(text) {
+    var lines = text.split('\n'), out = [], fm = false, fence = null, fenceMark = '';
+    lines.forEach(function(line, i) {
+      var m;
+      if (i === 0 && line === '---') { fm = true; out.push('<span class="tok-com">---</span>'); return; }
+      if (fm) {
+        if (line === '---') { fm = false; out.push('<span class="tok-com">---</span>'); return; }
+        m = line.match(/^([\w-]+)(\s*:)(.*)$/);
+        if (m) out.push('<span class="md-key">' + esc(m[1]) + '</span>' + esc(m[2]) + '<span class="' + (/^\s*[\d-]+\s*$/.test(m[3]) ? 'tok-num' : 'tok-str') + '">' + esc(m[3]) + '</span>');
+        else out.push(esc(line));
+        return;
+      }
+      if ((m = line.match(/^(\s*)(```+|~~~+)\s*([\w+#-]*)(.*)$/))) {
+        if (fence === null) { fence = (m[3] || '').toLowerCase(); fenceMark = m[2]; }
+        else if (!m[3] && !m[4].trim() && m[2][0] === fenceMark[0] && m[2].length >= fenceMark.length) fence = null;
+        else { out.push(codeLine(line, fence)); return; }
+        out.push(esc(m[1]) + '<span class="tok-com">' + m[2] + '</span><span class="tok-kw">' + esc(m[3]) + '</span>' + esc(m[4]));
+        return;
+      }
+      if (fence !== null) { out.push(codeLine(line, fence)); return; }
+      if ((m = line.match(/^(#{1,6}\s)(.*)$/))) { out.push('<span class="tok-kw">' + esc(m[1]) + mdInline(m[2]) + '</span>'); return; }
+      if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(line)) { out.push('<span class="tok-com">' + esc(line) + '</span>'); return; }
+      if ((m = line.match(/^(\s*>+\s?)(.*)$/))) { out.push('<span class="tok-com">' + esc(m[1]) + '</span><span class="md-quote">' + mdInline(m[2]) + '</span>'); return; }
+      if ((m = line.match(/^(\s*)([-*+]|\d+[.)])(\s+)(.*)$/))) { out.push(esc(m[1]) + '<span class="tok-kw">' + esc(m[2]) + '</span>' + m[3] + mdInline(m[4])); return; }
+      out.push(mdInline(line));
+    });
+    return out.join('\n') + '\n ';
+  }
+
+  function updateEditorHl() {
+    editorHl.style.left = postContent.offsetLeft + 'px';
+    editorHl.style.width = postContent.clientWidth + 'px';
+    editorHl.style.height = postContent.clientHeight + 'px';
+    editorHl.innerHTML = mdHighlight(postContent.value);
+    editorHl.scrollTop = postContent.scrollTop;
   }
 
   function currentLine() {
@@ -1402,9 +1540,16 @@ const postList = allPosts.map(p => ({
     });
   }
 
-  postContent.addEventListener('scroll', function() { lineGutter.scrollTop = postContent.scrollTop; });
+  postContent.addEventListener('scroll', function() {
+    lineGutter.scrollTop = postContent.scrollTop;
+    editorHl.scrollTop = postContent.scrollTop;
+  });
   ['keyup', 'click', 'select'].forEach(function(ev) { postContent.addEventListener(ev, updateCaret); });
-  window.addEventListener('resize', updateGutter);
+  var resizeFrame = 0;
+  window.addEventListener('resize', function() {
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(updateGutter);
+  });
 
   // Tab 키: 들여쓰기 4칸
   postContent.addEventListener('keydown', function(e) {
@@ -1634,7 +1779,7 @@ const postList = allPosts.map(p => ({
     // 바뀐 곳 주변 3줄만 남기고 접기
     var keep = rows.map(function() { return false; });
     rows.forEach(function(r, i) { if (r.t === 'chg') for (var x = Math.max(0, i - 3); x <= Math.min(rows.length - 1, i + 3); x++) keep[x] = true; });
-    var html = '<table class="diff-table editor-font' + (diffMode === 'split' ? ' diff-split' : '') + '">'
+    var html = '<table class="diff-table font-mono' + (diffMode === 'split' ? ' diff-split' : '') + '">'
       + (diffMode === 'split'
         ? '<colgroup><col style="width:3.25rem"><col style="width:1.25rem"><col><col style="width:1px"><col style="width:3.25rem"><col style="width:1.25rem"><col></colgroup>'
         : '<colgroup><col style="width:3.25rem"><col style="width:3.25rem"><col style="width:1.25rem"><col></colgroup>');
@@ -1739,6 +1884,7 @@ const postList = allPosts.map(p => ({
     });
     html += delHtml(covered, b.length + 1);
     diffBody.innerHTML = '<div class="px-6 lg:px-10 py-6 article-content max-w-3xl">' + html + '</div>';
+    highlightCode(diffBody);
     resolvePreviewImages(diffBody);
   }
 
@@ -1995,6 +2141,7 @@ const postList = allPosts.map(p => ({
   postSlug.value = TODAY + '-new-post.md';
   setEditor('');
   setDiffBase('새 글');
+  postContent.classList.add('hl-on');
   (window.innerWidth < 1024 ? viewEditBtn : viewSplitBtn).click();
   updatePreview();
 
