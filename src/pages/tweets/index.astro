@@ -38,6 +38,7 @@ const sortedTweets = allTweets.sort((a, b) => {
           content={tweet.body}
           date={tweet.data?.date ? new Date(tweet.data.date) : undefined}
           media={tweet.data?.media}
+          file={tweet.filePath}
         />
       ))}
     </div>
@@ -326,6 +327,68 @@ const sortedTweets = allTweets.sort((a, b) => {
     }
   });
 
+  function parseTweet(text) {
+    text = text.replace(/^\uFEFF/, '');
+    var m = /^---\r?\n([\s\S]*?)\r?\n?---\r?\n?([\s\S]*)$/.exec(text);
+    if (!m) return { body: text.trim(), media: [] };
+    var fm = m[1], date = null, media = [];
+    var d = /^date:\s*(.+)$/m.exec(fm);
+    if (d) { date = new Date(d[1].trim().replace(/^['"]|['"]$/g, '')); if (isNaN(date)) date = null; }
+    var md = /^media:\s*(\[.*\])\s*$/m.exec(fm);
+    if (md) { try { media = JSON.parse(md[1].replace(/'/g, '"')); } catch (e) {} }
+    else {
+      // YAML 블록 리스트 (media:\n  - /a.png)
+      var block = /^media:\s*\r?\n((?:[ \t]*-.*\r?\n?)+)/m.exec(fm);
+      if (block) media = block[1].split(/\r?\n/).map(function(l) { return l.replace(/^[ \t]*-\s*/, '').trim().replace(/^['"]|['"]$/g, ''); }).filter(Boolean);
+    }
+    media = media.filter(function(x) { return typeof x === 'string'; });
+    return { body: m[2].trim(), date: date, media: media };
+  }
+
+  function tweetTime(d) {
+    var tz = { timeZone: 'Asia/Seoul' };
+    return d.toLocaleTimeString('ko-KR', Object.assign({ hour: 'numeric', minute: '2-digit', hour12: true }, tz))
+      + ' · ' + d.toLocaleDateString('ko-KR', Object.assign({ year: 'numeric', month: 'long', day: 'numeric' }, tz));
+  }
+
+  // 배포 전 카드: 첨부도 아직 사이트에 없어서 GitHub 원본 주소로 보여줍니다
+  var RAW = 'https://raw.githubusercontent.com/Nekonic/Nekonic.github.io/main/public';
+  function pendingCard(t) {
+    var el = document.createElement('article');
+    el.className = 'bg-card border border-borderSubtle rounded-2xl p-4 sm:p-5';
+    var html = '<div class="flex items-start gap-3">'
+      + '<img src="https://github.com/Nekonic.png" alt="Nekonic" class="w-10 h-10 rounded-full border border-borderSubtle object-cover flex-shrink-0" />'
+      + '<div class="flex-1 min-w-0"><div class="flex items-baseline gap-1.5 flex-wrap leading-tight mb-1">'
+      + '<span class="font-bold text-text-primary text-[15px]">Nekonic</span><span class="text-[14px] text-text-muted">@Nekonic</span>'
+      + (t.date ? '<span class="text-[13px] text-text-muted">·</span><time class="text-[13px] text-text-muted"></time>' : '')
+      + '<span class="ml-1 px-1.5 py-0.5 rounded text-[11px] font-mono bg-[#2b5bc4]/20 text-accent-soft">배포 중</span>'
+      + '</div><div class="tw-body text-[#e7e9ea] whitespace-pre-wrap text-[15px] leading-relaxed mb-3 break-words"></div>'
+      + '<div class="tw-media"></div></div></div>';
+    el.innerHTML = html;
+    if (t.date) el.querySelector('time').textContent = tweetTime(t.date);
+    var body = el.querySelector('.tw-body');
+    if (t.body) body.textContent = t.body; else body.remove();
+    var pics = t.media.slice(0, 4);
+    var box = el.querySelector('.tw-media');
+    if (pics.length) {
+      box.className = 'grid gap-0.5 mb-3 rounded-2xl overflow-hidden border border-borderSubtle '
+        + (pics.length === 1 ? 'grid-cols-1' : 'grid-cols-2 aspect-[16/9]' + (pics.length > 2 ? ' grid-rows-2' : ''));
+      pics.forEach(function(src, i) {
+        var video = /\.(mp4|webm|mov|m4v|ogv)$/i.test(src);
+        var cell = document.createElement('div');
+        cell.className = 'min-h-0 ' + (video ? 'bg-black' : 'bg-primary') + (pics.length === 3 && i === 0 ? ' row-span-2' : '');
+        var m = document.createElement(video ? 'video' : 'img');
+        m.src = /^https?:/.test(src) ? src : RAW + (src[0] === '/' ? '' : '/') + encodeURI(src);
+        if (video) { m.controls = true; m.playsInline = true; m.preload = 'metadata'; }
+        m.setAttribute(video ? 'aria-label' : 'alt', '첨부 ' + (i + 1) + '/' + pics.length);
+        m.className = 'w-full ' + (pics.length === 1 ? 'max-h-[510px] object-cover' : 'h-full object-cover');
+        cell.append(m);
+        box.append(cell);
+      });
+    } else box.remove();
+    return el;
+  }
+
   // 초기화 및 실시간 감시
   (async function() {
     initTweetInteractions();
@@ -336,20 +399,29 @@ const sortedTweets = allTweets.sort((a, b) => {
       var headers = { 'Accept': 'application/vnd.github.v3+json' };
       if (pat) headers['Authorization'] = 'Bearer ' + pat;
 
-      var res = await fetch('https://api.github.com/repos/Nekonic/Nekonic.github.io/contents/src/content/tweets', { headers: headers });
+      var res = await fetch('https://api.github.com/repos/Nekonic/Nekonic.github.io/contents/src/content/tweets', { headers: headers, cache: 'no-cache' });
       if (!res.ok) return;
 
       var files = await res.json();
       if (!Array.isArray(files) || !files.length) return;
 
+      // 아직 배포 안 된 트윗만 GitHub에서 바로 읽어 맨 위에 붙입니다 (새로고침하지 않음)
       var container = document.getElementById('tweetsContainer');
-      var emptyEl = document.getElementById('emptyTweets');
-      if (emptyEl && files.length > 0) emptyEl.classList.add('hidden');
+      var shown = {};
+      // 파일 경로로 비교합니다 (카드 id는 파일 이름을 slug로 바꾼 값이라 다를 수 있음)
+      container.querySelectorAll('[data-file]').forEach(function(el) { shown[el.getAttribute('data-file')] = true; });
+      var fresh = files.filter(function(f) {
+        return f.type === 'file' && /\.md$/.test(f.name) && !shown[f.path];
+      });
+      if (!fresh.length) return;
 
-      var renderedCount = container ? container.children.length : 0;
-      if (files.length > renderedCount) {
-        window.location.reload();
-      }
+      var tweets = await Promise.all(fresh.map(function(f) {
+        return fetch(f.download_url).then(function(r) { return r.ok ? r.text() : null; }).then(function(t) { return t && parseTweet(t); }).catch(function() { return null; });
+      }));
+      tweets = tweets.filter(Boolean).sort(function(a, b) { return (b.date || 0) - (a.date || 0); });
+      for (var i = tweets.length - 1; i >= 0; i--) container.prepend(pendingCard(tweets[i]));
+      var emptyEl = document.getElementById('emptyTweets');
+      if (emptyEl && tweets.length) emptyEl.classList.add('hidden');
     } catch (e) {
       console.error(e);
     }
