@@ -1,13 +1,17 @@
 ---
-import { formatDate } from '../lib/utils';
+import { formatTweetTime, isVideo } from '../lib/utils';
 
 export interface Props {
   id?: string;
   content?: string;
   date?: Date;
+  media?: string[];
 }
 
-const { id, content = '', date } = Astro.props;
+const { id, content = '', date, media = [] } = Astro.props;
+const pics = media.slice(0, 4);
+// 트위터처럼 1장: 한 칸, 2장: 좌우, 3장: 왼쪽 큰 칸 + 오른쪽 두 칸, 4장: 2x2
+const gridClass = pics.length === 1 ? 'grid-cols-1' : 'grid-cols-2 aspect-[16/9]' + (pics.length > 2 ? ' grid-rows-2' : '');
 const tweetTerm = id ? `tweet-${id}` : undefined;
 ---
 
@@ -34,17 +38,50 @@ const tweetTerm = id ? `tweet-${id}` : undefined;
           <span class="text-[14px] text-text-muted">@Nekonic</span>
           <span class="text-[13px] text-text-muted">·</span>
           {date && (
-            <time class="text-[13px] text-text-muted hover:underline cursor-pointer">
-              {formatDate(date)}
+            <time datetime={date.toISOString()} class="text-[13px] text-text-muted">
+              {formatTweetTime(date)}
             </time>
           )}
         </div>
       </div>
 
       <!-- Tweet text -->
-      <div class="text-[#e7e9ea] whitespace-pre-wrap text-[15px] leading-relaxed mb-3 break-words font-sans">
-        {content}
-      </div>
+      {content.trim() && (
+        <div class="text-[#e7e9ea] whitespace-pre-wrap text-[15px] leading-relaxed mb-3 break-words font-sans">{content.trim()}</div>
+      )}
+
+      {pics.length > 0 && (
+        <div class={`tweet-media grid gap-0.5 mb-3 rounded-2xl overflow-hidden border border-borderSubtle ${gridClass}`}>
+          {pics.map((src, i) => (
+            isVideo(src) ? (
+              <div class:list={['min-h-0 bg-black', pics.length === 3 && i === 0 && 'row-span-2']}>
+                <video
+                  src={src}
+                  controls
+                  playsinline
+                  preload="metadata"
+                  aria-label={`첨부 영상 ${i + 1}/${pics.length}`}
+                  class:list={['w-full', pics.length === 1 ? 'max-h-[510px]' : 'h-full object-cover']}
+                ></video>
+              </div>
+            ) : (
+              <a
+                href={src}
+                target="_blank"
+                rel="noopener"
+                class:list={['block min-h-0 bg-primary', pics.length === 3 && i === 0 && 'row-span-2']}
+              >
+                <img
+                  src={src}
+                  alt={`첨부 이미지 ${i + 1}/${pics.length}`}
+                  loading="lazy"
+                  class:list={['w-full', pics.length === 1 ? 'max-h-[510px] object-cover' : 'h-full object-cover']}
+                />
+              </a>
+            )
+          ))}
+        </div>
+      )}
 
       <!-- Authentic Twitter Action Bar -->
       <div class="flex items-center justify-between max-w-md -ml-2 text-[#71767b]">

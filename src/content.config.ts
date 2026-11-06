@@ -17,7 +17,8 @@ const tweets = defineCollection({
   schema: z.object({
     title: z.string().optional(),
     date: z.coerce.date().optional(),
-    layout: z.string().optional()
+    layout: z.string().optional(),
+    media: z.array(z.string()).optional()
   })
 });
 

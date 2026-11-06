@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
 import { getCollection } from 'astro:content';
-import { getDateFromId, toArray, categoryStyle, initials, HSKF_CATEGORIES, hskfLabel, catLabel, topicCat, displayCats } from '../lib/utils';
+import { isVideo, getDateFromId, toArray, categoryStyle, initials, HSKF_CATEGORIES, hskfLabel, catLabel, topicCat, displayCats } from '../lib/utils';
 
 const allPosts = await getCollection('blog');
 
@@ -27,10 +27,10 @@ const hskfCounts = new Map<string, number>();
 allPosts.forEach((post) => toArray(post.data.categories).forEach((c) => hskfCounts.set(c, (hskfCounts.get(c) ?? 0) + 1)));
 const hskfCats = HSKF_CATEGORIES.map((c) => ({ name: c, label: hskfLabel(c), count: hskfCounts.get(c) ?? 0, style: categoryStyle(c) }));
 
-let tweets: { body: string; date?: Date }[] = [];
+let tweets: { body: string; date?: Date; media: string[] }[] = [];
 try {
   tweets = (await getCollection('tweets'))
-    .map((t) => ({ body: (t.body ?? '').trim(), date: t.data.date ? new Date(t.data.date) : undefined }))
+    .map((t) => ({ body: (t.body ?? '').trim(), date: t.data.date ? new Date(t.data.date) : undefined, media: t.data.media ?? [] }))
     .sort((a, b) => (b.date?.valueOf() ?? 0) - (a.date?.valueOf() ?? 0))
     .slice(0, 3);
 } catch {}
@@ -120,7 +120,16 @@ const techStack = ['C++', 'Rust', 'Algorithms', 'Arch Linux', 'Networking', 'Rev
           <a href="/tweets" class="flex gap-2.5 bg-secondary border border-border rounded-lg px-3.5 py-3 hover:border-borderHover transition-colors">
             <Icon name="info" class="shrink-0 mt-0.5 text-syntax-func" />
             <span class="flex flex-col gap-1 min-w-0">
-              <span class="text-[13px] leading-relaxed text-text-primary whitespace-pre-line break-words">{t.body}</span>
+              {t.body && <span class="text-[13px] leading-relaxed text-text-primary whitespace-pre-line break-words">{t.body}</span>}
+              {t.media.length > 0 && (
+                <span class="flex gap-1">
+                  {t.media.slice(0, 4).map((src, i) => (
+                    isVideo(src)
+                      ? <video src={`${src}#t=0.1`} muted playsinline preload="metadata" aria-label={`첨부 영상 ${i + 1}`} class="w-12 h-12 rounded-md object-cover border border-border bg-black"></video>
+                      : <img src={src} alt={`첨부 ${i + 1}`} loading="lazy" class="w-12 h-12 rounded-md object-cover border border-border" />
+                  ))}
+                </span>
+              )}
               <span class="font-mono text-[11px] text-text-secondary">{fmtTweetDate(t.date)}</span>
             </span>
           </a>

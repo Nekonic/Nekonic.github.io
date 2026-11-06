@@ -23,6 +23,19 @@ export function formatDate(date: Date): string {
   });
 }
 
+/** 트윗 첨부가 영상인지 (확장자로 판단) */
+export function isVideo(src: string) {
+  return /\.(mp4|webm|mov|m4v|ogv)$/i.test(src);
+}
+
+/** 트위터 글 상세와 같은 형식: "오후 7:13 · 2026년 10월 1일" (한국 시간) */
+export function formatTweetTime(date: Date): string {
+  const tz = { timeZone: 'Asia/Seoul' } as const;
+  const time = date.toLocaleTimeString('ko-KR', { ...tz, hour: 'numeric', minute: '2-digit', hour12: true });
+  const day = date.toLocaleDateString('ko-KR', { ...tz, year: 'numeric', month: 'long', day: 'numeric' });
+  return `${time} · ${day}`;
+}
+
 /**
  * HSPACE Knights Frontier(HSKF) 전용 분류. 기존 카테고리와 섞이지 않게 [HSKF] 를 붙이고,
  * 해당하는 글의 첫 번째 카테고리로 씁니다. 목록·고르기에서 맨 앞에 둡니다.

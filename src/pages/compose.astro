@@ -24,8 +24,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             maxlength="280"
           ></textarea>
           
+          <!-- 첨부한 사진 (최대 4장) -->
+          <div id="mediaPreview" class="hidden grid grid-cols-2 gap-2"></div>
+          <input id="mediaInput" type="file" accept="image/*,video/mp4,video/webm,video/quicktime" multiple class="hidden" />
+
           <div class="border-t border-border/60 pt-3 flex justify-between items-center">
-            <span id="charCount" class="text-xs font-mono text-text-muted">0 / 280</span>
+            <div class="flex items-center gap-3">
+              <button id="mediaBtn" type="button" title="사진·GIF·영상 추가 (최대 4개, 붙여넣기·끌어놓기도 됩니다)" aria-label="사진·영상 추가" class="w-8 h-8 -ml-1.5 rounded-full flex items-center justify-center text-[#1d9bf0] hover:bg-[#1d9bf0]/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.5C3 4.12 4.12 3 5.5 3h13C19.88 3 21 4.12 21 5.5v13c0 1.38-1.12 2.5-2.5 2.5h-13C4.12 21 3 19.88 3 18.5v-13zM5.5 5c-.28 0-.5.22-.5.5v9.09l3.29-3.3c.39-.39 1.03-.39 1.42 0L13 14.59l1.79-1.8c.39-.39 1.03-.39 1.42 0L19 15.59V5.5c0-.28-.22-.5-.5-.5h-13zM19 18.41l-3.5-3.5-1.79 1.8c-.39.39-1.03.39-1.42 0L9 13.41l-4 4v1.09c0 .28.22.5.5.5h13c.28 0 .5-.22.5-.5v-.09zM15.5 7.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/></svg>
+              </button>
+              <span id="charCount" class="text-xs font-mono text-text-muted">0 / 280</span>
+            </div>
             <button 
               id="postBtn" 
               disabled 
@@ -84,13 +93,155 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   const REPO = 'Nekonic/Nekonic.github.io';
   const PATH = 'src/content/tweets';
 
+  const mediaBtn = document.getElementById('mediaBtn');
+  const mediaInput = document.getElementById('mediaInput');
+  const mediaPreview = document.getElementById('mediaPreview');
+  const MAX_MEDIA = 4;
+  // 브라우저에서 바로 보이는 형식만 받습니다 (확장자도 형식에서 정합니다)
+  const TYPES = {
+    'image/png': 'png', 'image/jpeg': 'jpg', 'image/gif': 'gif', 'image/webp': 'webp',
+    'video/mp4': 'mp4', 'video/webm': 'webm', 'video/quicktime': 'mov'
+  };
+  // GitHub API가 큰 요청에서 자주 끊겨서 사진 10MB, 영상 25MB까지만 받습니다
+  const MAX_IMAGE = 10 * 1024 * 1024;
+  const MAX_VIDEO = 25 * 1024 * 1024;
+  var media = []; // { file, url, video }
+  var posting = false;
+
+  function updatePostState() {
+    var len = tweetInput.value.trim().length;
+    charCount.textContent = tweetInput.value.length + ' / 280';
+    postBtn.disabled = posting || !((len > 0 || media.length > 0) && tweetInput.value.length <= 280);
+    mediaBtn.disabled = posting || media.length >= MAX_MEDIA;
+    tweetInput.readOnly = posting;
+    mediaPreview.querySelectorAll('button').forEach(function(b) { b.disabled = posting; });
+  }
+
   tweetInput.addEventListener('input', function() {
-    var len = tweetInput.value.length;
-    charCount.textContent = len + ' / 280';
-    postBtn.disabled = !(len > 0 && len <= 280);
+    updatePostState();
     tweetInput.style.height = 'auto';
     tweetInput.style.height = tweetInput.scrollHeight + 'px';
   });
+
+  function renderMedia() {
+    mediaPreview.innerHTML = '';
+    mediaPreview.classList.toggle('hidden', media.length === 0);
+    mediaPreview.classList.toggle('grid-cols-2', media.length > 1);
+    mediaPreview.classList.toggle('grid-cols-1', media.length === 1);
+    media.forEach(function(m, i) {
+      var box = document.createElement('div');
+      box.className = 'relative rounded-xl overflow-hidden border border-border bg-primary';
+      var img = document.createElement(m.video ? 'video' : 'img');
+      img.src = m.url;
+      if (m.video) { img.controls = true; img.muted = true; img.playsInline = true; img.preload = 'metadata'; }
+      else img.alt = '첨부 ' + (i + 1) + '/' + media.length;
+      img.className = 'w-full object-cover bg-black ' + (media.length === 1 ? 'max-h-[360px]' : 'h-40');
+      var del = document.createElement('button');
+      del.type = 'button';
+      del.title = '빼기';
+      del.setAttribute('aria-label', '첨부 빼기');
+      del.className = 'absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-black/70 hover:bg-black/90 text-white text-base leading-none flex items-center justify-center';
+      del.textContent = '×';
+      del.addEventListener('click', function() {
+        if (posting) return;
+        URL.revokeObjectURL(m.url);
+        media.splice(i, 1);
+        renderMedia();
+      });
+      box.append(img, del);
+      mediaPreview.append(box);
+    });
+    updatePostState();
+  }
+
+  function addMedia(files) {
+    if (posting) return false;
+    var list = Array.prototype.slice.call(files);
+    if (!list.length) return false;
+    var bad = [], big = [], ok = [];
+    list.forEach(function(f) {
+      if (!TYPES[f.type]) bad.push(f.name || f.type || '알 수 없는 파일');
+      else if (f.size > (f.type.indexOf('video/') === 0 ? MAX_VIDEO : MAX_IMAGE)) big.push(f.name || f.type);
+      else ok.push(f);
+    });
+    var room = MAX_MEDIA - media.length;
+    if (bad.length) showStatus('넣을 수 없는 형식이에요 (png, jpg, gif, webp, mp4, webm, mov만 돼요): ' + bad.join(', '), true);
+    else if (big.length) showStatus('너무 커요 (사진 10MB, 영상 25MB까지): ' + big.join(', '), true);
+    else if (ok.length > room) showStatus('사진·영상은 최대 ' + MAX_MEDIA + '개까지 넣을 수 있어요.', true);
+    ok.slice(0, Math.max(0, room)).forEach(function(f) { media.push({ file: f, url: URL.createObjectURL(f), video: f.type.indexOf('video/') === 0 }); });
+    renderMedia();
+    return true;
+  }
+
+  mediaBtn.addEventListener('click', function() { mediaInput.click(); });
+  mediaInput.addEventListener('change', function() { addMedia(mediaInput.files); mediaInput.value = ''; });
+  tweetInput.addEventListener('paste', function(e) {
+    var cd = e.clipboardData;
+    // 엑셀·워드처럼 글과 그림이 같이 오면 글을 붙입니다
+    if (!cd || !cd.files.length || cd.getData('text/plain')) return;
+    e.preventDefault();
+    addMedia(cd.files);
+  });
+  // 페이지 어디에 떨어뜨려도 첨부로 받습니다 (브라우저가 파일을 열며 쓰던 글이 날아가지 않게)
+  window.addEventListener('dragover', function(e) { e.preventDefault(); });
+  window.addEventListener('drop', function(e) {
+    e.preventDefault();
+    if (e.dataTransfer && e.dataTransfer.files.length) addMedia(e.dataTransfer.files);
+  });
+
+  function fileToBase64(file) {
+    return new Promise(function(resolve, reject) {
+      var r = new FileReader();
+      r.onload = function() { resolve(String(r.result).split(',')[1]); };
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+  }
+
+  function extOf(file) {
+    return TYPES[file.type];
+  }
+
+  async function gh(path, method, body, pat) {
+    var res = await fetch('https://api.github.com/repos/' + REPO + path, {
+      method: method,
+      headers: { 'Authorization': 'Bearer ' + pat, 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    var data = await res.json().catch(function() { return {}; });
+    if (!res.ok) throw new Error(data.message || ('HTTP ' + res.status));
+    return data;
+  }
+
+  // 트윗 글과 첨부를 한 커밋으로 올립니다 (배포도 한 번).
+  // 파일은 하나씩 읽어 바로 올리고 놓아서, 큰 파일 여러 개를 메모리에 동시에 들고 있지 않습니다.
+  async function commitTweet(pat, files, message, onProgress) {
+    var entries = [];
+    for (var i = 0; i < files.length; i++) {
+      if (onProgress) onProgress(i + 1, files.length);
+      var f = files[i];
+      var body = f.file
+        ? { content: await fileToBase64(f.file), encoding: 'base64' }
+        : { content: f.text, encoding: 'utf-8' };
+      var blob = await gh('/git/blobs', 'POST', body, pat);
+      body = null;
+      entries.push({ path: f.path, mode: '100644', type: 'blob', sha: blob.sha });
+    }
+    var branch = (await gh('', 'GET', null, pat)).default_branch;
+    // 그사이 main이 움직였으면(fast forward 아님) 올린 파일은 그대로 두고 커밋만 다시 만듭니다
+    for (var attempt = 0; ; attempt++) {
+      var ref = await gh('/git/ref/heads/' + branch, 'GET', null, pat);
+      var base = await gh('/git/commits/' + ref.object.sha, 'GET', null, pat);
+      var tree = await gh('/git/trees', 'POST', { base_tree: base.tree.sha, tree: entries }, pat);
+      var commit = await gh('/git/commits', 'POST', { message: message, tree: tree.sha, parents: [ref.object.sha] }, pat);
+      try {
+        await gh('/git/refs/heads/' + branch, 'PATCH', { sha: commit.sha }, pat);
+        return;
+      } catch (e) {
+        if (attempt >= 2 || !/fast forward/i.test(e.message)) throw e;
+      }
+    }
+  }
 
   function showStatus(msg, isError) {
     statusMsg.textContent = msg;
@@ -128,46 +279,50 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
 
     var content = tweetInput.value.trim();
-    if (!content) return;
+    if (posting || (!content && media.length === 0)) return;
 
-    postBtn.disabled = true;
+    // 올리는 동안은 글과 첨부를 바꿀 수 없게 막고, 시작할 때의 첨부만 씁니다
+    posting = true;
+    var items = media.slice();
+    updatePostState();
     postBtn.textContent = '게시 중...';
 
     var now = new Date();
     var pad = function(n) { return n.toString().padStart(2, '0'); };
     var dateStr = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate());
     var timeStr = pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
-    var filename = dateStr + '-' + timeStr + '.md';
-
-    var fileContent = '---\ntitle: "' + dateStr + ' tweet"\ndate: ' + now.toISOString() + '\nlayout: tweet\n---\n' + content;
+    var stem = dateStr + '-' + timeStr;
 
     try {
-      var response = await fetch('https://api.github.com/repos/' + REPO + '/contents/' + PATH + '/' + filename, {
-        method: 'PUT',
-        headers: {
-          'Authorization': 'Bearer ' + pat,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: 'tweet: ' + content.substring(0, 30),
-          content: btoa(unescape(encodeURIComponent(fileContent)))
-        })
+      var files = [];
+      var mediaPaths = [];
+      items.forEach(function(m, i) {
+        var publicPath = '/assets/tweets/' + stem + '/' + (i + 1) + '.' + extOf(m.file);
+        mediaPaths.push(publicPath);
+        files.push({ path: 'public' + publicPath, file: m.file });
+      });
+      var fileContent = '---\ntitle: "' + dateStr + ' tweet"\ndate: ' + now.toISOString() + '\nlayout: tweet\n'
+        + (mediaPaths.length ? 'media: ' + JSON.stringify(mediaPaths).replace(/","/g, '", "') + '\n' : '')
+        + '---\n' + content;
+      files.push({ path: PATH + '/' + stem + '.md', text: fileContent });
+
+      var summary = content ? content.substring(0, 30) : '미디어';
+      await commitTweet(pat, files, 'tweet: ' + summary + (items.length ? ' (+' + items.length + ' media)' : ''), function(n, total) {
+        if (items.length && n <= items.length) postBtn.textContent = '올리는 중 ' + n + '/' + items.length;
+        else postBtn.textContent = '게시 중...';
       });
 
-      if (response.ok) {
-        showStatus('트윗이 성공적으로 게시되었습니다! 잠시 후 GitHub Pages에 반영됩니다.', false);
-        tweetInput.value = '';
-        charCount.textContent = '0 / 280';
-        tweetInput.style.height = 'auto';
-      } else {
-        var err = await response.json();
-        showStatus('게시 실패: ' + err.message, true);
-      }
+      showStatus('트윗이 성공적으로 게시되었습니다! 잠시 후 GitHub Pages에 반영됩니다.', false);
+      tweetInput.value = '';
+      tweetInput.style.height = 'auto';
+      media.forEach(function(m) { URL.revokeObjectURL(m.url); });
+      media = [];
     } catch (e) {
-      showStatus('네트워크 통신 오류가 발생했습니다.', true);
+      showStatus('게시 실패: ' + (e && e.message ? e.message : '네트워크 오류'), true);
     } finally {
-      postBtn.disabled = false;
+      posting = false;
       postBtn.textContent = '게시하기';
+      renderMedia();
     }
   });
 

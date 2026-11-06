@@ -37,6 +37,7 @@ const sortedTweets = allTweets.sort((a, b) => {
           id={tweet.id}
           content={tweet.body}
           date={tweet.data?.date ? new Date(tweet.data.date) : undefined}
+          media={tweet.data?.media}
         />
       ))}
     </div>
