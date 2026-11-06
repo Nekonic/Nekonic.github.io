@@ -3,7 +3,7 @@ import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import TableOfContents from '../../components/TableOfContents.astro';
 import Giscus from '../../components/Giscus.astro';
-import { getDateFromId, toArray, categoryStyle, isoDate, readingMinutes } from '../../lib/utils';
+import { getDateFromId, toArray, categoryStyle, isoDate, readingMinutes, catLabel, displayCats } from '../../lib/utils';
 
 export async function getStaticPaths() {
   const posts = (await getCollection('blog')).sort(
@@ -23,7 +23,7 @@ const { post, newer, older } = Astro.props;
 const { Content, headings } = await render(post);
 const date = getDateFromId(post.id, post.data.date);
 const tags = toArray(post.data.tags);
-const categories = toArray(post.data.categories);
+const categories = displayCats(toArray(post.data.categories));
 const year = String(date.getFullYear());
 ---
 
@@ -42,7 +42,7 @@ const year = String(date.getFullYear());
         <div class="flex gap-1.5 flex-wrap font-mono text-xs">
           {categories.map((c) => {
             const s = categoryStyle(c);
-            return <a href={`/blog?cat=${encodeURIComponent(c)}`} class="px-2 py-0.5 rounded" style={`background:${s.chipBg};color:${s.chipText}`}>{c}</a>;
+            return <a href={`/blog?cat=${encodeURIComponent(c)}`} class="px-2 py-0.5 rounded" style={`background:${s.chipBg};color:${s.chipText}`}>{catLabel(c)}</a>;
           })}
         </div>
       )}

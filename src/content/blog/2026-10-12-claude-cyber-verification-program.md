@@ -1,7 +1,7 @@
 ---
 title: "Claude Cyber Verification Program"
 date: 2026-10-12
-categories: ["Security"]
+categories: ["[HSKF]블로그/기술문서", "Security"]
 tags: ["claude", "anthropic", "cyber_verification"]
 ---
 

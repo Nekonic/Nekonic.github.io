@@ -1,7 +1,7 @@
 ---
 layout: post
 title: -1- 플러그인을 만들어보자! (Minecraft Stock Plugin)
-categories: ["Minecraft"]
+categories: ["[HSKF]개발", "Minecraft"]
 tags: ["plugin", "stock_plugin"]
 ---
 

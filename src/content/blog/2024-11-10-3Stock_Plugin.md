@@ -1,7 +1,7 @@
 ---
 layout: post
 title: -3- 인공지능을 활용한 개발 (Minecraft Stock Plugin)
-categories: ["Minecraft"]
+categories: ["[HSKF]개발", "Minecraft"]
 tags: ["plugin", "stock_plugin", "ai"]
 ---
 ## 인공지능을 활용한 개발에 대한 나의 생각

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: main function error in c
-categories: ["Troubleshooting"]
+categories: ["[HSKF]블로그/기술문서", "Troubleshooting"]
 tags: ["c", "error"]
 ---
 

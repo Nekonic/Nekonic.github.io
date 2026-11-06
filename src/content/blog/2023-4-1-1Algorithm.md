@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 알고리즘 강의 - 1 [알고리즘의 복잡도 분석]
-categories: ["Algorithm"]
+categories: ["[HSKF]블로그/기술문서", "Algorithm"]
 tags: ["lecture", "complexity"]
 ---
 

@@ -2,7 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Icon from '../../components/Icon.astro';
 import { getCollection } from 'astro:content';
-import { getDateFromId, toArray, categoryStyle, HSKF_CATEGORIES, HSKF_SET, hskfLabel } from '../../lib/utils';
+import { getDateFromId, toArray, categoryStyle, HSKF_CATEGORIES, HSKF_SET, hskfLabel, catLabel, topicCat } from '../../lib/utils';
 
 const allPosts = await getCollection('blog');
 const posts = allPosts
@@ -15,8 +15,9 @@ const posts = allPosts
       title: post.data.title,
       date,
       cats,
+      shown: [topicCat(cats), cats.find((c) => HSKF_SET.has(c))].filter((c, i, a) => c && a.indexOf(c) === i) as string[],
       tags,
-      style: categoryStyle(cats[0]),
+      style: categoryStyle(topicCat(cats)),
     };
   })
   .sort((a, b) => b.date.valueOf() - a.date.valueOf());
@@ -33,12 +34,13 @@ for (const p of posts) for (const c of p.cats) catCounts.set(c, (catCounts.get(c
 const hskfCats = HSKF_CATEGORIES.map((c) => ({ name: c, label: hskfLabel(c), count: catCounts.get(c) ?? 0, style: categoryStyle(c) }));
 const topCats = [...catCounts.entries()].filter(([c]) => !HSKF_SET.has(c)).sort((a, b) => b[1] - a[1]).slice(0, 10);
 
+const topicCount = [...catCounts.keys()].filter((c) => !HSKF_SET.has(c)).length;
 const firstYear = posts.at(-1)?.date.getFullYear();
 const lastYear = posts[0]?.date.getFullYear();
 const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 ---
 
-<BaseLayout title="Blog" description="All blog posts" tab="posts/" tabIcon="folder" crumbs={['posts']} status={[`${posts.length} posts · ${catCounts.size} categories`, 'UTF-8']} wide={true}>
+<BaseLayout title="Blog" description="All blog posts" tab="posts/" tabIcon="folder" crumbs={['posts']} status={[`${posts.length} posts · ${topicCount} categories`, 'UTF-8']} wide={true}>
   <div class="flex flex-col gap-5">
     <div class="flex items-baseline gap-3 flex-wrap">
       <h1 class="text-[26px] font-bold tracking-tight text-white">Posts</h1>
@@ -104,14 +106,14 @@ const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String
             <a
               href={`/blog/${p.id}`}
               class="post-row grid grid-cols-[52px_minmax(0,1fr)] sm:grid-cols-[64px_minmax(0,1fr)_auto] gap-x-4 gap-y-1 items-center px-2.5 py-2.5 rounded-md hover:bg-accent/15 transition-colors"
-              data-search={`${p.title} ${p.cats.join(' ')} ${p.tags.join(' ')}`.toLowerCase()}
+              data-search={`${p.title} ${p.cats.map(catLabel).join(' ')} ${p.tags.join(' ')}`.toLowerCase()}
               data-cats={JSON.stringify(p.cats)}
             >
               <span class="font-mono text-xs text-text-secondary">{mmdd(p.date)}</span>
               <span class="text-sm font-medium text-text-primary truncate">{p.title}</span>
               <span class="col-start-2 sm:col-start-auto flex gap-1.5 font-mono text-[11px] min-w-0">
-                {p.cats[0] && <span class="px-1.5 py-0.5 rounded whitespace-nowrap" style={`background:${p.style.chipBg};color:${p.style.chipText}`}>{p.cats[0]}</span>}
-                {p.cats[1] && <span class="px-1.5 py-0.5 rounded whitespace-nowrap bg-secondary text-text-body hidden sm:inline">{p.cats[1]}</span>}
+                {p.shown[0] && <span class="px-1.5 py-0.5 rounded whitespace-nowrap" style={`background:${p.style.chipBg};color:${p.style.chipText}`}>{catLabel(p.shown[0])}</span>}
+                {p.shown[1] && <span class="px-1.5 py-0.5 rounded whitespace-nowrap bg-secondary text-text-body hidden sm:inline">{catLabel(p.shown[1])}</span>}
                 {p.tags.length > 0 && <span class="py-0.5 text-text-secondary truncate hidden md:inline">{p.tags.slice(0, 2).map((t) => `#${t}`).join(' ')}</span>}
               </span>
             </a>
@@ -126,6 +128,7 @@ const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String
 
 <script>
   import { getPat, listPrivatePosts } from '../../lib/private-posts';
+  import { catLabel, topicCat } from '../../lib/utils';
 
   const input = document.getElementById('filterInput') as HTMLInputElement;
   const matchCount = document.getElementById('matchCount')!;
@@ -210,7 +213,7 @@ const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String
         const a = document.createElement('a');
         a.href = `/secret?id=${encodeURIComponent(p.id)}`;
         a.className = 'post-row grid grid-cols-[52px_minmax(0,1fr)] sm:grid-cols-[64px_minmax(0,1fr)_auto] gap-x-4 gap-y-1 items-center px-2.5 py-2.5 rounded-md hover:bg-accent/15 transition-colors';
-        a.dataset.search = `${p.title} ${p.categories.join(' ')} ${p.tags.join(' ')}`.toLowerCase();
+        a.dataset.search = `${p.title} ${p.categories.map(catLabel).join(' ')} ${p.tags.join(' ')}`.toLowerCase();
         a.dataset.cats = JSON.stringify(p.categories);
         const d = document.createElement('span');
         d.className = 'font-mono text-xs text-text-secondary';
@@ -222,7 +225,7 @@ const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String
         c.className = 'col-start-2 sm:col-start-auto flex gap-1.5 font-mono text-[11px]';
         const badge = document.createElement('span');
         badge.className = 'px-1.5 py-0.5 rounded bg-secondary text-text-body whitespace-nowrap';
-        badge.textContent = p.categories[0] ? `private · ${p.categories[0]}` : 'private';
+        badge.textContent = p.categories.length ? `private · ${catLabel(topicCat(p.categories))}` : 'private';
         c.append(badge);
         a.append(d, t, c);
         rows.append(a);

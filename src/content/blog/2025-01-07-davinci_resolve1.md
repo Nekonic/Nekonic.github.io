@@ -1,7 +1,7 @@
 ---
 layout: post
 title: davinci resolve GPU initialization error
-categories: ["Troubleshooting"]
+categories: ["[HSKF]블로그/기술문서", "Troubleshooting"]
 tags: ["davinci_resolve", "gpu", "error"]
 ---
 ## 설치부터 오류가 일어났다..

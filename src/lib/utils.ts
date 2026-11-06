@@ -59,6 +59,21 @@ const CATEGORY_PALETTE = [
   { tile: '#7a6420', chipBg: '#33301a', chipText: '#d6c47a' },
 ];
 
+/** 화면에 보일 이름: HSKF 분류는 접두어를 떼고 보여줍니다 */
+export function catLabel(name: string) {
+  return HSKF_SET.has(name) ? hskfLabel(name) : name;
+}
+
+/** 아이콘과 대표 색에 쓸 주제 카테고리: HSKF가 아닌 첫 카테고리 */
+export function topicCat(cats: string[]) {
+  return cats.find((c) => !HSKF_SET.has(c)) ?? cats[0];
+}
+
+/** 화면 표시 순서: 주제 카테고리 먼저, HSKF 분류는 뒤로 */
+export function displayCats(cats: string[]) {
+  return [...cats.filter((c) => !HSKF_SET.has(c)), ...cats.filter((c) => HSKF_SET.has(c))];
+}
+
 export function categoryStyle(name?: string) {
   if (!name) return { tile: '#4e5157', chipBg: '#2b2d30', chipText: '#bcbec4' };
   // HSKF 6개는 서로 다른 색

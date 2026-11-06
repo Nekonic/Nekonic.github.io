@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 겨울 숲의 초대
-categories: ["PS"]
+categories: ["[HSKF]공모전/자격증", "PS"]
 tags: ["boj", "contest", "greedy", "ad_hoc"]
 ---
 ## 소감

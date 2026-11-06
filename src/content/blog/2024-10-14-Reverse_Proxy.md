@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 리버스 프록시(Reverse Proxy)
-categories: ["Network", "Security"]
+categories: ["[HSKF]블로그/기술문서", "Network", "Security"]
 tags: ["reverse_proxy", "server", "hacking"]
 ---
 

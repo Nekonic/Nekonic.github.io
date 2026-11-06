@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 알고리즘 강의 - 0 [개요]
-categories: ["Algorithm"]
+categories: ["[HSKF]블로그/기술문서", "Algorithm"]
 tags: ["lecture"]
 ---
 

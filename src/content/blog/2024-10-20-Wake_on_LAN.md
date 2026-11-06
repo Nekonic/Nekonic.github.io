@@ -1,7 +1,7 @@
 ---
 layout: post
 title: WOL(Wake-on-LAN) in Archlinux
-categories: ["Linux"]
+categories: ["[HSKF]블로그/기술문서", "Linux"]
 tags: ["arch_linux", "wol", "network"]
 ---
 
