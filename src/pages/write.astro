@@ -120,7 +120,7 @@ const metaOptions = {
         <button id="imageBtn" type="button" title="이미지 추가 (붙여넣기·드래그도 가능)" class="w-7 h-6 flex items-center justify-center rounded text-text-secondary hover:bg-secondary hover:text-text-primary">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5"/><circle cx="6" cy="6.5" r="1"/><path d="M2.5 12l3.5-3.5 2.5 2.5 2-2 3 3"/></svg>
         </button>
-        <input type="file" id="imageInput" accept="image/*" multiple class="hidden" />
+        <input type="file" id="imageInput" accept="image/*,.heic,.heif" multiple class="hidden" />
         <span class="w-px h-4 bg-border mx-1"></span>
         <button id="viewEditBtn" type="button" title="Editor Only" class="w-7 h-6 flex items-center justify-center rounded text-text-secondary hover:bg-secondary hover:text-text-primary">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" aria-hidden="true"><path d="M3 4h10M3 7h7M3 10h10M3 13h5"/></svg>
@@ -374,6 +374,7 @@ const metaOptions = {
 </script>
 
 <!-- Embedded existing posts data -->
+<script is:inline src="/js/heic.js"></script>
 <script is:inline id="postsData" type="application/json" set:html={JSON.stringify(postList)}></script>
 <script is:inline id="metaOptions" type="application/json" set:html={JSON.stringify(metaOptions)}></script>
 
@@ -607,9 +608,24 @@ const metaOptions = {
   var IMG_ED_KEYS = { v: 'select', r: 'redact', m: 'mosaic', b: 'box', a: 'arrow', t: 'text', c: 'crop' };
   var IMG_ED_EMPTY = '{"s":[],"c":null}';
 
-  function addImageFiles(files) {
-    Array.prototype.forEach.call(files, function(f) { if (f.type.startsWith('image/')) imgEdQueue.push({ file: f }); });
-    if (!imgEdFile) openNextImage();
+  // HEIC는 다른 브라우저에서 안 보여서 편집기에 넣기 전에 WebP로 바꿉니다
+  var heicConverting = 0; // 변환 중인 묶음 수 (끝나기 전에 발행하면 사진이 빠지므로 막음)
+  async function addImageFiles(files) {
+    var list = Array.prototype.filter.call(files, function(f) { return f.type.startsWith('image/') || window.Heic.isHeic(f); });
+    if (list.some(window.Heic.isHeic)) {
+      showAlert('HEIC 사진을 변환하는 중...', false);
+      heicConverting++;
+      try {
+        var conv = await window.Heic.convertFiles(list);
+      } finally {
+        heicConverting--;
+      }
+      list = conv.files;
+      if (conv.failed.length) showAlert('HEIC 사진을 바꾸지 못했어요: ' + conv.failed.join(', '), true);
+      else showAlert('HEIC 사진을 WebP로 바꿨어요.', false);
+    }
+    list.forEach(function(f) { imgEdQueue.push({ file: f }); });
+    if (list.length && !imgEdFile) openNextImage();
   }
 
   // 이번 세션에 넣은 (아직 안 올라간) 이미지를 원본부터 다시 편집
@@ -1218,6 +1234,7 @@ const metaOptions = {
   function fileExt(file) {
     if (file.type === 'image/jpeg') return 'jpg';
     if (file.type === 'image/png') return 'png';
+    if (file.type === 'image/webp') return 'webp';
     var m = /\.([^.]+)$/.exec(file.name || '');
     return m ? m[1].toLowerCase().replace('jpeg', 'jpg') : 'png';
   }
@@ -1263,8 +1280,9 @@ const metaOptions = {
     commitTextInput();
     imgEdSel = -1;
     var state = snapshot();
-    var jpeg = imgEdFile.type === 'image/jpeg';
-    var name = (imgEdFile.name || 'image').replace(/\.[^.]+$/, '') + (jpeg ? '.jpg' : '.png');
+    // 손실 압축 원본(jpg·webp)은 같은 형식으로, 나머지는 PNG로 내보냅니다
+    var outType = imgEdFile.type === 'image/jpeg' || imgEdFile.type === 'image/webp' ? imgEdFile.type : 'image/png';
+    var name = (imgEdFile.name || 'image').replace(/\.[^.]+$/, '') + { 'image/jpeg': '.jpg', 'image/webp': '.webp', 'image/png': '.png' }[outType];
     // 다시 그린 캔버스로 내보내므로 EXIF 등 메타데이터는 남지 않음
     renderImgEd(true);
     var out = imgEdCanvas;
@@ -1278,7 +1296,7 @@ const metaOptions = {
       imgEdBusy = false;
       if (!blob) { showAlert('이미지를 내보내지 못했어요. 자르기로 크기를 줄여서 다시 시도해 주세요.', true); renderImgEd(); return; }
       finishImage(new File([blob], name, { type: blob.type }), state);
-    }, jpeg ? 'image/jpeg' : 'image/png', 0.92);
+    }, outType, outType === 'image/webp' ? 0.95 : 0.92);
   });
   function cancelImage() {
     if (imgEdBusy) return;
@@ -1340,7 +1358,7 @@ const metaOptions = {
 
   postContent.addEventListener('paste', function(e) {
     var items = e.clipboardData && e.clipboardData.files;
-    if (items && items.length && Array.prototype.some.call(items, function(f) { return f.type.startsWith('image/'); })) {
+    if (items && items.length && Array.prototype.some.call(items, function(f) { return f.type.startsWith('image/') || window.Heic.isHeic(f); })) {
       e.preventDefault();
       addImageFiles(items);
     }
@@ -2207,6 +2225,8 @@ const metaOptions = {
       showAlert('GitHub 토큰이 필요합니다. 트윗 작성 페이지에서 먼저 토큰을 등록해주세요.', true);
       return;
     }
+
+    if (heicConverting) { showAlert('HEIC 사진을 변환하는 중이에요. 끝나고 사진을 넣은 뒤 다시 눌러 주세요.', true); return; }
 
     var content = syncFrontmatter().trim();
     var savedText = postContent.value; // 저장되는 시점의 에디터 내용 (저장 중 추가로 고친 부분은 diff에 남도록)
