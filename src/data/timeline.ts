@@ -27,6 +27,7 @@ export interface TimelineItem {
 export const timeline: TimelineItem[] = [
   { date: '2026-11-04', end: '05', cat: '논문/컨퍼런스', title: '부산 사이버보안 컨퍼런스 부스 운영', uses: 'vibe', post: '2026-11-08-부산-사이버보안-컨퍼런스-부스운영-후기' },
   { date: '2026-11-07', cat: '논문/컨퍼런스', title: 'KUCIS 서경강 세미나', post: '2026-11-08-2026-kucis-서경강-세미나-후기' },
+  { date: '2026-11-09', cat: '블로그/기술문서', title: '지금까지의 활동 회고', branch: 'hskf', post: '2026-11-09-활동-회고' },
   { date: '2026-11-06', cat: '블로그/기술문서', title: "'나'에 대해 기록하기", branch: 'hskf', post: '2026-11-06--나-에-대해-기록하기' },
   { date: '2026-10-30', until: 'now', id: 'hskf', short: 'HSKF', chip: '10.30 입단 · 진행 중', cat: '블로그/기술문서', title: 'HSPACE Knights Frontier 3기' },
   { date: '2026-09', cat: '공모전/자격증', title: 'KISIA 정보보호 온라인 실습교육 7과정 수료', evidence: '2026/kisia' },
