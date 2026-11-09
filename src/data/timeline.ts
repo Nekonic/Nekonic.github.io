@@ -1,6 +1,6 @@
 // About 페이지 타임라인. date는 활동한 날짜(글 쓴 날 아님): YYYY-MM 또는 YYYY-MM-DD, 여러 날이면 end에 끝나는 날(DD)
 // YYYY만 쓰면 when에 표시할 기간을 적습니다. 화면에는 날짜 최신순으로 자동 정렬됩니다 (월만 쓰면 그달 1일로 봄)
-// post는 src/content/blog의 파일 이름(.md 제외), evidence는 프로필 저장소(Nekonic/Nekonic)의 증빙 파일·폴더 경로 (/로 시작하면 이 블로그의 파일)
+// url은 GitHub 저장소, link는 그 밖의 외부 페이지, post는 src/content/blog의 파일 이름(.md 제외), evidence는 프로필 저장소(Nekonic/Nekonic)의 증빙 파일·폴더 경로 (/로 시작하면 이 블로그의 파일)
 // 기간 활동은 until(끝난 날 YYYY-MM-DD, 진행 중이면 'now')을 넣으면 그래프에서 브랜치로 갈라졌다가 끝난 날 합쳐집니다.
 // id가 있는 활동에는 branch: id(그 활동 안에서 한 일, 브랜치 위에 찍힘)나 uses: id(그 프로젝트를 쓴 행사, 거기서 병합)로 연결합니다.
 // short는 연결된 카드에 붙는 칩 이름, chip은 카드에 붙는 상태 표시, note는 카드에 덧붙이는 설명입니다.
@@ -14,6 +14,7 @@ export interface TimelineItem {
   title: string;
   post?: string;
   url?: string;
+  link?: string;
   evidence?: string;
   until?: string;
   id?: string;
@@ -29,7 +30,8 @@ export const timeline: TimelineItem[] = [
   { date: '2026-11-07', cat: '논문/컨퍼런스', title: 'KUCIS 서경강 세미나', post: '2026-11-08-2026-kucis-서경강-세미나-후기' },
   { date: '2026-11-09', cat: '블로그/기술문서', title: '지금까지의 활동 회고', branch: 'hskf', post: '2026-11-09-활동-회고' },
   { date: '2026-11-06', cat: '블로그/기술문서', title: "'나'에 대해 기록하기", branch: 'hskf', post: '2026-11-06--나-에-대해-기록하기' },
-  { date: '2026-10-30', until: 'now', id: 'hskf', short: 'HSKF', chip: '10.30 입단 · 진행 중', cat: '블로그/기술문서', title: 'HSPACE Knights Frontier 3기' },
+  { date: '2026-10-30', until: 'now', id: 'hskf', short: 'HSKF', chip: '10월 ~', cat: '블로그/기술문서', title: 'HSPACE Knights Frontier 3기' },
+  { date: '2026-06', until: 'now', id: 'fsl', short: 'FSL', chip: '6월 ~', cat: '공모전/자격증', title: '미래와소프트웨어 FSL(Future Security Lab) 정보보안 대학생 동아리 지원사업', url: 'https://github.com/Nekonic/fsl-project-mvp', link: 'https://kcccenter.or.kr/board/?board_id=gallery&type=view&seq=97' },
   { date: '2026-09', cat: '공모전/자격증', title: 'KISIA 정보보호 온라인 실습교육 7과정 수료', evidence: '2026/kisia' },
   { date: '2026-08-04', cat: '논문/컨퍼런스', title: 'KUCIS 기업탐방 (국가정보원, 윈스테크넷)', post: '2026-10-27-kucis-2026-기업탐방-국가정보원-윈스테크넷-' },
   { date: '2026-07-24', cat: '논문/컨퍼런스', title: 'CODEGATE 2026 부스 운영', uses: 'vibe', post: '2026-10-27-codegate-2026-부스운영-후기' },

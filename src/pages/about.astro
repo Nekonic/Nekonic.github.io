@@ -20,9 +20,10 @@ const items = sorted.map((t) => {
   const [year, month, day] = t.date.split('-');
   // 파일은 blob, 폴더(여러 증빙)는 tree 주소
   const evidence = t.evidence?.startsWith('/') ? t.evidence : t.evidence && `https://github.com/Nekonic/Nekonic/${/\.[a-z0-9]+$/i.test(t.evidence) ? 'blob' : 'tree'}/main/` + t.evidence.split('/').map(encodeURIComponent).join('/');
-  // 첫 번째 링크가 행 전체 클릭, 나머지는 옆에 따로 표시 (저장소 → 글 → 증빙 순)
+  // 첫 번째 링크가 행 전체 클릭, 나머지는 옆에 따로 표시 (저장소 → 외부 링크 → 글 → 증빙 순)
   const links = [
     t.url && { href: t.url, label: 'GitHub' },
+    t.link && { href: t.link, label: '링크' },
     t.post && { href: postHref(t.post)!, label: '글' },
     evidence && { href: evidence, label: '증빙' },
   ].filter(Boolean).map((l) => ({ ...(l as { href: string; label: string }), external: /^(https?:|\/assets\/)/.test((l as { href: string }).href) })); // 외부 주소와 블로그 안의 증빙 파일은 새 탭
@@ -197,11 +198,13 @@ const years = [...new Set(items.map((t) => t.year))];
     return e;
   }
 
-  // 마우스를 올린 행과 연결된 행들 (프로젝트 ↔ 그 프로젝트를 쓴 행사)
+  // 마우스를 올린 행과 연결된 행들: 프로젝트 ↔ 그 프로젝트를 쓴 행사, 기간 활동 ↔ 그 안에서 한 일
   function groupOf(li: HTMLElement): Set<HTMLElement> | null {
     const id = li.dataset.uses || (li.hasAttribute('data-used') ? li.dataset.id : undefined);
-    if (!id) return null;
-    return new Set(rowEls.filter((r) => r.dataset.id === id || r.dataset.uses === id));
+    if (id) return new Set(rowEls.filter((r) => r.dataset.id === id || r.dataset.uses === id));
+    const parent = li.dataset.branch || (li.dataset.until ? li.dataset.id : undefined);
+    if (parent) return new Set(rowEls.filter((r) => r.dataset.id === parent || r.dataset.branch === parent));
+    return li.dataset.until ? new Set([li]) : null; // id 없는 기간 활동은 혼자 강조
   }
 
   function draw() {
