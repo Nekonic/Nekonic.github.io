@@ -177,6 +177,75 @@
   color: #dfe1e5;
 }
 
+/* PDF 뷰어 — 본문의 ![제목](/파일.pdf) 를 스크립트가 .pdf-frame 으로 바꿉니다 */
+.article-content .pdf-frame {
+  margin: 1.5rem 0;
+  border: 1px solid #2b2d30;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #191a1c;
+}
+.article-content .pdf-frame-header {
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.5rem 0 0.75rem;
+  background: #232427;
+  border-bottom: 1px solid #2b2d30;
+  font-size: 0.75rem;
+  color: #9da0a8;
+}
+.article-content .pdf-frame-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #dfe1e5;
+}
+.article-content .pdf-frame-info {
+  font-variant-numeric: tabular-nums;
+}
+.article-content a.pdf-frame-btn {
+  height: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.5rem;
+  border-radius: 4px;
+  color: #9da0a8;
+  text-decoration: none;
+}
+.article-content a.pdf-frame-btn:hover {
+  background: #2b2d30;
+  color: #dfe1e5;
+}
+.article-content .pdf-frame-pages {
+  max-height: min(80vh, 900px);
+  overflow-y: auto;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.article-content .pdf-frame-page {
+  width: 100%;
+  background: #fff;
+  border-radius: 2px;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.4);
+}
+.article-content .pdf-frame-page canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.article-content .pdf-frame-msg {
+  margin: 1rem 0;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: #9da0a8;
+}
+
 .article-content details {
   margin: 1.5rem 0;
   border: 1px solid #2b2d30;

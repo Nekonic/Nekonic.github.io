@@ -369,6 +369,10 @@ const metaOptions = {
 <script>
   import * as nkTokens from '../lib/code-tokens.mjs';
   (window as any).nkTokens = nkTokens;
+  import { pdfMarkdownToHtml } from '../lib/pdf-embed-html.mjs';
+  import { enhancePdfs } from '../lib/pdf-embed';
+  // 미리보기에서도 PDF를 뷰어로 보여줌 (아래 inline 스크립트가 씀)
+  (window as any).nkPdf = { toHtml: pdfMarkdownToHtml, enhance: (root: ParentNode) => enhancePdfs(root, { reuse: true }) };
   // highlight.js·토큰 규칙이 준비됐으니 에디터·미리보기를 한 번 다시 그림
   if (typeof (window as any).updatePreview === 'function') (window as any).updatePreview();
 </script>
@@ -1448,6 +1452,7 @@ const metaOptions = {
       previewContent.innerHTML = marked.parse(previewSrc(raw));
       highlightCode(previewContent);
       resolvePreviewImages(previewContent);
+      if (window.nkPdf) window.nkPdf.enhance(previewContent);
     }
   }
 
@@ -1491,6 +1496,8 @@ const metaOptions = {
   function previewSrc(src) {
     // 업로드 대기 중인 이미지는 blob URL로 미리보기
     Object.keys(pendingImages).forEach(function(p) { src = src.split(p).join(pendingImages[p].blobUrl); });
+    // PDF는 <img> 대신 뷰어 자리로 (한 줄 그대로라 줄 번호가 바뀌지 않음)
+    if (window.nkPdf) src = window.nkPdf.toHtml(src);
     // 정렬 문법: ![alt](url){left|right|center} (기존 {: .align-left} 도 지원)
     return src.replace(/!\[([^\]]*)\]\(([^)\s]+)\)\{:?\s*\.?(?:align-)?(left|right|center)(?:-block)?\s*:?\}/g,
       function(_, alt, url, a) { return '<img src="' + url + '" alt="' + alt + '" class="img-' + a + '">'; });

@@ -1,7 +1,10 @@
+import { enhancePdfs } from './pdf-embed';
+
 /**
  * 글 본문의 코드 블록을 IDE 스타일 프레임(언어 표시 + 복사 버튼)으로 감쌉니다.
  */
 export function enhanceArticle(root: ParentNode) {
+  enhancePdfs(root);
   root.querySelectorAll<HTMLPreElement>('pre').forEach((pre) => {
     if (pre.parentElement?.classList.contains('code-frame')) return;
     if (pre.closest('details')) return;
