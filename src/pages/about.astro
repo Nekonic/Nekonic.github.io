@@ -1,10 +1,47 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { timeline } from '../data/timeline';
+import { categoryStyle, HSKF_PREFIX, HSKF_CATEGORIES, hskfLabel } from '../lib/utils';
+
+const posts = await getCollection('blog');
+const postHref = (name?: string) => {
+  if (!name) return undefined;
+  const p = posts.find((x) => x.filePath?.replace(/\\/g, '/').endsWith('/' + name + '.md'));
+  if (!p) throw new Error('timeline: 글을 찾을 수 없음 ' + name);
+  return `/blog/${p.id}`;
+};
+const pad = (n: string | number) => String(n).padStart(2, '0');
+// 최신순 정렬. 월만 있으면 1일, 연도만 있으면 1월 1일로 보고, 같은 날은 파일 순서 유지
+const sortKey = (d: string) => (d + '-01-01').slice(0, 10);
+const sorted = [...timeline].sort((a, b) => sortKey(b.date).localeCompare(sortKey(a.date)));
+const items = sorted.map((t) => {
+  const cat = HSKF_PREFIX + t.cat;
+  const [year, month, day] = t.date.split('-');
+  // 파일은 blob, 폴더(여러 증빙)는 tree 주소
+  const evidence = t.evidence?.startsWith('/') ? t.evidence : t.evidence && `https://github.com/Nekonic/Nekonic/${/\.[a-z0-9]+$/i.test(t.evidence) ? 'blob' : 'tree'}/main/` + t.evidence.split('/').map(encodeURIComponent).join('/');
+  // 첫 번째 링크가 행 전체 클릭, 나머지는 옆에 따로 표시 (저장소 → 글 → 증빙 순)
+  const links = [
+    t.url && { href: t.url, label: 'GitHub' },
+    t.post && { href: postHref(t.post)!, label: '글' },
+    evidence && { href: evidence, label: '증빙' },
+  ].filter(Boolean).map((l) => ({ ...(l as { href: string; label: string }), external: /^(https?:|\/assets\/)/.test((l as { href: string }).href) })); // 외부 주소와 블로그 안의 증빙 파일은 새 탭
+  return {
+    ...t, year,
+    when: t.when ?? (day ? `${month}.${day}${t.end ? '–' + pad(t.end) : ''}` : `${month}월`),
+    label: hskfLabel(cat), style: categoryStyle(cat), links,
+  };
+});
+// 그래프: 메인 줄기(X0) + 기간 활동 브랜치 줄(LANE_W 간격)
+const X0 = 10, LANE_W = 16, GRAPH_W = X0 + LANE_W * 3 + 10;
+const byId = new Map(items.filter((t) => t.id).map((t) => [t.id!, t]));
+const usedBy = (id?: string) => (id ? items.filter((t) => t.uses === id) : []);
+const years = [...new Set(items.map((t) => t.year))];
 ---
 
 <BaseLayout title="About" description="About Nekonic">
   <div class="max-w-2xl mx-auto py-8">
-    <div class="bg-card border border-border rounded-xl p-8 shadow-sm">
+    <div class="bg-card border border-border rounded-xl p-5 sm:p-8 shadow-sm">
       <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-8 pb-8 border-b border-border/70">
         <img 
           src="https://github.com/Nekonic.png" 
@@ -59,6 +96,206 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           </a>
         </div>
       </div>
+
+      <!-- Timeline: GitKraken 그래프처럼 메인 줄기에 활동, 기간 활동은 브랜치로 갈라졌다가 합쳐짐. 행을 누르면 글·자료로 이동 -->
+      <div class="mt-8 pt-8 border-t border-border/70">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <div class="flex items-baseline gap-2">
+            <h2 class="text-base font-bold text-white">Timeline</h2>
+            <span class="text-xs text-text-muted">{items.length} commits</span>
+          </div>
+          <div id="tlTabs" role="tablist" class="flex max-w-full overflow-x-auto gap-0.5 p-[3px] rounded-[9px] bg-primary border border-border/60">
+            {['전체', ...years].map((y, i) => (
+              <button type="button" role="tab" data-year={i ? y : ''} aria-selected={i === 0 ? 'true' : 'false'}
+                class="shrink-0 px-2 sm:px-2.5 py-1 rounded-md text-xs tabular-nums text-text-secondary hover:text-text-primary aria-selected:bg-accent aria-selected:text-white aria-selected:shadow-[0_1px_6px_#3574f055]">{y}</button>
+            ))}
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-x-3 gap-y-1 mb-2 text-[11px] text-text-secondary">
+          {HSKF_CATEGORIES.map((c) => (
+            <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style={`background:${categoryStyle(c).tile}`}></span>{hskfLabel(c)}</span>
+          ))}
+        </div>
+        <div id="tlWrap" class="relative" data-x0={X0} data-lane-w={LANE_W}>
+          <svg id="tlSvg" class="absolute left-0 top-0 pointer-events-none overflow-visible z-[1]" width={GRAPH_W} height="0" aria-hidden="true"></svg>
+          <ol id="tlList" class="relative">
+            {items.map((t, i) => {
+              const [main, ...extra] = t.links;
+              const ext = (e: boolean) => e ? { target: '_blank', rel: 'noopener noreferrer' } : {};
+              const project = t.uses ? byId.get(t.uses) : undefined;
+              const parent = t.branch ? byId.get(t.branch) : undefined;
+              const projectLink = project?.links[0];
+              return (
+                <>
+                  {(i === 0 || items[i - 1].year !== t.year) && (
+                    <li data-year={t.year} data-head class="flex items-end gap-3 pt-5 pb-2" style={`padding-left:${GRAPH_W + 8}px`}>
+                      <span class="text-[13px] font-bold tabular-nums text-white">{t.year}</span>
+                      <span class="flex-1 h-px mb-[7px] bg-border"></span>
+                    </li>
+                  )}
+                  <li data-year={t.year} data-row data-key={sortKey(t.date)} data-color={t.style.tile}
+                    data-id={t.id} data-until={t.until} data-branch={t.branch} data-uses={t.uses}
+                    data-used={usedBy(t.id).length ? '' : undefined}
+                    class="flex items-center py-[3px] transition-opacity">
+                    <span class="relative shrink-0 self-stretch" style={`width:${GRAPH_W}px`}></span>
+                    <span class="hidden sm:block w-[70px] shrink-0 pl-2 text-xs tabular-nums text-text-muted">{t.when}</span>
+                    <div class:list={['tl-card relative flex-1 min-w-0 ml-2 sm:ml-0 px-3 py-2 rounded-[10px] transition', main && 'group hover:brightness-125 focus-within:outline focus-within:outline-2 focus-within:outline-accent']}
+                      style={`background:linear-gradient(90deg,${t.style.chipBg},transparent 75%)`}>
+                      {main ? (
+                        <a href={main.href} {...ext(main.external)} title={`${main.label} 열기`}
+                          class="block text-sm leading-snug text-text-primary group-hover:text-white break-keep focus:outline-none after:absolute after:inset-0 after:rounded-[10px]">{t.title}</a>
+                      ) : (
+                        <span class="block text-sm leading-snug text-text-primary break-keep">{t.title}</span>
+                      )}
+                      <span class="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px]">
+                        <span style={`color:${t.style.chipText}`}>{t.label}</span>
+                        <span class="sm:hidden text-text-muted tabular-nums">· {t.when}</span>
+                        {main && <span class="text-text-muted group-hover:text-text-primary">· {main.label} ↗</span>}
+                        {extra.map((l) => (
+                          <a href={l.href} {...ext(l.external)} class="relative z-10 text-text-muted hover:text-accent underline-offset-2 hover:underline">· {l.label} ↗</a>
+                        ))}
+                        {t.chip && (
+                          <span class="inline-flex items-center gap-1 ml-1 px-1.5 rounded-full border" style={`color:${t.style.chipText};border-color:${t.style.tile}88`}>
+                            {t.until === 'now' && <span class="w-1.5 h-1.5 rounded-full" style={`background:${t.style.tile};box-shadow:0 0 0 3px ${t.style.tile}33`}></span>}
+                            {t.chip}
+                          </span>
+                        )}
+                        {parent && <span class="ml-1 px-1.5 rounded" style={`background:${parent.style.chipBg};color:${parent.style.chipText}`}>{parent.short}</span>}
+                        {project && projectLink && (
+                          <a href={projectLink.href} {...ext(projectLink.external)} class="relative z-10 inline-flex items-center gap-1 ml-1 px-1.5 rounded hover:brightness-125" style={`background:${project.style.chipBg};color:${project.style.chipText}`}>
+                            <span class="w-1.5 h-1.5 rounded-full" style={`background:${project.style.tile}`}></span>{project.short} ↗
+                          </a>
+                        )}
+                        {t.note && <span class="text-text-muted">· {t.note}</span>}
+                      </span>
+                    </div>
+                  </li>
+                </>
+              );
+            })}
+          </ol>
+        </div>
+      </div>
     </div>
   </div>
 </BaseLayout>
+
+<script>
+  const wrap = document.getElementById('tlWrap')!;
+  const svg = document.getElementById('tlSvg') as unknown as SVGSVGElement;
+  const tabs = document.querySelectorAll<HTMLButtonElement>('#tlTabs button');
+  const allLis = document.querySelectorAll<HTMLElement>('#tlList li');
+  const rowEls = [...document.querySelectorAll<HTMLElement>('#tlList li[data-row]')];
+  const X0 = Number(wrap.dataset.x0), LW = Number(wrap.dataset.laneW);
+  const BG = '#26282e', MAIN = '#6b6f78', R = 12;
+  const NS = 'http://www.w3.org/2000/svg';
+  let focus: Set<HTMLElement> | null = null;
+
+  function el(name: string, attrs: Record<string, string | number>) {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, String(attrs[k]));
+    return e;
+  }
+
+  // 마우스를 올린 행과 연결된 행들 (프로젝트 ↔ 그 프로젝트를 쓴 행사)
+  function groupOf(li: HTMLElement): Set<HTMLElement> | null {
+    const id = li.dataset.uses || (li.hasAttribute('data-used') ? li.dataset.id : undefined);
+    if (!id) return null;
+    return new Set(rowEls.filter((r) => r.dataset.id === id || r.dataset.uses === id));
+  }
+
+  function draw() {
+    const top = wrap.getBoundingClientRect().top;
+    const h = wrap.offsetHeight;
+    svg.replaceChildren();
+    svg.setAttribute('height', String(h));
+    const rows = rowEls.filter((r) => !r.classList.contains('hidden')).map((li) => {
+      const b = li.getBoundingClientRect();
+      return { li, y: b.top + b.height / 2 - top, key: li.dataset.key!, color: li.dataset.color! };
+    });
+    const dim = (li: HTMLElement) => (focus && !focus.has(li) ? 0.3 : 1);
+    const halo = el('g', {}), lines = el('g', {}), nodes = el('g', {}), defs = el('defs', {});
+    svg.append(defs, halo, el('line', { x1: X0, y1: 0, x2: X0, y2: h, stroke: MAIN, 'stroke-width': 3, 'stroke-linecap': 'round' }), lines, nodes);
+
+    // 브랜치: until이 있거나 다른 행사에서 쓰인 활동. 시작 행이 보일 때만 그림
+    type Br = { row: typeof rows[0]; end: number; merges: number[]; open: boolean; lane: number };
+    const branches: Br[] = [];
+    rows.forEach((row) => {
+      const until = row.li.dataset.until;
+      const users = row.li.hasAttribute('data-used') ? rows.filter((o) => o.li.dataset.uses === row.li.dataset.id) : [];
+      if (!until && !users.length) return;
+      let end: number, open = false, merges: number[] = [];
+      if (users.length) {
+        // 쓰인 행사마다 병합, 가장 최근 행사에서 끝남
+        merges = users.map((u) => u.y);
+        end = Math.min(...merges);
+      } else if (until === 'now') {
+        end = 0; open = true;
+      } else {
+        // 끝난 날보다 이르거나 같은 첫 행의 바로 위
+        const j = rows.findIndex((o) => o.key <= until!);
+        end = j <= 0 ? 0 : (rows[j - 1].y + rows[j].y) / 2;
+      }
+      branches.push({ row, end, merges, open, lane: 0 });
+    });
+    // 짧은 브랜치부터 안쪽 줄 (겹치지 않으면 같은 줄을 다시 씀)
+    [...branches].sort((a, b) => (a.row.y - a.end) - (b.row.y - b.end)).forEach((b, _, all) => {
+      let lane = 1;
+      while (all.some((o) => o !== b && o.lane === lane && !(o.end > b.row.y + R || o.row.y + R < b.end))) lane++;
+      b.lane = lane;
+    });
+
+    branches.forEach((b, k) => {
+      const x = X0 + LW * b.lane, y0 = b.row.y, y1 = b.end, c = b.row.color;
+      let d = `M${X0} ${y0} L${x - R} ${y0} Q${x} ${y0} ${x} ${y0 - R} L${x} `;
+      d += b.open ? `${y1}` : `${y1 + R} Q${x} ${y1} ${x - R} ${y1} L${X0} ${y1}`;
+      let stroke = c;
+      if (b.open) {
+        const g = el('linearGradient', { id: 'tlf' + k, x1: 0, y1: y0, x2: 0, y2: 0, gradientUnits: 'userSpaceOnUse' });
+        g.append(el('stop', { offset: 0, 'stop-color': c }), el('stop', { offset: 0.6, 'stop-color': c }), el('stop', { offset: 1, 'stop-color': c, 'stop-opacity': 0 }));
+        defs.append(g);
+        stroke = `url(#tlf${k})`;
+      }
+      const op = dim(b.row.li);
+      halo.append(el('path', { d, fill: 'none', stroke: BG, 'stroke-width': 8, 'stroke-linejoin': 'round' }));
+      lines.append(el('path', { d, fill: 'none', stroke, 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: op }));
+      // 중간 병합 (마지막 병합은 위 경로에 포함)
+      b.merges.filter((y) => y !== y1).forEach((y) => {
+        const m = `M${x} ${y + R} Q${x} ${y} ${x - R} ${y} L${X0} ${y}`;
+        halo.append(el('path', { d: m, fill: 'none', stroke: BG, 'stroke-width': 8 }));
+        lines.append(el('path', { d: m, fill: 'none', stroke: c, 'stroke-width': 3, 'stroke-linecap': 'round', opacity: op }));
+      });
+      if (!b.open && !b.merges.length) nodes.append(el('circle', { cx: X0, cy: y1, r: 4.5, fill: BG, stroke: c, 'stroke-width': 2.5, opacity: op }));
+    });
+
+    // 점: 브랜치 안의 활동(branch)은 그 브랜치 줄 위, 나머지는 메인 줄기 위
+    rows.forEach((row) => {
+      const parent = row.li.dataset.branch ? branches.find((b) => b.row.li.dataset.id === row.li.dataset.branch) : undefined;
+      const x = parent ? X0 + LW * parent.lane : X0;
+      const g = el('g', { opacity: dim(row.li) });
+      g.append(el('circle', { cx: x, cy: row.y, r: 7, fill: row.color, stroke: BG, 'stroke-width': 3 }), el('circle', { cx: x, cy: row.y, r: 2.4, fill: BG, opacity: 0.55 }));
+      nodes.append(g);
+    });
+
+    rowEls.forEach((li) => li.style.opacity = focus && !focus.has(li) ? '0.3' : '');
+  }
+
+  rowEls.forEach((li) => {
+    const g = groupOf(li);
+    if (!g) return;
+    // 마우스에서만 강조 (터치는 떼는 이벤트가 없어 강조가 남음)
+    li.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') { focus = g; draw(); } });
+    li.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') { focus = null; draw(); } });
+  });
+
+  tabs.forEach((tab) => tab.addEventListener('click', () => {
+    const year = tab.dataset.year;
+    tabs.forEach((t) => t.setAttribute('aria-selected', String(t === tab)));
+    // 연도 하나만 볼 때는 연도 제목도 숨깁니다 (탭에 이미 보임). hidden 속성은 flex 클래스에 덮여서 클래스로 숨깁니다
+    allLis.forEach((r) => r.classList.toggle('hidden', !!year && (r.dataset.year !== year || r.hasAttribute('data-head'))));
+    draw();
+  }));
+  new ResizeObserver(draw).observe(wrap);
+  document.fonts?.ready.then(draw);
+  draw();
+</script>
