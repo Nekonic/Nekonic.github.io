@@ -84,7 +84,7 @@ const hasAside = Astro.slots.has('aside');
   <title>{title} | Nekonic</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
-  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+  <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -172,6 +172,7 @@ const hasAside = Astro.slots.has('aside');
             href={item.href}
             aria-label={item.label}
             title={item.label}
+            aria-current={isActive(item.href) ? 'page' : undefined}
             class:list={[
               "w-[30px] h-[30px] rounded-md flex items-center justify-center transition-colors",
               isActive(item.href) ? "bg-accent/20 text-accent-soft" : "text-text-secondary hover:bg-secondary hover:text-text-primary",
@@ -308,6 +309,7 @@ const hasAside = Astro.slots.has('aside');
     {navItems.map((item) => (
       <a
         href={item.href}
+        aria-current={isActive(item.href) ? 'page' : undefined}
         class:list={[
           "flex flex-col items-center justify-center gap-1 text-[11px]",
           isActive(item.href) ? "text-accent-soft" : "text-text-secondary",

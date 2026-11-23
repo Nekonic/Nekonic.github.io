@@ -1,22 +1,26 @@
 ---
 interface Props {
   headings: { depth: number; slug: string; text: string }[];
+  // aside: 오른쪽 사이드바(넓은 화면), inline: 본문 위에 접히는 목차(좁은 화면)
+  variant?: 'aside' | 'inline';
 }
 
-const { headings } = Astro.props;
-const toc = headings.filter(h => h.depth >= 2 && h.depth <= 4);
+const { headings, variant = 'aside' } = Astro.props;
+// 글에서 가장 큰 제목 단계부터 4단계까지 (H1으로 시작하는 글도 맨 위 제목이 빠지지 않게)
+const min = headings.length ? Math.min(...headings.map((h) => h.depth)) : 1;
+const toc = headings.filter((h) => h.depth <= min + 3);
 ---
 
-{toc.length > 0 && (
+{toc.length > 0 && (variant === 'aside' ? (
   <nav class="toc-container" aria-label="목차">
     <div class="h-9 flex items-center px-3.5 font-semibold text-[13px]">Structure</div>
     <ul class="flex flex-col px-1.5 leading-[26px]">
-      {toc.map(heading => (
+      {toc.map((heading) => (
         <li>
           <a
             href={`#${heading.slug}`}
             class="toc-link flex items-center gap-2 pr-2 rounded-[5px] text-text-body hover:bg-secondary transition-colors"
-            style={`padding-left:${0.5 + (heading.depth - 2) * 0.875}rem`}
+            style={`padding-left:${0.5 + (heading.depth - min) * 0.875}rem`}
             data-slug={heading.slug}
           >
             <span class="toc-badge font-mono text-[10px] font-semibold text-text-muted shrink-0">H{heading.depth}</span>
@@ -26,34 +30,90 @@ const toc = headings.filter(h => h.depth >= 2 && h.depth <= 4);
       ))}
     </ul>
   </nav>
-)}
+) : (
+  <details class="xl:hidden group/toc mb-8 rounded-lg border border-borderSubtle bg-secondary/40">
+    <summary class="list-none cursor-pointer flex items-center gap-2 h-10 px-3.5 text-[13px] font-semibold text-text-primary">
+      <svg class="w-3 h-3 transition-transform group-open/toc:rotate-90" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M6 3l5 5-5 5z" /></svg>
+      목차 <span class="font-mono text-xs font-normal text-text-muted">{toc.length}</span>
+    </summary>
+    <nav aria-label="목차">
+      <ul class="flex flex-col px-1.5 pb-2 leading-[30px]">
+        {toc.map((heading) => (
+          <li>
+            <a
+              href={`#${heading.slug}`}
+              class="toc-link flex items-center gap-2 pr-2 rounded-[5px] text-sm text-text-body hover:bg-secondary transition-colors"
+              style={`padding-left:${0.5 + (heading.depth - min) * 0.875}rem`}
+              data-slug={heading.slug}
+            >
+              <span class="toc-badge font-mono text-[10px] font-semibold text-text-muted shrink-0">H{heading.depth}</span>
+              <span class="truncate">{heading.text}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </details>
+))}
 
+{variant === 'aside' && (
 <script is:inline>
   (function() {
+    // 지금 읽는 제목: 화면 위쪽(고정 바 아래 80px)을 지난 마지막 제목.
+    // 누른 항목은 글 끝이라 그 제목이 위쪽까지 못 올라온 경우에만 유지 (짧은 마지막 절)
+    var OFFSET = 80;
     function setupToc() {
-      var links = document.querySelectorAll('.toc-link');
+      var links = Array.prototype.slice.call(document.querySelectorAll('.toc-link'));
       if (!links.length) return;
-
-      var headings = document.querySelectorAll('.article-content h2, .article-content h3, .article-content h4');
-      if (!headings.length) return;
-
-      var observer = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-          if (!entry.isIntersecting) return;
-          var id = entry.target.getAttribute('id');
-          links.forEach(function(link) {
-            var on = link.getAttribute('data-slug') === id;
-            link.classList.toggle('bg-accent/15', on);
-            link.classList.toggle('text-text-primary', on);
-            var badge = link.querySelector('.toc-badge');
-            if (badge) badge.classList.toggle('text-accent-soft', on);
-          });
-        });
-      }, { rootMargin: '0px 0px -75% 0px' });
-
-      headings.forEach(function(h) {
-        observer.observe(h);
+      var slugs = links.map(function(l) { return l.getAttribute('data-slug'); });
+      var heads = [];
+      slugs.forEach(function(s) {
+        var h = document.getElementById(s);
+        if (h && heads.indexOf(h) < 0) heads.push(h);
       });
+      if (!heads.length) return;
+
+      var current = null, clicked = null, ticking = false;
+      function setActive(id) {
+        if (id === current) return;
+        current = id;
+        links.forEach(function(link) {
+          var on = link.getAttribute('data-slug') === id;
+          link.classList.toggle('bg-accent/15', on);
+          link.classList.toggle('text-text-primary', on);
+          var badge = link.querySelector('.toc-badge');
+          if (badge) badge.classList.toggle('text-accent-soft', on);
+        });
+      }
+      function update() {
+        ticking = false;
+        if (clicked) {
+          var t = document.getElementById(clicked);
+          var r = t && t.getBoundingClientRect();
+          var atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+          if (r && atBottom && r.top > OFFSET && r.top < window.innerHeight) { setActive(clicked); return; }
+          clicked = null;
+        }
+        var id = null;
+        for (var i = 0; i < heads.length; i++) {
+          if (heads[i].getBoundingClientRect().top <= OFFSET) id = heads[i].id; else break;
+        }
+        setActive(id);
+      }
+      window.addEventListener('scroll', function() {
+        if (!ticking) { ticking = true; requestAnimationFrame(update); }
+      }, { passive: true });
+      window.addEventListener('resize', update);
+      links.forEach(function(link) {
+        link.addEventListener('click', function() {
+          clicked = link.getAttribute('data-slug');
+          setActive(clicked);
+          // 좁은 화면 목차는 누르면 닫음
+          var box = link.closest('details');
+          if (box) box.open = false;
+        });
+      });
+      update();
     }
 
     if (document.readyState === 'loading') {
@@ -63,3 +123,4 @@ const toc = headings.filter(h => h.depth >= 2 && h.depth <= 4);
     }
   })();
 </script>
+)}

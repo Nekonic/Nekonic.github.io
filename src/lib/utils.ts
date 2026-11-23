@@ -102,7 +102,8 @@ export function categoryStyle(name?: string) {
  */
 export function initials(name?: string): string {
   if (!name) return '··';
-  const words = name.split(/[\s_-]+/).filter(Boolean);
+  name = name.replace(/^\[HSKF\]/, ''); // HSKF 분류는 앞의 [HSKF]를 빼고 ("논문/컨퍼런스" -> "논컨")
+  const words = name.split(/[\s_/-]+/).filter(Boolean);
   if (words.length > 1) return (words[0][0] + words[1][0]).toUpperCase();
   return name.slice(0, 2).toUpperCase();
 }

@@ -34,9 +34,16 @@ for (const p of posts) for (const c of p.cats) catCounts.set(c, (catCounts.get(c
 const hskfCats = HSKF_CATEGORIES.map((c) => ({ name: c, label: hskfLabel(c), count: catCounts.get(c) ?? 0, style: categoryStyle(c) }));
 const topCats = [...catCounts.entries()].filter(([c]) => !HSKF_SET.has(c)).sort((a, b) => b[1] - a[1]).slice(0, 10);
 
+const tagCounts = new Map<string, number>();
+for (const p of posts) for (const t of p.tags) tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1);
+// 많이 쓴 태그부터, 같으면 이름순
+const allTags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+
 const topicCount = [...catCounts.keys()].filter((c) => !HSKF_SET.has(c)).length;
 const firstYear = posts.at(-1)?.date.getFullYear();
 const lastYear = posts[0]?.date.getFullYear();
+// 검색어와 비교할 글자: 소문자, _는 공백으로 (college_life = college life)
+const searchKey = (p: { title: string; cats: string[]; tags: string[] }) => `${p.title} ${p.cats.map(catLabel).join(' ')} ${p.tags.join(' ')}`.toLowerCase().replace(/_/g, ' ');
 const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 ---
 
@@ -59,13 +66,13 @@ const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String
             type="button"
             data-cat={c.name}
             aria-pressed="false"
-            class="cat-chip hskf-btn group flex flex-col items-start justify-between gap-3 min-h-[92px] px-4 py-3.5 rounded-xl border-2 bg-secondary border-border hover:border-borderHover aria-pressed:bg-[#2b5bc4] aria-pressed:border-[#2b5bc4] text-left transition-colors"
+            class="cat-chip hskf-btn group flex flex-row sm:flex-col items-center sm:items-start justify-between gap-2 sm:gap-3 sm:min-h-[92px] px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-xl border-2 bg-secondary border-border hover:border-borderHover aria-pressed:bg-[#2b5bc4] aria-pressed:border-[#2b5bc4] text-left transition-colors"
           >
-            <span class="flex items-center gap-2 text-[15px] font-semibold text-white">
+            <span class="flex items-center gap-2 text-sm sm:text-[15px] font-semibold text-white min-w-0">
               <span class="w-3 h-3 shrink-0 rounded-[4px] group-aria-pressed:ring-2 group-aria-pressed:ring-white/80" style={`background:${c.style.tile}`}></span>
               {c.label}
             </span>
-            <span class="font-mono text-xs text-text-secondary group-aria-pressed:text-white">{c.count} posts</span>
+            <span class="font-mono text-xs text-text-secondary group-aria-pressed:text-white shrink-0">{c.count}<span class="hidden sm:inline"> posts</span></span>
           </button>
         ))}
       </div>
@@ -78,12 +85,27 @@ const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String
         <input id="filterInput" type="search" placeholder="제목, 카테고리, 태그로 찾기" aria-label="글 찾기" class="flex-1 min-w-0 bg-transparent border-0 outline-none text-text-primary placeholder:text-text-muted" />
         <span id="matchCount" class="font-mono text-[11px] text-text-muted"></span>
       </label>
-      <div class="flex flex-wrap gap-1.5" id="catChips">
+      <div class="flex sm:flex-wrap gap-1.5 overflow-x-auto sm:overflow-visible -mx-2.5 px-2.5 sm:mx-0 sm:px-0 [scrollbar-width:none] [&>*]:shrink-0 [&>*]:whitespace-nowrap" id="catChips">
         <button type="button" data-cat="" aria-pressed="true" class="cat-chip h-[26px] px-2.5 rounded-full text-xs border border-transparent bg-accent text-white">전체 {posts.length}</button>
+        <!-- 칩이 없는 카테고리(?cat=)로 거를 때 표시, 누르면 해제 -->
+        <button type="button" id="catActive" class="hidden h-[26px] px-2.5 rounded-full text-xs bg-accent text-white items-center"></button>
         {topCats.map(([c, n]) => (
           <button type="button" data-cat={c} aria-pressed="false" class="cat-chip h-[26px] px-2.5 rounded-full text-xs border border-border text-text-body hover:border-borderHover">{c} {n}</button>
         ))}
       </div>
+      <!-- 태그: 접어 두고, 고른 태그는 위에 따로 표시 -->
+      <details id="tagBox" class="group/tags">
+        <summary class="list-none cursor-pointer inline-flex items-center gap-1.5 h-[26px] font-mono text-xs text-text-secondary hover:text-text-primary">
+          <Icon name="chevron-right" size={12} class="transition-transform group-open/tags:rotate-90" />
+          태그 <span class="text-text-faint">{allTags.length}</span>
+          <span id="tagActive" class="hidden ml-1 items-center gap-1 h-[22px] px-2 rounded-full bg-accent text-white"></span>
+        </summary>
+        <div class="flex flex-wrap gap-1.5 pt-2" id="tagChips">
+          {allTags.map(([t, n]) => (
+            <button type="button" data-tag={t} aria-pressed="false" class="tag-chip h-[24px] px-2 rounded-full font-mono text-[11px] border border-border text-text-body hover:border-borderHover aria-pressed:bg-accent aria-pressed:border-transparent aria-pressed:text-white">#{t} <span class="opacity-60">{n}</span></button>
+          ))}
+        </div>
+      </details>
     </div>
 
     <!-- Private posts (토큰이 있을 때만 채워짐) -->
@@ -106,15 +128,20 @@ const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String
             <a
               href={`/blog/${p.id}`}
               class="post-row grid grid-cols-[52px_minmax(0,1fr)] sm:grid-cols-[64px_minmax(0,1fr)_auto] gap-x-4 gap-y-1 items-center px-2.5 py-2.5 rounded-md hover:bg-accent/15 transition-colors"
-              data-search={`${p.title} ${p.cats.map(catLabel).join(' ')} ${p.tags.join(' ')}`.toLowerCase()}
+              data-search={searchKey(p)}
               data-cats={JSON.stringify(p.cats)}
+              data-tags={JSON.stringify(p.tags)}
             >
               <span class="font-mono text-xs text-text-secondary">{mmdd(p.date)}</span>
-              <span class="text-sm font-medium text-text-primary truncate">{p.title}</span>
-              <span class="col-start-2 sm:col-start-auto flex gap-1.5 font-mono text-[11px] min-w-0">
+              <span class="text-sm font-medium text-text-primary line-clamp-2 sm:truncate">{p.title}</span>
+              <span class="col-start-2 sm:col-start-auto flex flex-wrap md:flex-nowrap items-center gap-1.5 font-mono text-[11px] min-w-0">
                 {p.shown[0] && <span class="px-1.5 py-0.5 rounded whitespace-nowrap" style={`background:${p.style.chipBg};color:${p.style.chipText}`}>{catLabel(p.shown[0])}</span>}
                 {p.shown[1] && <span class="px-1.5 py-0.5 rounded whitespace-nowrap bg-secondary text-text-body hidden sm:inline">{catLabel(p.shown[1])}</span>}
-                {p.tags.length > 0 && <span class="py-0.5 text-text-secondary truncate hidden md:inline">{p.tags.slice(0, 2).map((t) => `#${t}`).join(' ')}</span>}
+                {p.tags.length > 0 && (
+                  <span class="flex flex-wrap md:flex-nowrap gap-x-1.5 min-w-0 md:overflow-hidden whitespace-nowrap py-0.5 text-text-secondary">
+                    {p.tags.map((t) => <span class="row-tag shrink-0 rounded-sm hover:text-accent hover:underline underline-offset-2 focus-visible:outline focus-visible:outline-1 focus-visible:outline-accent" role="button" tabindex="0" data-tag={t} title={`#${t} 글만 보기`}>#{t}</span>)}
+                  </span>
+                )}
               </span>
             </a>
           ))}
@@ -134,7 +161,17 @@ const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String
   const matchCount = document.getElementById('matchCount')!;
   const noMatch = document.getElementById('noMatch')!;
   const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('.cat-chip'));
+  const tagChips = Array.from(document.querySelectorAll<HTMLButtonElement>('.tag-chip'));
+  const tagActive = document.getElementById('tagActive')!;
+  const catActive = document.getElementById('catActive')!;
+  const filterBox = document.getElementById('filter')!;
+  const privateCount = document.getElementById('privateCount')!;
+  // 검색 중에 연 연도는 검색을 지우면 처음 상태(최근 2년만 펼침)로 되돌림
+  document.querySelectorAll<HTMLDetailsElement>('.year-group').forEach((g) => (g.dataset.defaultOpen = String(g.open)));
+  const norm = (s: string) => s.trim().toLowerCase().replace(/^#/, '').replace(/[_\s]+/g, ' ');
   let activeCat = '';
+  let activeTag = '';
+  let wasFiltering = false;
 
   const ACTIVE = ['bg-accent', 'text-white', 'border-transparent'];
   const IDLE = ['border-border', 'text-text-body', 'hover:border-borderHover'];
@@ -149,36 +186,63 @@ const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String
       c.classList.remove(...(on ? IDLE : ACTIVE));
       c.classList.add(...(on ? ACTIVE : IDLE));
     });
-    const url = new URL(location.href);
-    if (cat) url.searchParams.set('cat', cat); else url.searchParams.delete('cat');
-    const q = input.value.trim();
-    if (q) url.searchParams.set('q', q); else url.searchParams.delete('q');
-    history.replaceState(null, '', url);
+    const known = chips.some((c) => (c.dataset.cat || '') === cat);
+    catActive.textContent = cat && !known ? `${catLabel(cat)} ✕` : '';
+    catActive.classList.toggle('hidden', !cat || known);
+    catActive.classList.toggle('inline-flex', !!cat && !known);
+    // 모바일에서는 칩 줄이 가로 스크롤이라, 고른 칩이 보이게 옮김
+    const on = cat && (known ? chips.find((c) => (c.dataset.cat || '') === cat && !c.classList.contains('hskf-btn')) : catActive);
+    if (on) on.parentElement!.scrollLeft = on.offsetLeft - on.parentElement!.offsetLeft - 16;
+    syncUrl();
     apply();
   }
 
+  function selectTag(tag: string) {
+    activeTag = tag;
+    tagChips.forEach((c) => c.setAttribute('aria-pressed', c.dataset.tag === tag ? 'true' : 'false'));
+    tagActive.textContent = tag ? `#${tag} ✕` : '';
+    tagActive.classList.toggle('hidden', !tag);
+    tagActive.classList.toggle('inline-flex', !!tag);
+    syncUrl();
+    apply();
+  }
+
+  function syncUrl() {
+    const url = new URL(location.href);
+    const set = (k: string, v: string) => (v ? url.searchParams.set(k, v) : url.searchParams.delete(k));
+    set('cat', activeCat);
+    set('tag', activeTag);
+    set('q', input.value.trim());
+    history.replaceState(null, '', url);
+  }
+
   function apply() {
-    const q = input.value.trim().toLowerCase();
-    const filtering = q !== '' || activeCat !== '';
+    const q = norm(input.value);
+    const filtering = q !== '' || activeCat !== '' || activeTag !== '';
     let total = 0;
     document.querySelectorAll<HTMLElement>('.year-group, #privateGroup').forEach((group) => {
       let visible = 0;
       group.querySelectorAll<HTMLElement>('.post-row').forEach((row) => {
         const cats: string[] = JSON.parse(row.dataset.cats || '[]');
-        const ok = (!q || (row.dataset.search || '').includes(q)) && (!activeCat || cats.includes(activeCat));
+        const tags: string[] = JSON.parse(row.dataset.tags || '[]');
+        const ok = (!q || (row.dataset.search || '').includes(q)) && (!activeCat || cats.includes(activeCat)) && (!activeTag || tags.includes(activeTag));
         row.style.display = ok ? '' : 'none';
         if (ok) visible++;
       });
       total += visible;
       if (group.id === 'privateGroup') {
         if (group.dataset.loaded) group.style.display = visible ? '' : 'none';
+        privateCount.textContent = group.dataset.loaded ? `· ${visible}` : '';
         return;
       }
       group.style.display = visible ? '' : 'none';
       const count = group.querySelector('.year-count');
       if (count) count.textContent = String(visible);
-      if (filtering && visible) (group as HTMLDetailsElement).open = true;
+      const details = group as HTMLDetailsElement;
+      if (filtering) { if (visible) details.open = true; }
+      else if (wasFiltering) details.open = details.dataset.defaultOpen === 'true'; // 필터를 막 풀었을 때만 (직접 연 연도는 그대로)
     });
+    wasFiltering = filtering;
     matchCount.textContent = filtering ? `${total} matches` : '';
     noMatch.classList.toggle('hidden', total > 0);
   }
@@ -190,16 +254,44 @@ const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String
       selectCat(chip.classList.contains('hskf-btn') && cat === activeCat ? '' : cat);
     });
   });
-  input.addEventListener('input', apply);
+  // 이미 고른 태그를 다시 누르면 해제
+  tagChips.forEach((chip) => chip.addEventListener('click', () => selectTag(chip.dataset.tag === activeTag ? '' : chip.dataset.tag || '')));
+  // 접힌 상태에서도 고른 태그 표시를 누르면 해제 (summary 토글은 막음)
+  tagActive.addEventListener('click', (e) => { e.preventDefault(); selectTag(''); });
+  catActive.addEventListener('click', () => selectCat(''));
+  // 글 줄의 태그를 누르면(키보드는 Enter·Space) 글을 열지 않고 그 태그로 거름
+  const rowTag = (e: Event) => {
+    const t = (e.target as HTMLElement).closest<HTMLElement>('.row-tag');
+    if (!t) return;
+    e.preventDefault();
+    e.stopPropagation();
+    selectTag(t.dataset.tag || '');
+    filterBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  document.addEventListener('click', rowTag);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') rowTag(e); });
+  input.addEventListener('input', () => { syncUrl(); apply(); });
 
   const params = new URLSearchParams(location.search);
   const q = params.get('q');
   if (q) input.value = q;
   // 칩이 없는 카테고리(상위 10개 밖)도 ?cat= 으로 거를 수 있음
   const cat = params.get('cat');
+  const tag = params.get('tag');
+  if (tag) selectTag(tag);
   if (cat) selectCat(cat);
-  else if (q) apply();
-  if (location.hash === '#filter') input.focus();
+  else apply(); // 뒤로 가기로 돌아오면 브라우저가 입력칸 글자만 되살리므로 항상 다시 거름
+  // 헤더의 검색 버튼(모바일)으로 왔을 때 바로 입력할 수 있게. 해시 이동 스크롤이 끝난 뒤에 포커스
+  // 이미 글 목록에 있을 때 헤더 검색 버튼: 새로 불러오지 않고(필터 유지) 바로 입력칸으로
+  document.querySelectorAll<HTMLAnchorElement>('a[href="/blog#filter"]').forEach((a) => a.addEventListener('click', (e) => {
+    e.preventDefault();
+    filterBox.scrollIntoView({ block: 'start' });
+    input.focus({ preventScroll: true });
+  }));
+  if (location.hash === '#filter') {
+    const f = () => setTimeout(() => input.focus({ preventScroll: true }), 0);
+    if (document.readyState === 'complete') f(); else addEventListener('load', f, { once: true });
+  }
 
   // 비밀글: 토큰이 있는 브라우저에서만 비공개 저장소에서 불러옵니다
   const pat = getPat();
@@ -208,18 +300,18 @@ const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String
       if (!list || list.length === 0) return;
       const group = document.getElementById('privateGroup')!;
       const rows = document.getElementById('privateRows')!;
-      document.getElementById('privateCount')!.textContent = `· ${list.length}`;
       for (const p of list) {
         const a = document.createElement('a');
         a.href = `/secret?id=${encodeURIComponent(p.id)}`;
         a.className = 'post-row grid grid-cols-[52px_minmax(0,1fr)] sm:grid-cols-[64px_minmax(0,1fr)_auto] gap-x-4 gap-y-1 items-center px-2.5 py-2.5 rounded-md hover:bg-accent/15 transition-colors';
-        a.dataset.search = `${p.title} ${p.categories.map(catLabel).join(' ')} ${p.tags.join(' ')}`.toLowerCase();
+        a.dataset.search = `${p.title} ${p.categories.map(catLabel).join(' ')} ${p.tags.join(' ')}`.toLowerCase().replace(/_/g, ' ');
         a.dataset.cats = JSON.stringify(p.categories);
+        a.dataset.tags = JSON.stringify(p.tags);
         const d = document.createElement('span');
         d.className = 'font-mono text-xs text-text-secondary';
         d.textContent = p.date.slice(5);
         const t = document.createElement('span');
-        t.className = 'text-sm font-medium text-text-primary truncate';
+        t.className = 'text-sm font-medium text-text-primary line-clamp-2 sm:truncate';
         t.textContent = p.title;
         const c = document.createElement('span');
         c.className = 'col-start-2 sm:col-start-auto flex gap-1.5 font-mono text-[11px]';

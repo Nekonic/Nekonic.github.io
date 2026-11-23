@@ -1,6 +1,3 @@
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -64,7 +61,6 @@
 .article-content h2 {
   font-size: 1.4rem;
   color: #ffffff;
-  scroll-margin-top: 4rem;
 }
 .article-content h2::before {
   content: '## ';
@@ -73,7 +69,8 @@
   font-weight: 500;
   color: #6f737a;
 }
-.article-content h3 { scroll-margin-top: 4rem; }
+/* 목차로 이동할 때 위쪽 고정 바에 가리지 않게 (모든 제목 단계) */
+.article-content :is(h1, h2, h3, h4, h5, h6) { scroll-margin-top: 4rem; }
 .article-content h3::before {
   content: '### ';
   @apply font-mono;
@@ -91,6 +88,7 @@
 
 .article-content a {
   color: #56a8f5;
+  overflow-wrap: anywhere; /* 긴 주소가 모바일에서 페이지를 넓히지 않게 */
   text-decoration: underline;
   text-underline-offset: 3px;
   transition: color 0.15s ease-in-out;
@@ -327,16 +325,23 @@
   margin: 2rem 0;
 }
 
-/* IntelliJ Grid Tables */
+/* IntelliJ Grid Tables: 표는 .table-wrap(enhance-article.ts가 감쌈) 안에서 가로 스크롤, 페이지는 넓어지지 않음 */
+.article-content .table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  border-radius: 8px;
+  border: 1px solid #393b40;
+}
 .article-content table {
   width: 100%;
   border-collapse: collapse;
-  margin: 1.5rem 0;
   font-size: 0.92rem;
   background-color: #1e1f22;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid #393b40;
+}
+.article-content .table-wrap > table th,
+.article-content .table-wrap > table td {
+  word-break: keep-all;
 }
 
 .article-content th, .article-content td {

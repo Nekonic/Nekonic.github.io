@@ -4,19 +4,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 <BaseLayout title="Memos" description="Private memos">
   <div class="max-w-4xl mx-auto py-6">
-    <div class="flex justify-between items-center mb-8 pb-4 border-b border-border/70">
-      <div>
-        <div class="flex items-center gap-2 mb-1">
+    <div class="flex justify-between items-center gap-4 mb-8 pb-4 border-b border-border/70">
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-2 mb-1">
           <h1 class="text-xl lg:text-2xl font-bold text-white tracking-tight">Private Memos</h1>
-          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary border border-border text-accent">
-            Encrypted & Private
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary border border-border text-accent whitespace-nowrap">
+            Private
           </span>
         </div>
-        <p class="text-xs font-mono text-text-muted">비공개 저장소(Nekonic.github.io.data)에만 안전하게 보관되는 개인 메모장</p>
+        <p class="text-xs font-mono text-text-muted break-keep">비공개 저장소(Nekonic.github.io.data)에만 안전하게 보관되는 개인 메모장</p>
       </div>
       <button 
         id="newMemoBtn" 
-        class="hidden items-center gap-1.5 px-3.5 py-1.5 bg-accent hover:bg-accent-hover text-white rounded-md text-xs font-semibold tracking-wide transition-colors shadow-xs"
+        class="hidden items-center gap-1.5 whitespace-nowrap shrink-0 px-3.5 py-1.5 bg-accent hover:bg-accent-hover text-white rounded-md text-xs font-semibold tracking-wide transition-colors shadow-xs"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
         새 메모 작성
@@ -128,14 +128,26 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
   });
 
+  // 토큰 입력칸에서 Enter로 바로 저장
+  patInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); saveAuthBtn.click(); }
+  });
+
   newMemoBtn.addEventListener('click', function() {
     memoModal.classList.remove('hidden');
     memoTitleInput.value = '';
     memoContentInput.value = '';
+    memoTitleInput.focus();
   });
 
-  closeModalBtn.addEventListener('click', function() { memoModal.classList.add('hidden'); });
-  cancelMemoBtn.addEventListener('click', function() { memoModal.classList.add('hidden'); });
+  function closeModal() { memoModal.classList.add('hidden'); newMemoBtn.focus(); }
+  closeModalBtn.addEventListener('click', closeModal);
+  cancelMemoBtn.addEventListener('click', closeModal);
+  // 바깥(어두운 배경)을 누르거나 Esc로 닫기
+  memoModal.addEventListener('click', function(e) { if (e.target === memoModal) closeModal(); });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !memoModal.classList.contains('hidden')) closeModal();
+  });
 
   async function fetchMemos() {
     var pat = getPat();
@@ -186,15 +198,23 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         if (fmMatch) {
           var fm = fmMatch[1];
           body = fmMatch[2].trim();
-          var titleMatch = fm.match(/title:\s*["']?(.*?)["']?$/m);
+          var titleMatch = fm.match(/title:\s*(.*)$/m);
           var dateMatch = fm.match(/date:\s*["']?(.*?)["']?$/m);
-          if (titleMatch) title = titleMatch[1].trim();
+          if (titleMatch) {
+            // 저장할 때 JSON 문자열로 넣으므로 그대로 풀고, 예전 메모("..." 그대로)는 따옴표만 벗김
+            var raw = titleMatch[1].trim();
+            try { title = raw.charAt(0) === '"' ? JSON.parse(raw) : raw; } catch (_) { title = raw.replace(/^["']|["']$/g, ''); }
+          }
           if (dateMatch) date = dateMatch[1].trim().substring(0, 10);
         }
 
         var el = document.createElement('div');
         el.className = 'bg-card border border-border rounded-lg p-5 flex flex-col justify-between hover:border-borderHover transition-all';
-        el.innerHTML = '<div><div class="flex items-center justify-between mb-2"><h3 class="text-base font-semibold text-text-primary tracking-tight">' + title + '</h3>' + (date ? '<span class="text-[11px] font-mono text-text-muted">' + date + '</span>' : '') + '</div><div class="text-text-secondary text-xs font-mono leading-relaxed line-clamp-4 whitespace-pre-wrap">' + body.substring(0, 240) + '</div></div>';
+        // 틀만 HTML로 만들고 글자는 textContent로 넣음 (메모 속 <, > 가 태그로 해석되지 않게)
+        el.innerHTML = '<div><div class="flex items-center justify-between mb-2"><h3 class="text-base font-semibold text-text-primary tracking-tight"></h3><span class="text-[11px] font-mono text-text-muted"></span></div><div class="text-text-secondary text-xs font-mono leading-relaxed line-clamp-4 whitespace-pre-wrap"></div></div>';
+        el.querySelector('h3').textContent = title;
+        el.querySelector('span').textContent = date;
+        el.querySelector('.whitespace-pre-wrap').textContent = body.substring(0, 240);
         grid.appendChild(el);
       }
     } catch (e) {
@@ -216,7 +236,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     var pad = function(n) { return n.toString().padStart(2, '0'); };
     var dateStr = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate());
     var filename = dateStr + '-' + title.toLowerCase().replace(/[^a-z0-9가-힣]+/g, '-') + '.md';
-    var fileContent = '---\ntitle: "' + title + '"\ndate: ' + now.toISOString() + '\n---\n' + content;
+    var fileContent = '---\ntitle: ' + JSON.stringify(title) + '\ndate: ' + now.toISOString() + '\n---\n' + content;
 
     try {
       var response = await fetch('https://api.github.com/repos/' + REPO + '/contents/' + MEMO_PATH + '/' + filename, {
@@ -225,7 +245,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         body: JSON.stringify({ message: 'memo: ' + title, content: btoa(unescape(encodeURIComponent(fileContent))) })
       });
       if (response.ok) { 
-        memoModal.classList.add('hidden'); 
+        closeModal(); 
         fetchMemos(); 
       } else { 
         alert('저장에 실패했습니다.'); 

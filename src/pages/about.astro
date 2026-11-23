@@ -105,10 +105,10 @@ const years = [...new Set(items.map((t) => t.year))];
             <h2 class="text-base font-bold text-white">Timeline</h2>
             <span class="text-xs text-text-muted">{items.length} commits</span>
           </div>
-          <div id="tlTabs" role="tablist" class="flex max-w-full overflow-x-auto gap-0.5 p-[3px] rounded-[9px] bg-primary border border-border/60">
+          <div id="tlTabs" role="group" aria-label="연도" class="flex flex-wrap sm:flex-nowrap max-w-full gap-1 sm:gap-0.5 p-[3px] rounded-[9px] bg-primary border border-border/60">
             {['전체', ...years].map((y, i) => (
-              <button type="button" role="tab" data-year={i ? y : ''} aria-selected={i === 0 ? 'true' : 'false'}
-                class="shrink-0 px-2 sm:px-2.5 py-1 rounded-md text-xs tabular-nums text-text-secondary hover:text-text-primary aria-selected:bg-accent aria-selected:text-white aria-selected:shadow-[0_1px_6px_#3574f055]">{y}</button>
+              <button type="button" data-year={i ? y : ''} aria-pressed={i === 0 ? 'true' : 'false'}
+                class="shrink-0 px-2.5 py-2 sm:py-1 rounded-md text-xs tabular-nums text-text-secondary hover:text-text-primary aria-pressed:bg-accent aria-pressed:text-white aria-pressed:shadow-[0_1px_6px_#3574f055]">{y}</button>
             ))}
           </div>
         </div>
@@ -288,12 +288,16 @@ const years = [...new Set(items.map((t) => t.year))];
     if (!g) return;
     // 마우스에서만 강조 (터치는 떼는 이벤트가 없어 강조가 남음)
     li.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') { focus = g; draw(); } });
-    li.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') { focus = null; draw(); } });
+    // 키보드로 행의 링크에 왔을 때도 같은 강조 (마우스 클릭으로 생긴 포커스는 제외)
+    const kbFocused = () => !!li.querySelector(':focus-visible');
+    li.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse' && !kbFocused()) { focus = null; draw(); } });
+    li.addEventListener('focusin', () => { if (kbFocused()) { focus = g; draw(); } });
+    li.addEventListener('focusout', (e) => { if (!li.contains(e.relatedTarget as Node)) { focus = null; draw(); } });
   });
 
   tabs.forEach((tab) => tab.addEventListener('click', () => {
     const year = tab.dataset.year;
-    tabs.forEach((t) => t.setAttribute('aria-selected', String(t === tab)));
+    tabs.forEach((t) => t.setAttribute('aria-pressed', String(t === tab)));
     // 연도 하나만 볼 때는 연도 제목도 숨깁니다 (탭에 이미 보임). hidden 속성은 flex 클래스에 덮여서 클래스로 숨깁니다
     allLis.forEach((r) => r.classList.toggle('hidden', !!year && (r.dataset.year !== year || r.hasAttribute('data-head'))));
     draw();

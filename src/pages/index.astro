@@ -35,8 +35,12 @@ try {
     .slice(0, 3);
 } catch {}
 
-const fmtTweetDate = (d?: Date) =>
-  d ? d.toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Seoul' }) : '';
+// "11.09 11:48" (글 목록의 MM.DD 형식에 맞춤)
+const fmtTweetDate = (d?: Date) => {
+  if (!d) return '';
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Seoul', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(d).map((x) => [x.type, x.value]));
+  return `${p.month}.${p.day} ${p.hour}:${p.minute}`;
+};
 
 const techStack = ['C++', 'Rust', 'Algorithms', 'Arch Linux', 'Networking', 'Reverse Eng.'];
 ---
@@ -50,8 +54,8 @@ const techStack = ['C++', 'Rust', 'Algorithms', 'Arch Linux', 'Networking', 'Rev
         <span class="w-16 h-16 shrink-0 rounded-[14px] bg-accent text-white font-mono text-2xl font-semibold flex items-center justify-center">NK</span>
         <div class="flex flex-col gap-1 min-w-0">
           <h1 class="text-3xl font-bold tracking-tight text-white">Nekonic</h1>
-          <p class="font-mono text-[13px] text-text-secondary">
-            <span class="text-syntax-keyword">auto</span> <span class="text-text-primary">nekonic</span> = [](<span class="text-syntax-keyword">auto</span>&amp;&amp; <span class="text-text-primary">problem</span>) {'{'} <span class="text-syntax-keyword">return</span> <span class="text-syntax-func">dig</span>(<span class="text-text-primary">problem</span>); {'}'};
+          <p class="font-mono text-[12px] sm:text-[13px] text-text-secondary">
+            <span class="inline-block whitespace-nowrap"><span class="text-syntax-keyword">auto</span> <span class="text-text-primary">nekonic</span> =</span> <span class="inline-block whitespace-nowrap">[](<span class="text-syntax-keyword">auto</span>&amp;&amp; <span class="text-text-primary">problem</span>)</span> <span class="inline-block whitespace-nowrap">{'{'} <span class="text-syntax-keyword">return</span> <span class="text-syntax-func">dig</span>(<span class="text-text-primary">problem</span>); {'}'};</span>
           </p>
         </div>
       </div>
