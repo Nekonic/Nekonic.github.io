@@ -44,47 +44,46 @@
   color: #dfe1e5;
   font-size: 1.05rem;
   line-height: 1.8;
+  /* 한글은 띄어쓰기 단위로만 줄바꿈 (단어 중간에서 끊기지 않게) */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
+.article-content pre, .article-content pre code { word-break: normal; overflow-wrap: normal; }
+.article-content :is(p, li) { text-wrap: pretty; }
 
+/* 글 읽는 줄은 한 줄 40자 안팎(약 640px)으로. 이미지·표·코드는 본문 폭 그대로 */
+.article-content > :is(p, ul, ol, blockquote, h1, h2, h3, h4) { max-width: 38em; }
+.article-content > :is(p, ul, ol):has(img) { max-width: none; } /* 이미지가 든 문단은 본문 폭 그대로 */
+
+/* 제목: 본문의 약 1.1~1.6배, 순백 대신 살짝 낮춘 흰색. 바로 이어지는 하위 제목은 붙여서 */
 .article-content h1,
 .article-content h2,
 .article-content h3,
 .article-content h4 {
-  color: #ffffff;
+  color: #ebedf0;
   font-weight: 700;
+  line-height: 1.4;
   margin-top: 2.25rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.6em;
   letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 
-.article-content h1 { font-size: 2rem; }
-.article-content h2 {
-  font-size: 1.4rem;
-  color: #ffffff;
-}
-.article-content h2::before {
-  content: '## ';
-  @apply font-mono;
-  font-size: 0.75em;
-  font-weight: 500;
-  color: #6f737a;
-}
+.article-content h1 { font-size: 1.7rem; margin-top: 3rem; }
+.article-content h2 { font-size: 1.45rem; margin-top: 2.5rem; }
+.article-content :is(h1, h2, h3, h4) + :is(h2, h3, h4) { margin-top: 0.75rem; }
 /* 목차로 이동할 때 위쪽 고정 바에 가리지 않게 (모든 제목 단계) */
 .article-content :is(h1, h2, h3, h4, h5, h6) { scroll-margin-top: 4rem; }
-.article-content h3::before {
-  content: '### ';
-  @apply font-mono;
-  font-size: 0.75em;
-  font-weight: 500;
-  color: #6f737a;
-}
-.article-content h3 { font-size: 1.2rem; color: #f0f2f5; }
+.article-content h3 { font-size: 1.2rem; margin-top: 2rem; color: #e3e5e8; letter-spacing: -0.01em; }
+.article-content h4 { font-size: 1.1rem; margin-top: 1.75rem; color: #e3e5e8; letter-spacing: -0.01em; }
 
+/* 문단 간격은 줄 간격보다 확실히 크게 (문장 줄바꿈과 문단 구분) */
 .article-content p {
-  margin-bottom: 1.25rem;
-  color: #bcbec4;
+  margin-bottom: 1.6em;
+  color: #cfd1d6;
 }
-.article-content strong { color: #dfe1e5; }
+.article-content td { color: #cfd1d6; }
+.article-content strong { color: #e8eaed; }
 
 .article-content a {
   color: #56a8f5;
@@ -100,7 +99,7 @@
 .article-content ul, .article-content ol {
   margin-left: 1.5rem;
   margin-bottom: 1.25rem;
-  color: #bcbec4;
+  color: #cfd1d6;
 }
 .article-content ul { list-style-type: disc; }
 .article-content ol { list-style-type: decimal; }
@@ -309,7 +308,7 @@
   border-left: 3px solid #4e5157;
   padding-left: 1rem;
   margin: 1.5rem 0;
-  color: #9da0a8;
+  color: #c3c5ca;
   background-color: #232427;
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
@@ -318,6 +317,9 @@
   border-right: 1px solid #2e3035;
   border-bottom: 1px solid #2e3035;
 }
+/* 인용문 안 문단은 인용문 색을 따르고, 마지막 문단 아래 여백은 없앰 (위아래 여백 맞춤) */
+.article-content blockquote p { color: inherit; margin-bottom: 0.75em; }
+.article-content blockquote > :last-child { margin-bottom: 0; }
 
 .article-content hr {
   border: 0;
@@ -354,8 +356,7 @@
   background-color: #2b2d30;
   color: #dfe1e5;
   font-weight: 600;
-  @apply font-mono;
-  font-size: 0.85rem;
+  font-size: 0.88rem; /* 한글 머리글은 본문 글꼴로 */
   border-bottom: 2px solid #393b40;
 }
 
