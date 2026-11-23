@@ -261,3 +261,13 @@ BPF는 2025년 SKT 해킹 사건에 쓰인 BPFDoor 때문에 많이 알려졌다
 이 논문을 읽으면서 인프라의 밑바닥에 있는 취약한 부분을 연구해 보고 싶어졌다.  
 보안 연구는 보통 웹이나 애플리케이션처럼 사용자에게 보이는 곳에 몰린다. 하지만 이 논문이 다룬 OVS처럼, 모든 VM의 트래픽이 지나가는데도 아무도 의심하지 않는 구성 요소가 있다. 가상 스위치, 커널 네트워크 스택, NIC 같은 곳은 성능을 위해 캐시와 공유 구조를 쓰고, 그 구조는 사용자가 볼 수도 바꿀 수도 없다. 이런 곳에서 생긴 취약점은 그 위에 올라간 모든 서비스에 영향을 준다.  
 그 첫 단계로 OpenStack의 컴포넌트 중 하나인 Nova의 소스코드를 직접 보면서 작동 원리를 분석해 보고 싶다. Nova는 VM을 만들고 하이퍼바이저와 연결하는 컴포넌트로, VM이 생성될 때 가상 NIC를 OVS에 연결하는 과정도 Nova를 거친다. 이 논문에서 본 OVS 아래의 세계가 실제로 어떻게 만들어지는지 코드 수준에서 따라가 보면, 인프라의 밑바닥에서 어디가 공유되고 어디가 약한지 더 잘 보일 것이라고 생각한다.
+
+
+## 참고 내용
+
+- 저자: Daewoo Kim, Sihang Liu (University of Waterloo)
+- 학회: USENIX Security '26 (pp. 6247–6265)
+- 링크: https://www.usenix.org/conference/usenixsecurity26/presentation/kim-daewoo
+- 발표자료: https://www.usenix.org/system/files/sec26_slides_kim-daewoo.pdf
+- 아티팩트: https://doi.org/10.5281/zenodo.17965902
+- arXiv: https://arxiv.org/abs/2601.15632
