@@ -115,39 +115,39 @@ const hasAside = Astro.slots.has('aside');
 <body class="bg-ground text-text-primary font-sans antialiased text-[13px]">
 <div class="min-h-screen flex flex-col pb-16 lg:pb-0">
 
-  <!-- Main toolbar -->
-  <header class="sticky top-0 z-40 h-11 bg-ground flex items-center gap-1.5 px-2.5">
-    <a href="/" class="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-secondary transition-colors">
+  <!-- Main toolbar: 프로젝트 색(파랑)이 왼쪽에서 은은하게 번지는 Islands 툴바 -->
+  <header class="toolbar sticky top-0 z-40 h-11 flex items-center gap-1.5 px-2.5">
+    <a href="/" class="flex items-center gap-2 h-7 pl-1 pr-2 rounded-md hover:bg-frameHover transition-colors">
       <span class="w-5 h-5 rounded-[5px] bg-accent text-white font-mono text-[10px] font-semibold flex items-center justify-center">NK</span>
       <span class="font-semibold text-text-primary"><span class="hidden sm:inline">nekonic.github.io</span><span class="sm:hidden">nekonic</span></span>
     </a>
-    <span class="hidden md:flex items-center gap-1.5 px-2 py-1 text-text-secondary">
+    <span class="hidden md:flex items-center gap-1.5 h-7 px-2 text-text-secondary">
       <Icon name="branch" size={14} />
       <span>main</span>
     </span>
 
     <div class="flex-1"></div>
 
-    <form action="/blog" method="get" role="search" class="hidden md:flex items-center gap-2 h-7 w-72 px-2.5 bg-primary border border-borderSubtle rounded-md text-text-muted focus-within:border-accent transition-colors">
+    <form action="/blog" method="get" role="search" class="hidden md:flex items-center gap-2 h-7 w-72 px-2.5 bg-primary border border-border/60 rounded-md text-text-muted focus-within:border-accent transition-colors">
       <Icon name="search" size={14} />
       <input id="globalSearch" type="search" name="q" placeholder="Search Everywhere" aria-label="글 검색" class="flex-1 min-w-0 bg-transparent border-0 outline-none text-text-primary placeholder:text-text-muted" />
       <kbd class="font-mono text-[11px] text-text-muted">⇧⇧</kbd>
     </form>
-    <a href="/blog#filter" aria-label="글 검색" class="md:hidden w-10 h-10 flex items-center justify-center rounded-md text-text-secondary hover:bg-secondary">
+    <a href="/blog#filter" aria-label="글 검색" class="md:hidden w-10 h-10 flex items-center justify-center rounded-md text-text-secondary hover:bg-frameHover">
       <Icon name="search" />
     </a>
 
     <div class="hidden md:block flex-1"></div>
 
-    <a href="/write" class="hidden sm:flex items-center gap-1.5 h-7 px-2.5 rounded-md bg-secondary hover:bg-border text-text-primary transition-colors">
+    <a href="/write" class="hidden sm:flex items-center gap-1.5 h-7 px-2.5 rounded-md text-text-primary hover:bg-frameHover transition-colors">
       <Icon name="play" size={12} />
-      <span>새 포스트</span>
+      <span>New Post</span>
     </a>
-    <a href="/compose" class="hidden md:flex items-center gap-1.5 h-7 px-2.5 rounded-md text-text-secondary hover:bg-secondary hover:text-text-primary transition-colors">
+    <a href="/compose" class="hidden md:flex items-center gap-1.5 h-7 px-2.5 rounded-md text-text-secondary hover:bg-frameHover hover:text-text-primary transition-colors">
       <Icon name="plus" size={14} />
-      <span>트윗</span>
+      <span>Tweet</span>
     </a>
-    <a href="https://github.com/Nekonic" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="w-8 h-7 flex items-center justify-center rounded-md text-text-secondary hover:bg-secondary hover:text-text-primary transition-colors">
+    <a href="https://github.com/Nekonic" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="w-8 h-7 flex items-center justify-center rounded-md text-text-secondary hover:bg-frameHover hover:text-text-primary transition-colors">
       <Icon name="github" />
     </a>
   </header>
@@ -163,13 +163,13 @@ const hasAside = Astro.slots.has('aside');
         aria-label="Project"
         title="Project"
         aria-controls="projectTree"
-        class="tree-toggle w-[30px] h-[30px] rounded-md flex items-center justify-center transition-colors text-text-secondary hover:bg-secondary hover:text-text-primary"
+        class="tree-toggle w-[30px] h-[30px] rounded-md flex items-center justify-center transition-colors text-text-secondary hover:bg-frameHover hover:text-text-primary"
       >
         <Icon name="folder" />
       </button>
       {navItems.filter((item) => item.href !== '/').map((item, i, items) => (
         <>
-          {i === items.length - 1 && <span class="w-5 h-px bg-borderSubtle my-1"></span>}
+          {i === items.length - 1 && <span class="w-5 h-px bg-border my-1"></span>}
           <a
             href={item.href}
             aria-label={item.label}
@@ -177,7 +177,7 @@ const hasAside = Astro.slots.has('aside');
             aria-current={isActive(item.href) ? 'page' : undefined}
             class:list={[
               "w-[30px] h-[30px] rounded-md flex items-center justify-center transition-colors",
-              isActive(item.href) ? "bg-accent/20 text-accent-soft" : "text-text-secondary hover:bg-secondary hover:text-text-primary",
+              isActive(item.href) ? "bg-frameActive text-white" : "text-text-secondary hover:bg-frameHover hover:text-text-primary",
             ]}
           >
             <Icon name={item.icon} />
@@ -217,7 +217,7 @@ const hasAside = Astro.slots.has('aside');
                     aria-current={pathname === `/blog/${p.id}` ? 'page' : undefined}
                     class:list={[
                       "flex items-center gap-1.5 pl-[70px] pr-1.5 rounded-md text-text-primary whitespace-nowrap overflow-hidden",
-                      pathname === `/blog/${p.id}` ? "bg-accent/15" : "hover:bg-secondary",
+                      pathname === `/blog/${p.id}` ? "bg-tab" : "hover:bg-secondary",
                     ]}
                   >
                     <Icon name="md" />
@@ -238,7 +238,7 @@ const hasAside = Astro.slots.has('aside');
             <span>memos</span>
             <Icon name="lock" size={11} class="text-text-muted" />
           </a>
-          <a href="/" class:list={["flex items-center gap-1.5 pl-[38px] pr-1.5 rounded-md text-text-primary", pathname === '/' ? 'bg-accent/15' : 'hover:bg-secondary']}>
+          <a href="/" class:list={["flex items-center gap-1.5 pl-[38px] pr-1.5 rounded-md text-text-primary", pathname === '/' ? 'bg-tab' : 'hover:bg-secondary']}>
             <Icon name="md" />
             <span>README.md</span>
           </a>
@@ -252,15 +252,17 @@ const hasAside = Astro.slots.has('aside');
 
     <!-- Editor island -->
     <main class="flex-1 min-w-0 bg-primary rounded-xl flex flex-col">
-      <div role="tablist" class="h-[38px] shrink-0 flex items-stretch px-1.5 border-b border-borderSubtle overflow-x-auto">
-        <span role="tab" aria-selected="true" class="flex items-center gap-1.5 px-3 text-text-primary shadow-[inset_0_-2px_0_#3574f0] whitespace-nowrap">
-          {tabIcon === 'md' ? <Icon name="md" /> : <Icon name={tabIcon} size={14} class="text-text-secondary" />}
+      <div role="tablist" class="h-10 shrink-0 flex items-center gap-1 px-1.5 overflow-x-auto">
+        <span role="tab" aria-selected="true" class="flex items-center gap-1.5 h-7 px-2.5 rounded-md bg-tab border border-tab-border text-white whitespace-nowrap">
+          {tabIcon === 'md' ? <Icon name="md" /> : <Icon name={tabIcon} size={14} class="text-accent-soft" />}
           <span id="editorTabName">{tab}</span>
         </span>
+        <span class="flex-1"></span>
+        <slot name="crumbs-end" />
       </div>
 
       {crumbItems.length > 0 && (
-        <div class="h-[30px] shrink-0 flex items-center gap-1.5 px-5 text-xs text-text-secondary border-b border-borderSubtle overflow-hidden whitespace-nowrap">
+        <div class="lg:hidden h-[30px] shrink-0 flex items-center gap-1.5 px-5 text-xs text-text-secondary border-y border-borderSubtle overflow-hidden whitespace-nowrap">
           {crumbItems.map((c, i) => (
             <>
               {i > 0 && <span aria-hidden="true">›</span>}
@@ -269,7 +271,6 @@ const hasAside = Astro.slots.has('aside');
                 : <span class:list={[i === crumbItems.length - 1 && "text-text-primary truncate"]}>{c.label}</span>}
             </>
           ))}
-          <slot name="crumbs-end" />
         </div>
       )}
 
@@ -293,12 +294,16 @@ const hasAside = Astro.slots.has('aside');
   </div>
 
   <!-- Status bar -->
-  <footer class="hidden lg:flex h-7 items-center gap-1 px-3 text-xs text-text-secondary whitespace-nowrap overflow-hidden">
-    <span>nekonic.github.io</span>
-    {crumbItems.map((c) => (
+  <footer class="hidden lg:flex h-7 items-center gap-1 px-2 text-xs text-text-secondary whitespace-nowrap overflow-hidden">
+    <a href="/" class="flex items-center gap-1.5 h-5 px-1.5 rounded hover:bg-frameHover hover:text-text-primary">
+      <Icon name="folder" size={13} />nekonic.github.io
+    </a>
+    {crumbItems.map((c, i) => (
       <>
         <span aria-hidden="true">›</span>
-        <span>{c.label}</span>
+        {c.href
+          ? <a href={c.href} class="h-5 flex items-center px-1 rounded hover:bg-frameHover hover:text-text-primary">{c.label}</a>
+          : <span class:list={["px-1", i === crumbItems.length - 1 && "text-text-primary"]}>{c.label}</span>}
       </>
     ))}
     <span class="flex-1"></span>
@@ -307,7 +312,7 @@ const hasAside = Astro.slots.has('aside');
   </footer>
 
   <!-- Mobile bottom stripe -->
-  <nav aria-label="사이트 메뉴" class="lg:hidden fixed bottom-0 inset-x-0 z-40 h-16 bg-primary border-t border-borderSubtle grid grid-cols-5">
+  <nav aria-label="사이트 메뉴" class="lg:hidden fixed bottom-0 inset-x-0 z-40 h-16 bg-ground grid grid-cols-5">
     {navItems.map((item) => (
       <a
         href={item.href}

@@ -96,7 +96,7 @@ const techStack = ['C++', 'Rust', 'Algorithms', 'Arch Linux', 'Networking', 'Rev
         </div>
 
         {recentPosts.map((p) => (
-          <a href={`/blog/${p.id}`} class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg hover:bg-accent/15 transition-colors">
+          <a href={`/blog/${p.id}`} class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg hover:bg-secondary transition-colors">
             <span class="w-8 h-8 shrink-0 rounded-[7px] text-white font-mono text-xs font-semibold flex items-center justify-center" style={`background:${p.style.tile}`}>{p.initials}</span>
             <span class="flex-1 min-w-0 flex flex-col gap-0.5">
               <span class="text-sm font-semibold text-text-primary truncate">{p.title}</span>
@@ -170,7 +170,7 @@ const techStack = ['C++', 'Rust', 'Algorithms', 'Arch Linux', 'Networking', 'Rev
       posts.slice(0, 3).forEach((p) => {
         const a = document.createElement('a');
         a.href = `/secret?id=${encodeURIComponent(p.id)}`;
-        a.className = 'flex items-center gap-3.5 px-3 py-2.5 rounded-lg hover:bg-accent/15 transition-colors';
+        a.className = 'flex items-center gap-3.5 px-3 py-2.5 rounded-lg hover:bg-secondary transition-colors';
         const tile = document.createElement('span');
         tile.className = 'w-8 h-8 shrink-0 rounded-[7px] bg-[#4e5157] text-white flex items-center justify-center';
         tile.innerHTML = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>';

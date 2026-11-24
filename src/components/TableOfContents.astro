@@ -79,7 +79,8 @@ const toc = headings.filter((h) => h.depth <= min + 3);
         current = id;
         links.forEach(function(link) {
           var on = link.getAttribute('data-slug') === id;
-          link.classList.toggle('bg-accent/15', on);
+          link.classList.toggle('bg-tab', on); // 프로젝트 트리·탭과 같은 선택 색
+          link.classList.toggle('hover:bg-secondary', !on); // 강조된 항목은 마우스를 올려도 파랑 유지
           link.classList.toggle('text-text-primary', on);
           var badge = link.querySelector('.toc-badge');
           if (badge) badge.classList.toggle('text-accent-soft', on);

@@ -62,14 +62,15 @@ export function toArray(value?: string | string[]): string[] {
 /**
  * 카테고리별 색상 (JetBrains 프로젝트 아이콘 스타일).
  * 같은 이름은 항상 같은 색이 나오도록 이름을 해시합니다.
+ * chipBg는 섬 바탕(#181a1c)에 tile 색을 18%만 섞은 값 (탁하지 않게).
  */
 const CATEGORY_PALETTE = [
-  { tile: '#b4582e', chipBg: '#3d2a1f', chipText: '#e8a27a' },
-  { tile: '#3b67b8', chipBg: '#1f2d45', chipText: '#8cb4f0' },
-  { tile: '#a23f5c', chipBg: '#3a1f29', chipText: '#e88aa6' },
-  { tile: '#6a55b0', chipBg: '#2a2443', chipText: '#b5a6ec' },
-  { tile: '#2f7a5e', chipBg: '#1d3329', chipText: '#7fcba4' },
-  { tile: '#7a6420', chipBg: '#33301a', chipText: '#d6c47a' },
+  { tile: '#d0703f', chipBg: '#392922', chipText: '#f0a77e' },
+  { tile: '#4a7fe0', chipBg: '#212c3f', chipText: '#93b8f5' },
+  { tile: '#c9567a', chipBg: '#38252d', chipText: '#f09ab4' },
+  { tile: '#8a6ad8', chipBg: '#2d283e', chipText: '#c2adf5' },
+  { tile: '#3f9a6e', chipBg: '#1f312b', chipText: '#86d4ac' },
+  { tile: '#b8952e', chipBg: '#35301f', chipText: '#e6cc7a' },
 ];
 
 /** 화면에 보일 이름: HSKF 분류는 접두어를 떼고 보여줍니다 */

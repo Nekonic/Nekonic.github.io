@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    background-color: #151618;
+    background-color: #24282c;
     color: #dfe1e5;
     font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
   }
@@ -25,12 +25,20 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #393b40;
+  background: #4a4d50;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #4e5157;
+  background: #5d5f62;
+}
+html { scrollbar-color: #4a4d50 transparent; }
+
+/* Islands 툴바: 프로젝트 색이 왼쪽에서 번짐 */
+.toolbar {
+  background:
+    radial-gradient(420px 120px at 40px 0, rgb(53 116 240 / 0.22), transparent 70%),
+    #24282c;
 }
 
 /* JetBrains Editor Selection */
@@ -108,7 +116,7 @@
 /* IntelliJ Darcula-style Code Blocks */
 .article-content pre {
   position: relative;
-  background-color: #191a1c !important;
+  background-color: #1e2023 !important;
   border: 1px solid #2b2d30;
   border-radius: 8px;
   padding: 1rem 1.25rem;
@@ -134,7 +142,7 @@
   margin-right: 0.25em;
   text-align: right;
   color: #6f737a;
-  background: #191a1c;
+  background: #1e2023;
   user-select: none;
 }
 
@@ -144,7 +152,7 @@
   border: 1px solid #2b2d30;
   border-radius: 8px;
   overflow: hidden;
-  background: #191a1c;
+  background: #1e2023;
 }
 .article-content .code-frame pre {
   margin: 0;
@@ -157,7 +165,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 0.5rem 0 0.75rem;
-  background: #232427;
+  background: #222528;
   border-bottom: 1px solid #2b2d30;
   @apply font-mono;
   font-size: 0.75rem;
@@ -180,7 +188,7 @@
   border: 1px solid #2b2d30;
   border-radius: 8px;
   overflow: hidden;
-  background: #191a1c;
+  background: #1e2023;
 }
 .article-content .pdf-frame-header {
   height: 2.25rem;
@@ -188,7 +196,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0 0.5rem 0 0.75rem;
-  background: #232427;
+  background: #222528;
   border-bottom: 1px solid #2b2d30;
   font-size: 0.75rem;
   color: #9da0a8;
@@ -247,7 +255,7 @@
   margin: 1.5rem 0;
   border: 1px solid #2b2d30;
   border-radius: 8px;
-  background: #191a1c;
+  background: #1e2023;
 }
 .article-content details > summary {
   cursor: pointer;
@@ -309,7 +317,7 @@
   padding-left: 1rem;
   margin: 1.5rem 0;
   color: #c3c5ca;
-  background-color: #232427;
+  background-color: #222528;
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
   border-radius: 0 6px 6px 0;
@@ -339,7 +347,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.92rem;
-  background-color: #1e1f22;
+  background-color: #1e2023;
 }
 .article-content .table-wrap > table th,
 .article-content .table-wrap > table td {
@@ -378,4 +386,4 @@
 @media (min-width: 1024px) {
   html[data-tree="open"] .project-tree { display: flex; }
 }
-html[data-tree="open"] .tree-toggle { background: rgb(53 116 240 / 0.2); color: #8cb4f0; }
+html[data-tree="open"] .tree-toggle { background: #484a4d; color: #fff; }
