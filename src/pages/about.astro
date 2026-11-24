@@ -220,50 +220,62 @@ const years = [...new Set(items.map((t) => t.year))];
     const halo = el('g', {}), lines = el('g', {}), nodes = el('g', {}), defs = el('defs', {});
     svg.append(defs, halo, el('line', { x1: X0, y1: 0, x2: X0, y2: h, stroke: MAIN, 'stroke-width': 3, 'stroke-linecap': 'round' }), lines, nodes);
 
-    // 브랜치: until이 있거나 다른 행사에서 쓰인 활동. 시작 행이 보일 때만 그림
-    type Br = { row: typeof rows[0]; end: number; merges: number[]; open: boolean; lane: number };
+    // 브랜치: until이 있거나 다른 행사에서 쓰인 활동.
+    // 연도 탭으로 일부만 보일 때도 이어지게: 시작이 아래(이전 해)에 있으면 아래 끝에서 올라오고,
+    // 끝이 위(다음 해)에 있으면 위 끝으로 흐려지며 이어짐
+    if (!rows.length) return;
+    const maxKey = rows[0].key, minKey = rows[rows.length - 1].key;
+    type Br = { li: HTMLElement; color: string; y0: number; fork: boolean; end: number; merges: number[]; open: boolean; lane: number };
     const branches: Br[] = [];
-    rows.forEach((row) => {
-      const until = row.li.dataset.until;
-      const users = row.li.hasAttribute('data-used') ? rows.filter((o) => o.li.dataset.uses === row.li.dataset.id) : [];
-      if (!until && !users.length) return;
-      let end: number, open = false, merges: number[] = [];
-      if (users.length) {
-        // 쓰인 행사마다 병합, 가장 최근 행사에서 끝남
-        merges = users.map((u) => u.y);
-        end = Math.min(...merges);
-      } else if (until === 'now') {
+    rowEls.forEach((li) => {
+      const until = li.dataset.until;
+      const allUsers = li.hasAttribute('data-used') ? rowEls.filter((o) => o.dataset.uses === li.dataset.id) : [];
+      if (!until && !allUsers.length) return;
+      const startKey = li.dataset.key!;
+      const endKey = allUsers.length ? allUsers.map((o) => o.dataset.key!).sort().at(-1)! : until === 'now' ? '9999' : until!;
+      if (endKey < minKey || startKey > maxKey) return; // 보이는 기간과 겹치지 않음
+      const self = rows.find((r) => r.li === li);
+      const y0 = self ? self.y : h;
+      let end: number, open = false;
+      const merges = rows.filter((r) => allUsers.includes(r.li)).map((r) => r.y);
+      if (endKey > maxKey) {
         end = 0; open = true;
+      } else if (allUsers.length) {
+        // 쓰인 행사마다 병합, 가장 최근 행사에서 끝남
+        end = Math.min(...merges);
       } else {
         // 끝난 날보다 이르거나 같은 첫 행의 바로 위
         const j = rows.findIndex((o) => o.key <= until!);
         end = j <= 0 ? 0 : (rows[j - 1].y + rows[j].y) / 2;
       }
-      branches.push({ row, end, merges, open, lane: 0 });
+      branches.push({ li, color: li.dataset.color!, y0, fork: !!self, end, merges, open, lane: 0 });
     });
     // 짧은 브랜치부터 안쪽 줄 (겹치지 않으면 같은 줄을 다시 씀)
-    [...branches].sort((a, b) => (a.row.y - a.end) - (b.row.y - b.end)).forEach((b, _, all) => {
+    [...branches].sort((a, b) => (a.y0 - a.end) - (b.y0 - b.end)).forEach((b, _, all) => {
       let lane = 1;
-      while (all.some((o) => o !== b && o.lane === lane && !(o.end > b.row.y + R || o.row.y + R < b.end))) lane++;
+      while (all.some((o) => o !== b && o.lane === lane && !(o.end > b.y0 + R || o.y0 + R < b.end))) lane++;
       b.lane = lane;
     });
 
     branches.forEach((b, k) => {
-      const x = X0 + LW * b.lane, y0 = b.row.y, y1 = b.end, c = b.row.color;
-      let d = `M${X0} ${y0} L${x - R} ${y0} Q${x} ${y0} ${x} ${y0 - R} L${x} `;
+      const x = X0 + LW * b.lane, y0 = b.y0, y1 = b.end, c = b.color;
+      let d = b.fork ? `M${X0} ${y0} L${x - R} ${y0} Q${x} ${y0} ${x} ${y0 - R} L${x} ` : `M${x} ${y0} L${x} `;
       d += b.open ? `${y1}` : `${y1 + R} Q${x} ${y1} ${x - R} ${y1} L${X0} ${y1}`;
       let stroke = c;
       if (b.open) {
-        const g = el('linearGradient', { id: 'tlf' + k, x1: 0, y1: y0, x2: 0, y2: 0, gradientUnits: 'userSpaceOnUse' });
-        g.append(el('stop', { offset: 0, 'stop-color': c }), el('stop', { offset: 0.6, 'stop-color': c }), el('stop', { offset: 1, 'stop-color': c, 'stop-opacity': 0 }));
+        // 진행 중인 줄은 보이는 자기 행(시작·하위 활동·병합)까지 진하게, 맨 위 짧은 구간(60px 이하)에서만 흐려짐
+        const own = rows.filter((r) => r.li.dataset.branch === b.li.dataset.id).map((r) => r.y);
+        const fadeFrom = Math.max(8, Math.min(60, y0, ...own, ...b.merges));
+        const g = el('linearGradient', { id: 'tlf' + k, x1: 0, y1: fadeFrom, x2: 0, y2: 0, gradientUnits: 'userSpaceOnUse' });
+        g.append(el('stop', { offset: 0, 'stop-color': c }), el('stop', { offset: 1, 'stop-color': c, 'stop-opacity': 0 }));
         defs.append(g);
         stroke = `url(#tlf${k})`;
       }
-      const op = dim(b.row.li);
+      const op = dim(b.li);
       halo.append(el('path', { d, fill: 'none', stroke: BG, 'stroke-width': 8, 'stroke-linejoin': 'round' }));
       lines.append(el('path', { d, fill: 'none', stroke, 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: op }));
       // 중간 병합 (마지막 병합은 위 경로에 포함)
-      b.merges.filter((y) => y !== y1).forEach((y) => {
+      b.merges.filter((y) => b.open || y !== y1).forEach((y) => {
         const m = `M${x} ${y + R} Q${x} ${y} ${x - R} ${y} L${X0} ${y}`;
         halo.append(el('path', { d: m, fill: 'none', stroke: BG, 'stroke-width': 8 }));
         lines.append(el('path', { d: m, fill: 'none', stroke: c, 'stroke-width': 3, 'stroke-linecap': 'round', opacity: op }));
@@ -273,7 +285,7 @@ const years = [...new Set(items.map((t) => t.year))];
 
     // 점: 브랜치 안의 활동(branch)은 그 브랜치 줄 위, 나머지는 메인 줄기 위
     rows.forEach((row) => {
-      const parent = row.li.dataset.branch ? branches.find((b) => b.row.li.dataset.id === row.li.dataset.branch) : undefined;
+      const parent = row.li.dataset.branch ? branches.find((b) => b.li.dataset.id === row.li.dataset.branch) : undefined;
       const x = parent ? X0 + LW * parent.lane : X0;
       const g = el('g', { opacity: dim(row.li) });
       g.append(el('circle', { cx: x, cy: row.y, r: 7, fill: row.color, stroke: BG, 'stroke-width': 3 }), el('circle', { cx: x, cy: row.y, r: 2.4, fill: BG, opacity: 0.55 }));
