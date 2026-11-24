@@ -34,7 +34,7 @@ const items = sorted.map((t) => {
   };
 });
 // 그래프: 메인 줄기(X0) + 기간 활동 브랜치 줄(LANE_W 간격)
-const X0 = 10, LANE_W = 16, GRAPH_W = X0 + LANE_W * 3 + 10;
+const X0 = 10, LANE_W = 16, GRAPH_W = X0 + LANE_W * 4 + 10; // 동시에 이어지는 기간 활동 최대 4개 (KUCIS·FSL·vibe·HSKF)
 const byId = new Map(items.filter((t) => t.id).map((t) => [t.id!, t]));
 const usedBy = (id?: string) => (id ? items.filter((t) => t.uses === id) : []);
 const years = [...new Set(items.map((t) => t.year))];
