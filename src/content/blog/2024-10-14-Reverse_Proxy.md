@@ -2,7 +2,7 @@
 layout: post
 title: 리버스 프록시(Reverse Proxy)
 categories: ["[HSKF]블로그/기술문서", "Network", "Security"]
-tags: ["reverse_proxy", "server", "hacking"]
+tags: ["reverse_proxy", "server", "cache_poisoning"]
 ---
 
 ## 1. 리버스 프록시란 무엇인가?

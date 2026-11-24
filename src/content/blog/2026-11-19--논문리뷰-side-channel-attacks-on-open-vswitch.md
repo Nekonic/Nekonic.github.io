@@ -1,8 +1,8 @@
 ---
 title: "[논문리뷰]Side-Channel Attacks on Open vSwitch"
 date: 2026-11-21
-categories: ["[HSKF]논문/컨퍼런스"]
-tags: ["cloud", "network"]
+categories: ["[HSKF]논문/컨퍼런스", "Security", "Network"]
+tags: ["paper_review", "usenix", "side_channel", "ovs", "openstack", "cloud", "network"]
 ---
 
 # 1. 등장 배경 및 문제 정의
