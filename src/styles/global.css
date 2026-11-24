@@ -387,3 +387,90 @@ html { scrollbar-color: #4a4d50 transparent; }
   html[data-tree="open"] .project-tree { display: flex; }
 }
 html[data-tree="open"] .tree-toggle { background: #484a4d; color: #fff; }
+
+/* HSKF 바로찾기: 도구 창 모양 (홈은 링크, 글 목록은 거르기 버튼). 분류색은 --hk-tile/--hk-bg/--hk-fg로 받음 */
+.hk-panel {
+  background: #1f2124;
+  border: 1px solid #2b2d30;
+  border-radius: 12px;
+  padding: 4px;
+}
+.hk-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 30px;
+  padding: 0 10px 0 9px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid #26282b;
+  @apply font-mono;
+  font-size: 11.5px;
+  color: #868a91;
+}
+.hk-head-title { display: flex; align-items: center; gap: 6px; color: #bcbec4; }
+.hk-list { display: grid; gap: 2px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.hk-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 40px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #dfe1e5;
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: left;
+  transition: background-color 0.12s, border-color 0.12s;
+}
+.hk-item:hover { background: #2a2c30; }
+.hk-item:focus-visible { outline: 2px solid #3574f0; outline-offset: -2px; }
+.hk-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--hk-bg);
+  color: var(--hk-fg);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hk-tile) 35%, transparent);
+}
+.hk-label { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* 글 수 배지도 분류색 (고른 칸은 파란 배지) */
+.hk-count {
+  flex: none;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  display: inline-grid;
+  place-items: center;
+  background: var(--hk-bg);
+  color: var(--hk-fg);
+  @apply font-mono;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+}
+.hk-chev { display: none; flex: none; color: #6f737a; margin-left: -2px; transition: transform 0.12s, color 0.12s; }
+.hk-item:hover .hk-chev { color: #bcbec4; transform: translateX(2px); }
+/* 글이 없는 분류는 흐리게 (누를 수는 있음) */
+.hk-item.is-empty .hk-icon { opacity: 0.55; }
+.hk-item.is-empty .hk-label { color: #868a91; }
+.hk-item.is-empty .hk-count { background: transparent; color: #868a91; box-shadow: inset 0 0 0 1px #393b40; }
+.hk-item[aria-pressed="true"] { background: #233458; border-color: #3a5282; }
+.hk-item[aria-pressed="true"] .hk-count { background: #3574f0; color: #fff; box-shadow: none; }
+.hk-item[aria-pressed="true"] .hk-icon { box-shadow: inset 0 0 0 1px var(--hk-tile); opacity: 1; }
+@media (min-width: 640px) {
+  .hk-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .hk-item { height: 44px; gap: 10px; padding: 0 10px 0 9px; font-size: 14px; }
+  .hk-icon { width: 24px; height: 24px; }
+  .hk-home .hk-chev { display: block; }
+}
+@media (min-width: 1280px) {
+  /* 글 목록은 넓은 화면에서 한 줄 6칸 (칸 폭을 같게) */
+  .hk-blog .hk-list { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .hk-blog .hk-item { gap: 8px; padding: 0 8px; }
+}

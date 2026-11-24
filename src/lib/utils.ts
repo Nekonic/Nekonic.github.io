@@ -43,6 +43,8 @@ export function formatTweetTime(date: Date): string {
 export const HSKF_PREFIX = '[HSKF]';
 export const HSKF_CATEGORIES = ['개발', 'CTF/Wargame', 'Bug_Bounty', '블로그/기술문서', '논문/컨퍼런스', '공모전/자격증'].map((c) => HSKF_PREFIX + c);
 export const HSKF_SET = new Set(HSKF_CATEGORIES);
+/** 바로찾기 아이콘 (Icon.astro 이름, HSKF_CATEGORIES 순서) */
+export const HSKF_ICONS = ['code', 'flag', 'bug', 'doc', 'book', 'award'];
 
 /** 바로찾기 버튼에 보일 이름 ([HSKF]Bug_Bounty → Bug Bounty) */
 export function hskfLabel(name: string) {
