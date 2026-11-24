@@ -1660,10 +1660,10 @@ const metaOptions = {
     if (!shown) return;
     var catsEl = previewCats;
     catsEl.innerHTML = '';
-    // 실제 글 화면처럼: [HSKF] 떼고, 카테고리 색으로, HSKF 분류는 뒤로
+    // 실제 글 화면처럼: [HSKF] 떼고, 카테고리 색으로, HSKF 분류는 앞으로
     var optOf = function(c) { return (metaOptions.categories || []).find(function(o) { return o.name === c; }); };
     var isHskf = function(c) { var o = optOf(c); return o ? o.hskf : c.indexOf('[HSKF]') === 0; };
-    cats.filter(function(c) { return !isHskf(c); }).concat(cats.filter(isHskf)).forEach(function(c) {
+    cats.filter(isHskf).concat(cats.filter(function(c) { return !isHskf(c); })).forEach(function(c) {
       var o = optOf(c);
       var chip = document.createElement('span');
       chip.className = 'px-2 py-0.5 rounded' + (o ? '' : ' bg-secondary text-text-body');

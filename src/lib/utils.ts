@@ -85,9 +85,9 @@ export function topicCat(cats: string[]) {
   return cats.find((c) => !HSKF_SET.has(c)) ?? cats[0];
 }
 
-/** 화면 표시 순서: 주제 카테고리 먼저, HSKF 분류는 뒤로 */
+/** 화면 표시 순서: HSKF 분류 먼저, 주제 카테고리는 뒤로 */
 export function displayCats(cats: string[]) {
-  return [...cats.filter((c) => !HSKF_SET.has(c)), ...cats.filter((c) => HSKF_SET.has(c))];
+  return [...cats.filter((c) => HSKF_SET.has(c)), ...cats.filter((c) => !HSKF_SET.has(c))];
 }
 
 export function categoryStyle(name?: string) {

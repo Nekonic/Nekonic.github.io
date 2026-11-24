@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
 import { getCollection } from 'astro:content';
-import { isVideo, getDateFromId, toArray, categoryStyle, initials, HSKF_CATEGORIES, HSKF_ICONS, hskfLabel, catLabel, topicCat, displayCats } from '../lib/utils';
+import { isVideo, getDateFromId, toArray, categoryStyle, initials, HSKF_CATEGORIES, HSKF_ICONS, HSKF_SET, hskfLabel, catLabel, topicCat, displayCats } from '../lib/utils';
 
 const allPosts = await getCollection('blog');
 
@@ -18,8 +18,9 @@ const recentPosts = allPosts
       year: date.getFullYear(),
       md: `${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`,
       cats: displayCats(cats).map(catLabel),
-      style: categoryStyle(topicCat(cats)),
-      initials: initials(topicCat(cats)),
+      // 아이콘도 HSKF 분류 기준 (없으면 주제 카테고리)
+      style: categoryStyle(cats.find((c) => HSKF_SET.has(c)) ?? topicCat(cats)),
+      initials: initials(cats.find((c) => HSKF_SET.has(c)) ?? topicCat(cats)),
     };
   });
 
