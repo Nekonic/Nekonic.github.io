@@ -49,11 +49,9 @@ HSTS는 브라우저가 해당 사이트에 HTTPS로만 접속하도록 강제�
 - 인증 없는 암호화만 사용
 
 ECB 모드는 블록마다 같은 키로 따로 암호화하는 방식으로, 같은 평문 블록은 같은 암호문 블록이 된다.  
-인증 암호화(AEAD, Authenticated Encryption with Associated Data)는 데이터를 암호화하면서 인증 태그라는 검증값을 같이 붙이는 방식이다.  
-
+인증 암호화(AEAD, Authenticated Encryption with Associated Data)는 데이터를 암호화하면서 인증 태그라는 검증값을 같이 붙이는 방식이다. 대표적으로 AES-GCM, ChaCha20-Poly1305가 있다.  
 받는 쪽은 복호화할 때 이 태그를 확인해서, 중간에 암호문이 바뀌었으면 복호화를 거부한다.  
-인증이 없는 암호화는 암호문이 바뀌어도 알 수 없고, 바뀐 암호문을 그대로 복호화한다.  
-대표적으로 AES-GCM, ChaCha20-Poly1305가 있다.
+인증이 없는 암호화는 암호문이 바뀌어도 알 수 없고, 바뀐 암호문을 그대로 복호화한다.
  
 ## 3.3 키와 난수
  
@@ -73,9 +71,9 @@ ECB 모드는 블록마다 같은 키로 따로 암호화하는 방식으로, �
 3. 평문으로 오가는 세션 쿠키를 가로챈다.
 4. 그 쿠키로 사용자 세션을 가져간다.
 
-세션을 가져간 뒤에는 오가는 데이터를 읽거나, 송금 받는 사람을 바꿀 수도 있다.  
-공격자가 사용자와 같은 네트워크 경로에 있어야 하고, 전 페이지 HTTPS와 HSTS가 적용돼 있으면 성립하지 않는다.
- 
+공격자는 연결 중간에 있으므로 오가는 데이터를 읽고 수정하는게 가능하다.  
+공격자가 사용자와 같은 네트워크 경로에 있어야 하고 HTTPS, HSTS, 쿠키 Secure 속성이 적용돼 있으면 성립하지 않는다.
+
 ## 4.2 약한 비밀번호 저장
  
 > 솔트 없는 해시로 저장된 비밀번호가 유출되어 평문이 복구되는 공격이다.
@@ -83,6 +81,8 @@ ECB 모드는 블록마다 같은 키로 따로 암호화하는 방식으로, �
 1. 서버가 비밀번호를 솔트 없는 단순 해시로 저장한다.
 2. 파일 업로드 취약점 같은 다른 버그로 해시 목록이 유출된다.
 3. 공격자가 미리 계산해 둔 해시표(레인보우 테이블)와 대조해 평문을 찾는다.
+
+MD5, SHA 같은 빠른 해시는 솔트가 있어도 GPU로 대입하면 깨진다. 그래서 비밀번호에는 일부러 느린 해시를 쓴다.
 
 # 5. 대응 방법
  
@@ -109,28 +109,6 @@ OWASP Password Storage Cheat Sheet 기준이다.
  
 솔트는 대부분의 라이브러리가 자동으로 만든다.
  
-Argon2id는 argon2-cffi 라이브러리로 쓸 수 있다. 아래는 공식 문서의 예제다.
- 
-```python
-from argon2 import PasswordHasher
- 
-ph = PasswordHasher()
-hash = ph.hash("correct horse battery staple")
-hash
-ph.verify(hash, "correct horse battery staple")
-ph.check_needs_rehash(hash)
-ph.verify(hash, "Tr0ub4dor&3")
-```
- 
-```
-'$argon2id$v=19$m=65536,t=3,p=4$gJvMl2cmAdsiqxs1Dp047Q$OPLvbMkNNVIZJU4bzqNB/np6d27xKBQdop7dGkr2B/Y'
-True
-False
-argon2.exceptions.VerifyMismatchError: The password does not match the supplied hash
-```
- 
-해시 문자열에 알고리즘(argon2id), 설정값(m, t, p), 솔트, 해시값이 `$`로 구분되어 같이 저장된다.
- 
 ## 5.3 데이터 암호화와 키 관리
  
 - 데이터를 민감도별로 분류하고 그에 맞게 보호
@@ -148,24 +126,25 @@ argon2.exceptions.VerifyMismatchError: The password does not match the supplied 
 ## 6.1 양자컴퓨터와 기존 암호
  
 RSA는 큰 수의 소인수분해가 어렵다는 점에 기반한다.  
-양자컴퓨터는 쇼어(Shor) 알고리즘으로 소인수분해를 풀 수 있어서, 공개키만으로 개인키를 구할 수 있게 된다.  
-RSA는 암호화와 전자서명에 쓰이고, 암호화는 ML-KEM이, 전자서명은 ML-DSA와 SLH-DSA가 대체한다.  
-AES 같은 대칭키 암호에는 쇼어 알고리즘이 통하지 않는다. 그로버(Grover) 알고리즘으로 키 탐색이 빨라지는 정도라서, AES-256을 쓰면 양자컴퓨터는 위협이 되지 않는다.
- 
+충분히 큰 양자컴퓨터가 나오면 쇼어(Shor) 알고리즘으로 소인수분해를 풀 수 있어서, 공개키만으로 개인키를 구할 수 있게 된다.  
+RSA는 키 공유와 전자서명에 쓰이고, 키 공유는 ML-KEM이, 전자서명은 ML-DSA와 SLH-DSA가 대체한다.  
+AES 같은 대칭키 암호에는 쇼어 알고리즘이 통하지 않는다.
+
 ## 6.2 Harvest Now, Decrypt Later
  
 공격자가 지금 암호화된 데이터를 수집해 두고, 양자컴퓨터가 나온 뒤 복호화하는 방식이다.  
+그래서 오래 비밀로 남아야 하는 데이터부터 위험하다.  
 암호 알고리즘 교체에는 라이브러리, 인증서, 장비 교체가 필요해서 시간이 오래 걸린다.
  
 ## 6.3 NIST 표준
  
 NIST는 2024년 8월 13일 첫 PQC 표준 3개를 확정했다.
  
-| 표준 | 알고리즘 | 기반 | 용도 | 대체 대상 |
-|---|---|---|---|---|
-| FIPS 203 | ML-KEM | CRYSTALS-Kyber | 키 캡슐화(KEM) | RSA 암호화 |
-| FIPS 204 | ML-DSA | CRYSTALS-Dilithium | 전자서명 | RSA 서명 |
-| FIPS 205 | SLH-DSA | SPHINCS+ | 전자서명 (ML-DSA 백업) | RSA 서명 |
+| 표준 | 알고리즘 | 용도 | 대체 대상 |
+|---|---|---|---|
+| FIPS 203 | ML-KEM | 키 캡슐화(KEM) | RSA 암호화 |
+| FIPS 204 | ML-DSA | 전자서명 | RSA 서명 |
+| FIPS 205 | SLH-DSA | 전자서명 (ML-DSA 백업) | RSA 서명 |
  
 SLH-DSA는 ML-DSA와 다른 수학 원리를 쓰는 예비용 서명 표준이다.  
 NIST는 전환에 시간이 걸리니 지금 바로 적용을 시작하라고 권고했다.
@@ -202,7 +181,11 @@ ML-KEM은 다음과 같다:
 | 저장 | Argon2id 등 느린 해시 + 솔트, 인증 암호화 |
 | 키·난수 | KMS/HSM 보관, 키 교체, IV 재사용 금지, CSPRNG |
 | PQC | 장기 보관 데이터부터 PQC 알고리즘으로 전환 |
- 
+
+2025판에서 A04는 2위에서 4위로 내려갔고, 예방 항목에 양자내성암호 대비가 새로 들어갔다.
+RSA로 하던 키 공유와 전자서명은 ML-KEM, ML-DSA, SLH-DSA로 바뀌고, AES는 AES-256을 쓴다.  
+PQC 알고리즘은 RSA, ECC보다 검증된 기간이 짧아서, 지금은 기존 알고리즘과 같이 쓰는 하이브리드 방식이 많이 쓰인다.
+
 # 참고 자료
  
 - [OWASP Top 10:2025 A04 Cryptographic Failures (한국어)](https://top10.owasp.org/2025/ko/A04_2025-Cryptographic_Failures/)
@@ -211,5 +194,5 @@ ML-KEM은 다음과 같다:
 - [OWASP Cheat Sheet: Cryptographic Storage](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html)
 - [OWASP Cheat Sheet: Transport Layer Security](https://cheatsheetseries.owasp.org/cheatsheets/Transport_Layer_Security_Cheat_Sheet.html)
 - [OWASP Cheat Sheet: HTTP Strict Transport Security](https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Strict_Transport_Security_Cheat_Sheet.html)
-- [argon2-cffi 공식 문서](https://argon2-cffi.readthedocs.io/en/stable/)
 - [NIST Releases First 3 Finalized Post-Quantum Encryption Standards](https://www.nist.gov/news-events/news/2024/08/nist-releases-first-3-finalized-post-quantum-encryption-standards)
+- [양자 시대를 대비하는 개발자의 암호학 가이드(PQC-ML-KEM)](https://meetup.nhncloud.com/posts/421)
