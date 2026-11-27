@@ -98,7 +98,7 @@ const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String
         </summary>
         <div class="flex flex-wrap gap-1.5 pt-2" id="tagChips">
           {allTags.map(([t, n]) => (
-            <button type="button" data-tag={t} aria-pressed="false" class="tag-chip h-[24px] px-2 rounded-full font-mono text-[11px] border border-border text-text-body hover:border-borderHover aria-pressed:bg-accent aria-pressed:border-transparent aria-pressed:text-white">#{t} <span class="opacity-60">{n}</span></button>
+            <button type="button" data-tag={t} aria-pressed="false" class="tag-chip h-[24px] px-2 rounded-full font-mono text-[11px] border border-border text-text-body hover:border-borderHover aria-pressed:bg-accent aria-pressed:border-transparent aria-pressed:text-white">#{t} <span class="opacity-75">{n}</span></button>
           ))}
         </div>
       </details>

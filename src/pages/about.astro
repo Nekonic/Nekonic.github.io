@@ -54,7 +54,7 @@ const years = [...new Set(items.map((t) => t.year))];
             <h1 class="text-2xl font-bold text-text-strong">Nekonic</h1>
             <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
           </div>
-          <p class="text-sm font-mono text-accent mb-2">포너블 배우는중</p>
+          <p class="text-sm font-mono text-accent-soft mb-2">포너블 배우는중</p>
           <p class="inline-flex items-center gap-1.5 text-xs font-mono px-2 py-1 mb-3 rounded border border-border bg-primary/70 text-text-primary">
             <span class="font-semibold text-text-strong">HSPACE</span>
             <span class="text-text-secondary">Knights Frontier 3기</span>
@@ -140,7 +140,7 @@ const years = [...new Set(items.map((t) => t.year))];
                     class="flex items-center py-[3px] transition-opacity">
                     <span class="relative shrink-0 self-stretch" style={`width:${GRAPH_W}px`}></span>
                     <span class="hidden sm:block w-[70px] shrink-0 pl-2 text-xs tabular-nums text-text-muted">{t.when}</span>
-                    <div class:list={['tl-card relative flex-1 min-w-0 ml-2 sm:ml-0 px-3 py-2 rounded-[10px] transition', main && 'group hover:brightness-125 focus-within:outline focus-within:outline-2 focus-within:outline-accent']}
+                    <div class:list={['tl-card relative flex-1 min-w-0 ml-2 sm:ml-0 px-3 py-2 rounded-[10px] transition', main && 'group hover:brightness-125 [html[data-theme=light]_&]:hover:brightness-95 focus-within:outline focus-within:outline-2 focus-within:outline-accent']}
                       style={`background:linear-gradient(90deg,${t.style.chipBg},transparent 75%)`}>
                       {main ? (
                         <a href={main.href} {...ext(main.external)} title={`${main.label} 열기`}
@@ -163,7 +163,7 @@ const years = [...new Set(items.map((t) => t.year))];
                         )}
                         {parent && <span class="ml-1 px-1.5 rounded" style={`background:${parent.style.chipBg};color:${parent.style.chipText}`}>{parent.short}</span>}
                         {project && projectLink && (
-                          <a href={projectLink.href} {...ext(projectLink.external)} class="relative z-10 inline-flex items-center gap-1 ml-1 px-1.5 rounded hover:brightness-125" style={`background:${project.style.chipBg};color:${project.style.chipText}`}>
+                          <a href={projectLink.href} {...ext(projectLink.external)} class="relative z-10 inline-flex items-center gap-1 ml-1 px-1.5 rounded hover:brightness-125 [html[data-theme=light]_&]:hover:brightness-95" style={`background:${project.style.chipBg};color:${project.style.chipText}`}>
                             <span class="w-1.5 h-1.5 rounded-full" style={`background:${project.style.tile}`}></span>{project.short} ↗
                           </a>
                         )}

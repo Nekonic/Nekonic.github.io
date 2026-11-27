@@ -32,10 +32,15 @@ const { term, mapping = 'pathname' } = Astro.props;
       s.crossOrigin = 'anonymous';
       s.async = true;
       document.currentScript.parentNode.appendChild(s);
+      var send = function(w) { w.postMessage({ giscus: { setConfig: { theme: theme() } } }, 'https://giscus.app'); };
       document.addEventListener('nk-theme', function() {
-        document.querySelectorAll('iframe.giscus-frame').forEach(function(f) {
-          f.contentWindow.postMessage({ giscus: { setConfig: { theme: theme() } } }, 'https://giscus.app');
-        });
+        document.querySelectorAll('iframe.giscus-frame').forEach(function(f) { send(f.contentWindow); });
+      });
+      // 지연 로딩이라 아직 안 뜬 댓글 창은 메시지를 못 받음 → 처음 뜰 때 지금 테마를 한 번 더 보냄
+      window.addEventListener('message', function onFirst(e) {
+        if (e.origin !== 'https://giscus.app' || !e.source) return;
+        window.removeEventListener('message', onFirst);
+        send(e.source);
       });
     })();
   </script>

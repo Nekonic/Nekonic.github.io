@@ -52,6 +52,7 @@
   --rgb-selection: 46 67 110;
   --rgb-selection-fg: 255 255 255;
   --rgb-graph-main: 107 111 120;  /* About 타임라인 메인 줄기 */
+  --rgb-folder-gold: 201 163 90;  /* memos 폴더 아이콘 */
   --rgb-syn-keyword: 207 142 109;
   --rgb-syn-string: 106 171 115;
   --rgb-syn-number: 42 172 184;
@@ -89,8 +90,8 @@ html[data-theme="light"] {
   --rgb-fg-quote: 64 67 73;
   --rgb-fg-2: 54 56 61;
   --rgb-fg-3: 90 93 99;
-  --rgb-fg-muted: 104 108 120;
-  --rgb-fg-faint: 140 143 150;
+  --rgb-fg-muted: 88 92 102;
+  --rgb-fg-faint: 100 104 112;
   --rgb-link: 31 95 204;
   --rgb-link-hover: 20 70 160;
   --rgb-accent-soft: 47 95 196;
@@ -99,6 +100,7 @@ html[data-theme="light"] {
   --rgb-selection: 196 215 255;
   --rgb-selection-fg: 15 16 18;
   --rgb-graph-main: 180 184 191;
+  --rgb-folder-gold: 160 120 40;
   --rgb-syn-keyword: 0 51 179;
   --rgb-syn-string: 6 125 23;
   --rgb-syn-number: 23 80 235;
@@ -599,3 +601,16 @@ html:not([data-theme="light"]) .article-content img.img-invert {
   background: transparent;
   filter: invert(1) hue-rotate(180deg);
 }
+
+/* 밝은 테마: 어두운 테마용으로 고른 밝은 빨강·초록 글자를 진하게 (흰 바탕에서 읽히게) */
+html[data-theme="light"] .text-red-400 { color: #b91c1c; }
+html[data-theme="light"] .text-rose-400 { color: #e11d48; }
+html[data-theme="light"] .text-emerald-400 { color: #047857; }
+html[data-theme="light"] .text-green-400 { color: #15803d; }
+html[data-theme="light"] .bg-red-950\/40 { background-color: #fdecec; }
+html[data-theme="light"] .bg-emerald-950\/40 { background-color: #e7f6ef; }
+html[data-theme="light"] .border-red-900\/50 { border-color: #f5c2c2; }
+html[data-theme="light"] .border-emerald-900\/50 { border-color: #b7e4cc; }
+/* 트윗 리트윗·좋아요 켜짐 색 (X 색을 밝은 바탕에 맞게) */
+html[data-theme="light"] .tweet-retweet-btn.text-\[\#00ba7c\], html[data-theme="light"] .tweet-retweet-btn:hover { color: #007a52; }
+html[data-theme="light"] .tweet-like-btn.text-\[\#f91880\], html[data-theme="light"] .tweet-like-btn:hover { color: #c9106a; }
