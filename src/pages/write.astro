@@ -295,6 +295,11 @@ const metaOptions = {
         <button id="imgEdCropClear" type="button" title="자르기 영역 해제" class="hidden shrink-0 h-8 px-2.5 rounded-md text-xs text-text-secondary hover:bg-secondary hover:text-text-primary">자르기 해제</button>
         <span class="hidden md:inline min-w-0 truncate text-xs text-text-muted">V로 선택해 이동·크기 조절 · 적용하면 편집된 이미지만 올라가요 (메타데이터 제거)</span>
         <span class="flex-1"></span>
+        <!-- 투명 배경 그림(다이어그램 등)은 어두운 화면에서 색을 뒤집어 보여줌: ![](경로){invert} -->
+        <label title="어두운 테마에서 이미지 색을 뒤집어 표시합니다 (투명 배경 다이어그램용). 밝은 테마에서는 원래 색" class="shrink-0 flex items-center gap-1.5 h-8 px-2 rounded-md text-xs text-text-secondary hover:bg-secondary cursor-pointer select-none">
+          <input id="imgEdInvert" type="checkbox" class="accent-accent" />
+          다크 모드 색 반전
+        </label>
         <button id="imgEdOriginal" type="button" class="shrink-0 h-8 px-3 rounded-md text-xs text-text-primary bg-secondary hover:bg-border">원본 그대로 넣기</button>
         <button id="imgEdApply" type="button" class="shrink-0 h-8 px-4 rounded-md text-xs font-semibold text-white bg-accent hover:bg-accent-hover">적용해서 넣기</button>
       </div>
@@ -370,9 +375,11 @@ const metaOptions = {
   import * as nkTokens from '../lib/code-tokens.mjs';
   (window as any).nkTokens = nkTokens;
   import { pdfMarkdownToHtml } from '../lib/pdf-embed-html.mjs';
+  import { IMG_WITH_ATTR, imgAttrClasses } from '../lib/image-attrs.mjs';
   import { enhancePdfs } from '../lib/pdf-embed';
   // 미리보기에서도 PDF를 뷰어로 보여줌 (아래 inline 스크립트가 씀)
   (window as any).nkPdf = { toHtml: pdfMarkdownToHtml, enhance: (root: ParentNode) => enhancePdfs(root, { reuse: true }) };
+  (window as any).nkImg = { re: IMG_WITH_ATTR, cls: imgAttrClasses }; // 이미지 표시 문법 (글 화면과 같은 규칙)
   // highlight.js·토큰 규칙이 준비됐으니 에디터·미리보기를 한 번 다시 그림
   if (typeof (window as any).updatePreview === 'function') (window as any).updatePreview();
 </script>
@@ -662,6 +669,8 @@ const metaOptions = {
       document.getElementById('imgEditorQueue').textContent = imgEdQueue.length ? '+' + imgEdQueue.length + '장 대기' : '';
       document.getElementById('imgEdOriginal').textContent = imgEdTarget ? '원본으로 되돌리기' : '원본 그대로 넣기';
       document.getElementById('imgEdApply').textContent = imgEdTarget ? '적용' : '적용해서 넣기';
+      // 다시 편집이면 본문의 {invert} 여부를 그대로 보여줌, 새 그림은 꺼진 채로
+      document.getElementById('imgEdInvert').checked = imgEdTarget ? hasImageInvert(imgEdTarget) : false;
       imgEd.classList.remove('hidden'); imgEd.classList.add('flex');
       postContent.blur(); // 편집 중 키 입력이 뒤의 에디터로 새지 않게
       fitCanvas();
@@ -1261,18 +1270,42 @@ const metaOptions = {
       pendingImages[newPath] = entry;
       entry.repoPath = 'public' + newPath;
       postContent.value = postContent.value.split(path).join(newPath);
+      path = newPath;
     }
     updatePreview();
     saveDraftSoon();
+    return path;
+  }
+
+  // 본문의 ![..](path){..} 에 invert 표시를 넣거나 뺌 (정렬 표시 {center} 등은 유지)
+  function setImageInvert(path, on) {
+    var esc = path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    var re = new RegExp('(\\]\\(' + esc + '\\))(\\{[^}\\n]*\\})?', 'g');
+    postContent.value = postContent.value.replace(re, function(_, head, attr) {
+      var toks = attr ? attr.slice(1, -1).trim().split(/\s+/).filter(Boolean) : [];
+      toks = toks.filter(function(t) { return t !== 'invert'; });
+      if (on) toks.push('invert');
+      return head + (toks.length ? '{' + toks.join(' ') + '}' : '');
+    });
+    updatePreview();
+    saveDraftSoon();
+  }
+  function hasImageInvert(path) {
+    var i = postContent.value.indexOf('](' + path + ')');
+    if (i < 0) return false;
+    var rest = postContent.value.slice(i + path.length + 3);
+    var m = /^\{([^}\n]*)\}/.exec(rest);
+    return !!m && /(^|\s)invert(\s|$)/.test(m[1]);
   }
 
   function finishImage(file, state) {
     URL.revokeObjectURL(imgEdImage.src);
+    var invert = document.getElementById('imgEdInvert').checked;
     if (imgEdTarget) {
-      replacePendingImage(imgEdTarget, file, state);
+      setImageInvert(replacePendingImage(imgEdTarget, file, state) || imgEdTarget, invert);
     } else {
       var orig = imgEdFile;
-      insertImageFiles([file]).forEach(function(p) { pendingImages[p].origFile = orig; pendingImages[p].edit = state; });
+      insertImageFiles([file]).forEach(function(p) { pendingImages[p].origFile = orig; pendingImages[p].edit = state; setImageInvert(p, invert); });
     }
     openNextImage();
   }
@@ -1501,9 +1534,11 @@ const metaOptions = {
     Object.keys(pendingImages).forEach(function(p) { src = src.split(p).join(pendingImages[p].blobUrl); });
     // PDF는 <img> 대신 뷰어 자리로 (한 줄 그대로라 줄 번호가 바뀌지 않음)
     if (window.nkPdf) src = window.nkPdf.toHtml(src);
-    // 정렬 문법: ![alt](url){left|right|center} (기존 {: .align-left} 도 지원)
-    return src.replace(/!\[([^\]]*)\]\(([^)\s]+)\)\{:?\s*\.?(?:align-)?(left|right|center)(?:-block)?\s*:?\}/g,
-      function(_, alt, url, a) { return '<img src="' + url + '" alt="' + alt + '" class="img-' + a + '">'; });
+    // 이미지 표시 문법: ![alt](url){left|right|center invert} (기존 {: .align-left} 도 지원)
+    if (!window.nkImg) return src;
+    return src.replace(window.nkImg.re, function(_, alt, url, attr) {
+      return '<img src="' + url + '" alt="' + alt + '" class="' + window.nkImg.cls(attr) + '">';
+    });
   }
 
 

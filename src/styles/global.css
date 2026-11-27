@@ -474,3 +474,17 @@ html[data-tree="open"] .tree-toggle { background: #484a4d; color: #fff; }
   .hk-blog .hk-list { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .hk-blog .hk-item { gap: 8px; padding: 0 8px; }
 }
+
+/* 테마 버튼: 지금 고른 값의 아이콘만 */
+.theme-toggle .theme-ic { display: none; }
+html[data-theme-pref="system"] .theme-ic-system,
+html[data-theme-pref="light"] .theme-ic-light,
+html[data-theme-pref="dark"] .theme-ic-dark { display: block; }
+
+/* 본문 이미지: 투명 배경 그림이 어두운 바탕에 묻히지 않게 흰 바탕.
+   ![](그림){invert}로 고른 그림은 어두운 테마에서 색을 뒤집어 보여줌 (밝은 테마에서는 원래 색) */
+.article-content img { background: #fff; }
+html:not([data-theme="light"]) .article-content img.img-invert {
+  background: transparent;
+  filter: invert(1) hue-rotate(180deg);
+}
