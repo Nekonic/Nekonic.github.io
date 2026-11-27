@@ -64,15 +64,21 @@ export function toArray(value?: string | string[]): string[] {
 /**
  * 카테고리별 색상 (JetBrains 프로젝트 아이콘 스타일).
  * 같은 이름은 항상 같은 색이 나오도록 이름을 해시합니다.
- * chipBg는 섬 바탕(#181a1c)에 tile 색을 18%만 섞은 값 (탁하지 않게).
+ * chipBg·chipText는 CSS light-dark()로 테마마다 다름: 어두운 테마는 섬 바탕(#181a1c)에 tile 18%,
+ * 밝은 테마는 흰 바탕에 tile 14% 바탕 + tile을 어둡게 한 글자.
  */
+const theme = (tile: string, darkBg: string, darkText: string) => ({
+  tile,
+  chipBg: `light-dark(color-mix(in srgb, ${tile} 14%, #fff), ${darkBg})`,
+  chipText: `light-dark(color-mix(in srgb, ${tile} 72%, #000), ${darkText})`,
+});
 const CATEGORY_PALETTE = [
-  { tile: '#d0703f', chipBg: '#392922', chipText: '#f0a77e' },
-  { tile: '#4a7fe0', chipBg: '#212c3f', chipText: '#93b8f5' },
-  { tile: '#c9567a', chipBg: '#38252d', chipText: '#f09ab4' },
-  { tile: '#8a6ad8', chipBg: '#2d283e', chipText: '#c2adf5' },
-  { tile: '#3f9a6e', chipBg: '#1f312b', chipText: '#86d4ac' },
-  { tile: '#b8952e', chipBg: '#35301f', chipText: '#e6cc7a' },
+  theme('#d0703f', '#392922', '#f0a77e'),
+  theme('#4a7fe0', '#212c3f', '#93b8f5'),
+  theme('#c9567a', '#38252d', '#f09ab4'),
+  theme('#8a6ad8', '#2d283e', '#c2adf5'),
+  theme('#3f9a6e', '#1f312b', '#86d4ac'),
+  theme('#b8952e', '#35301f', '#e6cc7a'),
 ];
 
 /** 화면에 보일 이름: HSKF 분류는 접두어를 떼고 보여줍니다 */
@@ -91,7 +97,7 @@ export function displayCats(cats: string[]) {
 }
 
 export function categoryStyle(name?: string) {
-  if (!name) return { tile: '#4e5157', chipBg: '#2b2d30', chipText: '#bcbec4' };
+  if (!name) return { tile: '#4e5157', chipBg: 'rgb(var(--rgb-secondary))', chipText: 'rgb(var(--rgb-fg-2))' };
   // HSKF 6개는 서로 다른 색
   const hskf = HSKF_CATEGORIES.indexOf(name);
   if (hskf !== -1) return CATEGORY_PALETTE[hskf % CATEGORY_PALETTE.length];

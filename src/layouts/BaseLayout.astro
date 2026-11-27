@@ -82,6 +82,28 @@ const hasAside = Astro.slots.has('aside');
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content={description} />
   <title>{title} | Nekonic</title>
+  <!-- 테마: 고른 값(nk-theme: light/dark)이 없으면 시스템 설정을 따름. 그리기 전에 정해서 깜빡이지 않게 -->
+  <script is:inline>
+    (function() {
+      var pref = null;
+      try { pref = localStorage.getItem('nk-theme'); } catch (e) {}
+      var mq = window.matchMedia('(prefers-color-scheme: light)');
+      var root = document.documentElement;
+      function apply() {
+        var p = pref === 'light' || pref === 'dark' ? pref : 'system';
+        root.dataset.themePref = p;
+        root.dataset.theme = p === 'system' ? (mq.matches ? 'light' : 'dark') : p;
+        document.dispatchEvent(new CustomEvent('nk-theme', { detail: root.dataset.theme }));
+      }
+      window.nkSetTheme = function(p) {
+        pref = p === 'system' ? null : p;
+        try { pref ? localStorage.setItem('nk-theme', pref) : localStorage.removeItem('nk-theme'); } catch (e) {}
+        apply();
+      };
+      mq.addEventListener('change', function() { if (!pref) apply(); });
+      apply();
+    })();
+  </script>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -147,6 +169,12 @@ const hasAside = Astro.slots.has('aside');
       <Icon name="plus" size={14} />
       <span>Tweet</span>
     </a>
+    <!-- 테마: 누를 때마다 시스템 → 밝게 → 어둡게 -->
+    <button type="button" id="themeToggle" class="theme-toggle w-8 h-7 flex items-center justify-center rounded-md text-text-secondary hover:bg-frameHover hover:text-text-primary transition-colors">
+      <Icon name="monitor" class="theme-ic theme-ic-system" />
+      <Icon name="sun" class="theme-ic theme-ic-light" />
+      <Icon name="moon" class="theme-ic theme-ic-dark" />
+    </button>
     <a href="https://github.com/Nekonic" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="w-8 h-7 flex items-center justify-center rounded-md text-text-secondary hover:bg-frameHover hover:text-text-primary transition-colors">
       <Icon name="github" />
     </a>
@@ -177,7 +205,7 @@ const hasAside = Astro.slots.has('aside');
             aria-current={isActive(item.href) ? 'page' : undefined}
             class:list={[
               "w-[30px] h-[30px] rounded-md flex items-center justify-center transition-colors",
-              isActive(item.href) ? "bg-frameActive text-white" : "text-text-secondary hover:bg-frameHover hover:text-text-primary",
+              isActive(item.href) ? "bg-frameActive text-text-strong" : "text-text-secondary hover:bg-frameHover hover:text-text-primary",
             ]}
           >
             <Icon name={item.icon} />
@@ -253,7 +281,7 @@ const hasAside = Astro.slots.has('aside');
     <!-- Editor island -->
     <main class="flex-1 min-w-0 bg-primary rounded-xl flex flex-col">
       <div role="tablist" class="h-10 shrink-0 flex items-center gap-1 px-1.5 overflow-x-auto">
-        <span role="tab" aria-selected="true" class="flex items-center gap-1.5 h-7 px-2.5 rounded-md bg-tab border border-tab-border text-white whitespace-nowrap">
+        <span role="tab" aria-selected="true" class="flex items-center gap-1.5 h-7 px-2.5 rounded-md bg-tab border border-tab-border text-text-strong whitespace-nowrap">
           {tabIcon === 'md' ? <Icon name="md" /> : <Icon name={tabIcon} size={14} class="text-accent-soft" />}
           <span id="editorTabName">{tab}</span>
         </span>
@@ -350,6 +378,26 @@ const hasAside = Astro.slots.has('aside');
       });
       sync();
       reveal();
+    })();
+  </script>
+
+  <!-- 테마 버튼 -->
+  <script is:inline>
+    (function() {
+      var btn = document.getElementById('themeToggle');
+      var NAMES = { system: '시스템 설정', light: '밝은 테마', dark: '어두운 테마' };
+      var NEXT = { system: 'light', light: 'dark', dark: 'system' };
+      function sync() {
+        var p = document.documentElement.dataset.themePref || 'system';
+        var label = '테마: ' + NAMES[p] + ' (누르면 ' + NAMES[NEXT[p]] + ')';
+        btn.setAttribute('aria-label', label);
+        btn.title = label;
+      }
+      btn.addEventListener('click', function() {
+        window.nkSetTheme(NEXT[document.documentElement.dataset.themePref || 'system']);
+      });
+      document.addEventListener('nk-theme', sync);
+      sync();
     })();
   </script>
 

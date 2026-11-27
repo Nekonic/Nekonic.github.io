@@ -4,44 +4,45 @@ export default {
   theme: {
     extend: {
       colors: {
-        // JetBrains Islands Dark: 창 바탕(ground)이 밝고, 그 위에 떠 있는 섬(primary)이 더 어두움
-        ground: '#24282c',        // IDE window frame (toolbar, stripes, status bar)
-        frameHover: '#32363b',    // Hovered button on the frame
-        frameActive: '#484a4d',   // Pressed tool window button on the frame
-        primary: '#181a1c',       // Island / editor canvas
-        secondary: '#2a2c30',     // Raised controls inside islands
-        card: '#1f2124',          // Card / code header panel
-        cardHover: '#26292c',     // Hover state for cards
-        border: '#393b40',        // JetBrains UI line border
-        borderSubtle: '#26282b',  // Subtle dividers
-        borderHover: '#4e5157',   // Hovered border
-        borderActive: '#3574f0',  // IntelliJ focus border blue
-        tab: { DEFAULT: '#233458', border: '#3a5282' }, // 선택된 에디터 탭 (Islands: 파란 알약)
+        // 색은 global.css의 테마 변수(--rgb-*)에서 옴: 어두운 테마 = JetBrains Islands Dark, 밝은 테마 = Islands Light
+        ground: 'rgb(var(--rgb-ground) / <alpha-value>)',          // IDE window frame (toolbar, stripes, status bar)
+        frameHover: 'rgb(var(--rgb-frame-hover) / <alpha-value>)',
+        frameActive: 'rgb(var(--rgb-frame-active) / <alpha-value>)',
+        primary: 'rgb(var(--rgb-primary) / <alpha-value>)',        // Island / editor canvas
+        secondary: 'rgb(var(--rgb-secondary) / <alpha-value>)',    // Raised controls inside islands
+        card: 'rgb(var(--rgb-card) / <alpha-value>)',
+        cardHover: 'rgb(var(--rgb-card-hover) / <alpha-value>)',
+        border: 'rgb(var(--rgb-border) / <alpha-value>)',
+        borderSubtle: 'rgb(var(--rgb-border-subtle) / <alpha-value>)',
+        borderHover: 'rgb(var(--rgb-border-hover) / <alpha-value>)',
+        borderActive: '#3574f0',
+        tab: { DEFAULT: 'rgb(var(--rgb-tab) / <alpha-value>)', border: 'rgb(var(--rgb-tab-border) / <alpha-value>)' }, // 선택된 에디터 탭
         accent: {
           DEFAULT: '#3574f0',     // Signature IntelliJ Blue (Buttons, Active items)
           hover: '#3069d9',
-          soft: '#8cb4f0',        // Accent for text on dark ground
+          soft: 'rgb(var(--rgb-accent-soft) / <alpha-value>)', // Accent for text on the theme ground
           blue: '#3574f0',
-          purple: '#7f52ff',     // JetBrains brand purple
-          pink: '#f03a69',       // JetBrains brand pink
-          orange: '#f48924',     // JetBrains brand amber
-          green: '#57965c',      // IntelliJ success green
+          purple: '#7f52ff',
+          pink: '#f03a69',
+          orange: '#f48924',
+          green: '#57965c',
           cyan: '#2cd5c4',
         },
         syntax: {
-          keyword: '#cf8e6d',
-          string: '#6aab73',
-          number: '#2aacb8',
-          key: '#c77dbb',
-          func: '#56a8f5',
-          hash: '#e0b85a',
+          keyword: 'rgb(var(--rgb-syn-keyword) / <alpha-value>)',
+          string: 'rgb(var(--rgb-syn-string) / <alpha-value>)',
+          number: 'rgb(var(--rgb-syn-number) / <alpha-value>)',
+          key: 'rgb(var(--rgb-syn-key) / <alpha-value>)',
+          func: 'rgb(var(--rgb-syn-func) / <alpha-value>)',
+          hash: 'rgb(var(--rgb-syn-hash) / <alpha-value>)',
         },
         text: {
-          primary: '#dfe1e5',     // Main readable light text
-          body: '#bcbec4',        // Article body
-          secondary: '#9da0a8',   // Muted gray
-          muted: '#868a91',       // Metadata (keeps 4.5:1 on islands)
-          faint: '#6f737a',       // Decorative only (line numbers, ##)
+          strong: 'rgb(var(--rgb-fg-strong) / <alpha-value>)', // 제목 (어두운 테마에선 흰색에 가까움)
+          primary: 'rgb(var(--rgb-fg) / <alpha-value>)',
+          body: 'rgb(var(--rgb-fg-2) / <alpha-value>)',
+          secondary: 'rgb(var(--rgb-fg-3) / <alpha-value>)',
+          muted: 'rgb(var(--rgb-fg-muted) / <alpha-value>)',
+          faint: 'rgb(var(--rgb-fg-faint) / <alpha-value>)',
         },
       },
       fontFamily: {

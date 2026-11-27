@@ -161,7 +161,7 @@ const metaOptions = {
           <button id="previewImgEdit" type="button" title="이 이미지 다시 편집" class="hidden absolute z-10 -translate-x-full whitespace-nowrap h-7 px-2.5 rounded-md text-xs font-semibold text-white bg-black/70 border border-border hover:bg-accent hover:border-accent">편집</button>
           <header id="previewHeader" class="hidden mx-6 lg:mx-8 mt-6 flex-col gap-3.5 pb-6 border-b border-borderSubtle">
             <div id="previewCats" class="flex gap-1.5 flex-wrap font-mono text-xs"></div>
-            <h1 id="previewTitle" class="text-[28px] lg:text-[34px] leading-tight font-bold tracking-tight text-white"></h1>
+            <h1 id="previewTitle" class="text-[28px] lg:text-[34px] leading-tight font-bold tracking-tight text-text-strong"></h1>
             <div class="flex items-center gap-2.5 flex-wrap font-mono text-xs text-text-secondary">
               <img src="https://github.com/Nekonic.png" alt="" class="w-5 h-5 rounded-full bg-secondary" />
               <span class="text-text-primary">Nekonic</span>
@@ -312,10 +312,10 @@ const metaOptions = {
 
 <style is:global>
   /* 에디터 구문 색 레이어 (색 레이어가 준비된 뒤에만 글자를 투명하게). 색은 global.css의 --c-* / .tok-* */
-  #postContent.hl-on { color: transparent; caret-color: #dfe1e5; position: relative; z-index: 1; }
+  #postContent.hl-on { color: transparent; caret-color: rgb(var(--rgb-fg)); position: relative; z-index: 1; }
   #postContent.hl-on::selection { color: transparent; background: rgb(53 116 240 / 0.35); }
-  #editorHl .md-quote { color: #9da0a8; }
-  #editorHl .md-strong { color: #ffffff; }
+  #editorHl .md-quote { color: rgb(var(--rgb-fg-3)); }
+  #editorHl .md-strong { color: rgb(var(--rgb-fg-strong)); }
   #editorHl .md-tag { color: var(--c-tag); }
   #editorHl .md-key { color: var(--c-prop); }
 
@@ -331,40 +331,40 @@ const metaOptions = {
   .hljs-deletion { color: #f75464; }
 
   /* diff 모드 */
-  .diff-mode { color: #9da0a8; }
-  .diff-mode:hover { color: #dfe1e5; background: #2b2d30; }
-  .diff-mode[aria-pressed="true"] { color: #8cb4f0; background: rgb(53 116 240 / 0.25); }
+  .diff-mode { color: rgb(var(--rgb-fg-3)); }
+  .diff-mode:hover { color: rgb(var(--rgb-fg)); background: rgb(var(--rgb-secondary)); }
+  .diff-mode[aria-pressed="true"] { color: rgb(var(--rgb-accent-soft)); background: rgb(53 116 240 / 0.25); }
   .diff-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 13px; line-height: 1.6rem; }
   .diff-table td { padding: 0 8px; vertical-align: top; white-space: pre-wrap; word-break: break-word; }
-  .diff-table td.dn { width: 3.25rem; text-align: right; color: #6f737a; user-select: none; padding-right: 10px; }
+  .diff-table td.dn { width: 3.25rem; text-align: right; color: rgb(var(--rgb-fg-faint)); user-select: none; padding-right: 10px; }
   .diff-table td.ds { width: 1.25rem; padding: 0; text-align: center; user-select: none; }
-  .diff-table td.dt { color: #dfe1e5; }
+  .diff-table td.dt { color: rgb(var(--rgb-fg)); }
   .diff-add { background: rgb(87 150 92 / 0.16); }
   .diff-add td.ds, .diff-add td.dn { color: #6aab73; }
   .diff-del { background: rgb(219 92 92 / 0.14); }
   .diff-del td.ds, .diff-del td.dn { color: #db5c5c; }
   .diff-add ins { background: rgb(87 150 92 / 0.45); text-decoration: none; border-radius: 2px; }
   .diff-del del { background: rgb(219 92 92 / 0.45); text-decoration: none; border-radius: 2px; }
-  .diff-hunk td { background: rgb(53 116 240 / 0.10); color: #8cb4f0; font-size: 12px; }
+  .diff-hunk td { background: rgb(53 116 240 / 0.10); color: rgb(var(--rgb-accent-soft)); font-size: 12px; }
   .diff-cur td.ds { box-shadow: inset 3px 0 0 #3574f0; }
   .rdiff-cur { outline: 2px solid #3574f0 !important; outline-offset: 2px; }
   .diff-empty { background: repeating-linear-gradient(135deg, transparent 0 6px, rgb(255 255 255 / 0.03) 6px 12px); }
   .diff-split td.dt { width: calc(50% - 4.5rem); }
-  .diff-split td.mid { width: 1px; padding: 0; background: #2b2d30; }
+  .diff-split td.mid { width: 1px; padding: 0; background: rgb(var(--rgb-secondary)); }
   .rdiff-add { border-left: 3px solid #57965c; background: rgb(87 150 92 / 0.12); padding: 2px 14px; margin: 0 -17px; border-radius: 0 4px 4px 0; }
-  .rdiff-del { border-left: 3px solid #db5c5c; background: rgb(219 92 92 / 0.10); padding: 6px 14px; margin: 8px -17px; border-radius: 0 4px 4px 0; color: #9da0a8; font-size: .9em; text-decoration: line-through; text-decoration-color: rgb(219 92 92 / .7); }
+  .rdiff-del { border-left: 3px solid #db5c5c; background: rgb(219 92 92 / 0.10); padding: 6px 14px; margin: 8px -17px; border-radius: 0 4px 4px 0; color: rgb(var(--rgb-fg-3)); font-size: .9em; text-decoration: line-through; text-decoration-color: rgb(219 92 92 / .7); }
   .rdiff-add > :first-child { margin-top: .5rem; }
   .rdiff-li { background: rgb(87 150 92 / 0.16); border-radius: 4px; outline: 1px solid rgb(87 150 92 / 0.35); }
 
-  .img-tool { color: #9da0a8; }
-  .img-tool:hover { background: #2b2d30; color: #dfe1e5; }
-  .img-tool[aria-pressed="true"] { background: rgb(53 116 240 / 0.25); color: #8cb4f0; }
-  .img-color { width: 20px; height: 20px; border-radius: 9999px; border: 1px solid #4e5157; }
+  .img-tool { color: rgb(var(--rgb-fg-3)); }
+  .img-tool:hover { background: rgb(var(--rgb-secondary)); color: rgb(var(--rgb-fg)); }
+  .img-tool[aria-pressed="true"] { background: rgb(53 116 240 / 0.25); color: rgb(var(--rgb-accent-soft)); }
+  .img-color { width: 20px; height: 20px; border-radius: 9999px; border: 1px solid rgb(var(--rgb-border-hover)); }
   .img-color[aria-pressed="true"] { outline: 2px solid #3574f0; outline-offset: 2px; }
-  .img-size { width: 24px; height: 22px; color: #9da0a8; }
-  .img-size + .img-size { border-left: 1px solid #393b40; }
-  .img-size:hover { background: #2b2d30; color: #dfe1e5; }
-  .img-size[aria-pressed="true"] { background: rgb(53 116 240 / 0.25); color: #8cb4f0; }
+  .img-size { width: 24px; height: 22px; color: rgb(var(--rgb-fg-3)); }
+  .img-size + .img-size { border-left: 1px solid rgb(var(--rgb-border)); }
+  .img-size:hover { background: rgb(var(--rgb-secondary)); color: rgb(var(--rgb-fg)); }
+  .img-size[aria-pressed="true"] { background: rgb(53 116 240 / 0.25); color: rgb(var(--rgb-accent-soft)); }
 </style>
 
 <!-- Lightweight Marked CDN for Live Markdown Parsing -->

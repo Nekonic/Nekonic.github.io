@@ -49,14 +49,14 @@ const mmdd = (d: Date) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String
 <BaseLayout title="Blog" description="All blog posts" tab="posts/" tabIcon="folder" crumbs={['posts']} status={[`${posts.length} posts · ${topicCount} categories`, 'UTF-8']} wide={true}>
   <div class="flex flex-col gap-5">
     <div class="flex items-baseline gap-3 flex-wrap">
-      <h1 class="text-[26px] font-bold tracking-tight text-white">Posts</h1>
+      <h1 class="text-[26px] font-bold tracking-tight text-text-strong">Posts</h1>
       <span class="font-mono text-[13px] text-text-secondary">{posts.length} files · {firstYear} — {lastYear}</span>
     </div>
 
     <!-- HSKF 바로찾기: HSPACE Knights Frontier 분류 6개 -->
     <section aria-labelledby="hskfTitle" class="flex flex-col gap-3">
       <div class="flex items-baseline gap-2.5 flex-wrap px-0.5">
-        <h2 id="hskfTitle" class="text-[17px] font-bold text-white">HSKF 바로찾기</h2>
+        <h2 id="hskfTitle" class="text-[17px] font-bold text-text-strong">HSKF 바로찾기</h2>
         <span class="text-xs text-text-secondary">HSPACE Knights Frontier</span>
       </div>
       <div class="hk-panel hk-blog" role="group" aria-label="HSKF 분류로 거르기">

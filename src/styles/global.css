@@ -4,8 +4,8 @@
 
 @layer base {
   body {
-    background-color: #24282c;
-    color: #dfe1e5;
+    background-color: rgb(var(--rgb-ground));
+    color: rgb(var(--rgb-fg));
     font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
   }
 
@@ -13,6 +13,117 @@
 
   summary::-webkit-details-marker { display: none; }
 }
+
+/* 테마 색 (채널 값: Tailwind가 rgb(var(--rgb-x) / 투명도)로 씀). 기본은 어두운 테마(JetBrains Islands Dark),
+   html[data-theme="light"]면 밝은 테마(Islands Light). 테마는 BaseLayout의 head 스크립트가 정함 (기본: 시스템 설정) */
+:root {
+  color-scheme: dark;
+  --rgb-ground: 36 40 44;        /* 창 바탕: 툴바·사이드 버튼·상태 표시줄 */
+  --rgb-frame-hover: 50 54 59;
+  --rgb-frame-active: 72 74 77;
+  --rgb-primary: 24 26 28;       /* 섬(패널) */
+  --rgb-secondary: 42 44 48;     /* 섬 안의 버튼·호버 */
+  --rgb-card: 31 33 36;
+  --rgb-card-hover: 38 41 44;
+  --rgb-surface: 30 32 35;       /* 표·인용·접기 바탕 */
+  --rgb-surface-2: 34 37 40;
+  --rgb-row-hover: 43 45 50;
+  --rgb-border: 57 59 64;
+  --rgb-border-subtle: 38 40 43;
+  --rgb-border-hover: 78 81 87;
+  --rgb-line: 43 45 48;
+  --rgb-line-2: 46 48 53;
+  --rgb-tab: 35 52 88;
+  --rgb-tab-border: 58 82 130;
+  --rgb-fg: 223 225 229;
+  --rgb-fg-strong: 235 237 240;
+  --rgb-fg-h3: 227 229 232;
+  --rgb-fg-body: 207 209 214;
+  --rgb-fg-quote: 195 197 202;
+  --rgb-fg-2: 188 190 196;
+  --rgb-fg-3: 157 160 168;
+  --rgb-fg-muted: 134 138 145;
+  --rgb-fg-faint: 111 115 122;
+  --rgb-link: 86 168 245;
+  --rgb-link-hover: 140 196 255;
+  --rgb-accent-soft: 140 180 240;
+  --rgb-scroll: 74 77 80;
+  --rgb-scroll-hover: 93 95 98;
+  --rgb-selection: 46 67 110;
+  --rgb-selection-fg: 255 255 255;
+  --rgb-graph-main: 107 111 120;  /* About 타임라인 메인 줄기 */
+  --rgb-syn-keyword: 207 142 109;
+  --rgb-syn-string: 106 171 115;
+  --rgb-syn-number: 42 172 184;
+  --rgb-syn-key: 199 125 187;
+  --rgb-syn-func: 86 168 245;
+  --rgb-syn-hash: 224 184 90;
+  --toolbar-glow: rgb(53 116 240 / 0.22);
+  --rgb-code-bg: 30 32 35;
+  --rgb-code-header: 34 37 40;
+  --rgb-code-line: 43 45 48;
+}
+html[data-theme="light"] {
+  color-scheme: light;
+  --rgb-ground: 236 238 241;
+  --rgb-frame-hover: 223 225 229;
+  --rgb-frame-active: 211 213 219;
+  --rgb-primary: 255 255 255;
+  --rgb-secondary: 235 236 240;
+  --rgb-card: 247 248 250;
+  --rgb-card-hover: 240 241 244;
+  --rgb-surface: 246 247 249;
+  --rgb-surface-2: 242 243 245;
+  --rgb-row-hover: 240 242 246;
+  --rgb-border: 211 213 219;
+  --rgb-border-subtle: 235 236 240;
+  --rgb-border-hover: 180 184 191;
+  --rgb-line: 228 230 234;
+  --rgb-line-2: 225 227 231;
+  --rgb-tab: 226 235 253;
+  --rgb-tab-border: 160 188 246;
+  --rgb-fg: 30 31 34;
+  --rgb-fg-strong: 15 16 18;
+  --rgb-fg-h3: 26 27 30;
+  --rgb-fg-body: 44 46 51;
+  --rgb-fg-quote: 64 67 73;
+  --rgb-fg-2: 54 56 61;
+  --rgb-fg-3: 90 93 99;
+  --rgb-fg-muted: 104 108 120;
+  --rgb-fg-faint: 140 143 150;
+  --rgb-link: 31 95 204;
+  --rgb-link-hover: 20 70 160;
+  --rgb-accent-soft: 47 95 196;
+  --rgb-scroll: 192 195 200;
+  --rgb-scroll-hover: 160 164 170;
+  --rgb-selection: 196 215 255;
+  --rgb-selection-fg: 15 16 18;
+  --rgb-graph-main: 180 184 191;
+  --rgb-syn-keyword: 0 51 179;
+  --rgb-syn-string: 6 125 23;
+  --rgb-syn-number: 23 80 235;
+  --rgb-syn-key: 135 16 148;
+  --rgb-syn-func: 0 98 122;
+  --rgb-syn-hash: 158 136 13;
+  --toolbar-glow: rgb(53 116 240 / 0.14);
+  --rgb-code-bg: 247 248 250;
+  --rgb-code-header: 240 241 244;
+  --rgb-code-line: 228 230 234;
+  /* 에디터 구문 색 (밝은 테마) */
+  --c-text: #36383d;
+  --c-kw: #0033b3;
+  --c-str: #067d17;
+  --c-num: #1750eb;
+  --c-fn: #00627a;
+  --c-com: #8c8c8c;
+  --c-prop: #871094;
+  --c-meta: #9e880d;
+  --c-tag: #0033b3;
+}
+/* 코드 블록: 밝은 테마에서는 Shiki가 넣어 둔 밝은 테마 색(--shiki-light)으로.
+   출력·text 블록(plain-code)은 Shiki가 아니라 tok-* 색을 쓰므로 제외 */
+html[data-theme="light"] .astro-code:not(.plain-code),
+html[data-theme="light"] .astro-code:not(.plain-code) span { color: var(--shiki-light) !important; }
 
 /* JetBrains IDE Scrollbar */
 ::-webkit-scrollbar {
@@ -25,31 +136,31 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #4a4d50;
+  background: rgb(var(--rgb-scroll));
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #5d5f62;
+  background: rgb(var(--rgb-scroll-hover));
 }
-html { scrollbar-color: #4a4d50 transparent; }
+html { scrollbar-color: rgb(var(--rgb-scroll)) transparent; }
 
 /* Islands 툴바: 프로젝트 색이 왼쪽에서 번짐 */
 .toolbar {
   background:
-    radial-gradient(420px 120px at 40px 0, rgb(53 116 240 / 0.22), transparent 70%),
-    #24282c;
+    radial-gradient(420px 120px at 40px 0, var(--toolbar-glow), transparent 70%),
+    rgb(var(--rgb-ground));
 }
 
 /* JetBrains Editor Selection */
 ::selection {
-  background: #2e436e;
-  color: #ffffff;
+  background: rgb(var(--rgb-selection));
+  color: rgb(var(--rgb-selection-fg));
 }
 
 /* JetBrains Article / Markdown Styling */
 .article-content {
-  color: #dfe1e5;
+  color: rgb(var(--rgb-fg));
   font-size: 1.05rem;
   line-height: 1.8;
   /* 한글은 띄어쓰기 단위로만 줄바꿈 (단어 중간에서 끊기지 않게) */
@@ -68,7 +179,7 @@ html { scrollbar-color: #4a4d50 transparent; }
 .article-content h2,
 .article-content h3,
 .article-content h4 {
-  color: #ebedf0;
+  color: rgb(var(--rgb-fg-strong));
   font-weight: 700;
   line-height: 1.4;
   margin-top: 2.25rem;
@@ -82,32 +193,32 @@ html { scrollbar-color: #4a4d50 transparent; }
 .article-content :is(h1, h2, h3, h4) + :is(h2, h3, h4) { margin-top: 0.75rem; }
 /* 목차로 이동할 때 위쪽 고정 바에 가리지 않게 (모든 제목 단계) */
 .article-content :is(h1, h2, h3, h4, h5, h6) { scroll-margin-top: 4rem; }
-.article-content h3 { font-size: 1.2rem; margin-top: 2rem; color: #e3e5e8; letter-spacing: -0.01em; }
-.article-content h4 { font-size: 1.1rem; margin-top: 1.75rem; color: #e3e5e8; letter-spacing: -0.01em; }
+.article-content h3 { font-size: 1.2rem; margin-top: 2rem; color: rgb(var(--rgb-fg-h3)); letter-spacing: -0.01em; }
+.article-content h4 { font-size: 1.1rem; margin-top: 1.75rem; color: rgb(var(--rgb-fg-h3)); letter-spacing: -0.01em; }
 
 /* 문단 간격은 줄 간격보다 확실히 크게 (문장 줄바꿈과 문단 구분) */
 .article-content p {
   margin-bottom: 1.6em;
-  color: #cfd1d6;
+  color: rgb(var(--rgb-fg-body));
 }
-.article-content td { color: #cfd1d6; }
-.article-content strong { color: #e8eaed; }
+.article-content td { color: rgb(var(--rgb-fg-body)); }
+.article-content strong { color: rgb(var(--rgb-fg-strong)); }
 
 .article-content a {
-  color: #56a8f5;
+  color: rgb(var(--rgb-link));
   overflow-wrap: anywhere; /* 긴 주소가 모바일에서 페이지를 넓히지 않게 */
   text-decoration: underline;
   text-underline-offset: 3px;
   transition: color 0.15s ease-in-out;
 }
 .article-content a:hover {
-  color: #8cc4ff;
+  color: rgb(var(--rgb-link-hover));
 }
 
 .article-content ul, .article-content ol {
   margin-left: 1.5rem;
   margin-bottom: 1.25rem;
-  color: #cfd1d6;
+  color: rgb(var(--rgb-fg-body));
 }
 .article-content ul { list-style-type: disc; }
 .article-content ol { list-style-type: decimal; }
@@ -116,8 +227,8 @@ html { scrollbar-color: #4a4d50 transparent; }
 /* IntelliJ Darcula-style Code Blocks */
 .article-content pre {
   position: relative;
-  background-color: #1e2023 !important;
-  border: 1px solid #2b2d30;
+  background-color: rgb(var(--rgb-code-bg)) !important;
+  border: 1px solid rgb(var(--rgb-code-line));
   border-radius: 8px;
   padding: 1rem 1.25rem;
   margin-top: 1.5rem;
@@ -141,18 +252,18 @@ html { scrollbar-color: #4a4d50 transparent; }
   padding-right: 1.25em;
   margin-right: 0.25em;
   text-align: right;
-  color: #6f737a;
-  background: #1e2023;
+  color: rgb(var(--rgb-fg-faint));
+  background: rgb(var(--rgb-code-bg));
   user-select: none;
 }
 
 /* 코드 블록 헤더 (언어 + 복사 버튼) — 스크립트가 .code-frame 으로 감쌉니다 */
 .article-content .code-frame {
   margin: 1.5rem 0;
-  border: 1px solid #2b2d30;
+  border: 1px solid rgb(var(--rgb-code-line));
   border-radius: 8px;
   overflow: hidden;
-  background: #1e2023;
+  background: rgb(var(--rgb-code-bg));
 }
 .article-content .code-frame pre {
   margin: 0;
@@ -165,30 +276,30 @@ html { scrollbar-color: #4a4d50 transparent; }
   align-items: center;
   justify-content: space-between;
   padding: 0 0.5rem 0 0.75rem;
-  background: #222528;
-  border-bottom: 1px solid #2b2d30;
+  background: rgb(var(--rgb-code-header));
+  border-bottom: 1px solid rgb(var(--rgb-code-line));
   @apply font-mono;
   font-size: 0.75rem;
-  color: #9da0a8;
+  color: rgb(var(--rgb-fg-3));
 }
 .article-content .code-frame-header button {
   height: 1.5rem;
   padding: 0 0.5rem;
   border-radius: 4px;
-  color: #9da0a8;
+  color: rgb(var(--rgb-fg-3));
 }
 .article-content .code-frame-header button:hover {
-  background: #2b2d30;
-  color: #dfe1e5;
+  background: rgb(var(--rgb-code-line));
+  color: rgb(var(--rgb-fg));
 }
 
 /* PDF 뷰어 — 본문의 ![제목](/파일.pdf) 를 스크립트가 .pdf-frame 으로 바꿉니다 */
 .article-content .pdf-frame {
   margin: 1.5rem 0;
-  border: 1px solid #2b2d30;
+  border: 1px solid rgb(var(--rgb-line));
   border-radius: 8px;
   overflow: hidden;
-  background: #1e2023;
+  background: rgb(var(--rgb-surface));
 }
 .article-content .pdf-frame-header {
   height: 2.25rem;
@@ -196,10 +307,10 @@ html { scrollbar-color: #4a4d50 transparent; }
   align-items: center;
   gap: 0.5rem;
   padding: 0 0.5rem 0 0.75rem;
-  background: #222528;
-  border-bottom: 1px solid #2b2d30;
+  background: rgb(var(--rgb-surface-2));
+  border-bottom: 1px solid rgb(var(--rgb-line));
   font-size: 0.75rem;
-  color: #9da0a8;
+  color: rgb(var(--rgb-fg-3));
 }
 .article-content .pdf-frame-title {
   flex: 1;
@@ -207,7 +318,7 @@ html { scrollbar-color: #4a4d50 transparent; }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #dfe1e5;
+  color: rgb(var(--rgb-fg));
 }
 .article-content .pdf-frame-info {
   font-variant-numeric: tabular-nums;
@@ -218,12 +329,12 @@ html { scrollbar-color: #4a4d50 transparent; }
   align-items: center;
   padding: 0 0.5rem;
   border-radius: 4px;
-  color: #9da0a8;
+  color: rgb(var(--rgb-fg-3));
   text-decoration: none;
 }
 .article-content a.pdf-frame-btn:hover {
-  background: #2b2d30;
-  color: #dfe1e5;
+  background: rgb(var(--rgb-line));
+  color: rgb(var(--rgb-fg));
 }
 .article-content .pdf-frame-pages {
   max-height: min(80vh, 900px);
@@ -248,14 +359,14 @@ html { scrollbar-color: #4a4d50 transparent; }
   margin: 1rem 0;
   text-align: center;
   font-size: 0.8125rem;
-  color: #9da0a8;
+  color: rgb(var(--rgb-fg-3));
 }
 
 .article-content details {
   margin: 1.5rem 0;
-  border: 1px solid #2b2d30;
+  border: 1px solid rgb(var(--rgb-line));
   border-radius: 8px;
-  background: #1e2023;
+  background: rgb(var(--rgb-surface));
 }
 .article-content details > summary {
   cursor: pointer;
@@ -263,11 +374,11 @@ html { scrollbar-color: #4a4d50 transparent; }
   padding: 0.6rem 0.9rem;
   @apply font-mono;
   font-size: 0.85rem;
-  color: #bcbec4;
+  color: rgb(var(--rgb-fg-2));
 }
 .article-content details > summary::before {
   content: '▸ ';
-  color: #868a91;
+  color: rgb(var(--rgb-fg-muted));
 }
 .article-content details[open] > summary::before { content: '▾ '; }
 .article-content details > :not(summary) {
@@ -279,7 +390,7 @@ html { scrollbar-color: #4a4d50 transparent; }
 }
 
 .article-content code:not(pre code) {
-  background-color: #2b2d30;
+  background-color: rgb(var(--rgb-line));
   border: 0;
   color: var(--c-text);
   padding: 0.15rem 0.45rem;
@@ -287,7 +398,7 @@ html { scrollbar-color: #4a4d50 transparent; }
   font-size: 0.88em;
 }
 
-/* JetBrains Dark 코드 색 (Shiki 테마 src/lib/shiki-jetbrains-dark.json 과 같은 값) */
+/* 코드 색 (Shiki 테마 src/lib/shiki-jetbrains-dark.json 과 같은 값, 밝은 테마 값은 위 html[data-theme="light"]) */
 :root {
   --c-text: #bcbec4;
   --c-kw: #cf8e6d;
@@ -309,21 +420,21 @@ html { scrollbar-color: #4a4d50 transparent; }
 .article-content .op {
   @apply font-mono;
   font-size: 0.92em;
-  color: #dfe1e5;
+  color: rgb(var(--rgb-fg));
 }
 
 .article-content blockquote {
-  border-left: 3px solid #4e5157;
+  border-left: 3px solid rgb(var(--rgb-border-hover));
   padding-left: 1rem;
   margin: 1.5rem 0;
-  color: #c3c5ca;
-  background-color: #222528;
+  color: rgb(var(--rgb-fg-quote));
+  background-color: rgb(var(--rgb-surface-2));
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
   border-radius: 0 6px 6px 0;
-  border-top: 1px solid #2e3035;
-  border-right: 1px solid #2e3035;
-  border-bottom: 1px solid #2e3035;
+  border-top: 1px solid rgb(var(--rgb-line-2));
+  border-right: 1px solid rgb(var(--rgb-line-2));
+  border-bottom: 1px solid rgb(var(--rgb-line-2));
 }
 /* 인용문 안 문단은 인용문 색을 따르고, 마지막 문단 아래 여백은 없앰 (위아래 여백 맞춤) */
 .article-content blockquote p { color: inherit; margin-bottom: 0.75em; }
@@ -331,7 +442,7 @@ html { scrollbar-color: #4a4d50 transparent; }
 
 .article-content hr {
   border: 0;
-  border-top: 1px solid #2e3035;
+  border-top: 1px solid rgb(var(--rgb-line-2));
   margin: 2rem 0;
 }
 
@@ -341,13 +452,13 @@ html { scrollbar-color: #4a4d50 transparent; }
   overflow-x: auto;
   margin: 1.5rem 0;
   border-radius: 8px;
-  border: 1px solid #393b40;
+  border: 1px solid rgb(var(--rgb-border));
 }
 .article-content table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.92rem;
-  background-color: #1e2023;
+  background-color: rgb(var(--rgb-surface));
 }
 .article-content .table-wrap > table th,
 .article-content .table-wrap > table td {
@@ -355,27 +466,27 @@ html { scrollbar-color: #4a4d50 transparent; }
 }
 
 .article-content th, .article-content td {
-  border: 1px solid #323438;
+  border: 1px solid rgb(var(--rgb-line-2));
   padding: 0.65rem 1rem;
   text-align: left;
 }
 
 .article-content th {
-  background-color: #2b2d30;
-  color: #dfe1e5;
+  background-color: rgb(var(--rgb-line));
+  color: rgb(var(--rgb-fg));
   font-weight: 600;
   font-size: 0.88rem; /* 한글 머리글은 본문 글꼴로 */
-  border-bottom: 2px solid #393b40;
+  border-bottom: 2px solid rgb(var(--rgb-border));
 }
 
 .article-content tr:hover td {
-  background-color: #2b2d32;
+  background-color: rgb(var(--rgb-row-hover));
 }
 
 .article-content img {
   max-width: 100%;
   border-radius: 8px;
-  border: 1px solid #2b2d30;
+  border: 1px solid rgb(var(--rgb-line));
   margin: 1.75rem auto;
 }
 .article-content img.img-left { float: left; margin: 0.5rem 1.5rem 1rem 0; }
@@ -386,12 +497,12 @@ html { scrollbar-color: #4a4d50 transparent; }
 @media (min-width: 1024px) {
   html[data-tree="open"] .project-tree { display: flex; }
 }
-html[data-tree="open"] .tree-toggle { background: #484a4d; color: #fff; }
+html[data-tree="open"] .tree-toggle { background: rgb(var(--rgb-frame-active)); color: rgb(var(--rgb-fg-strong)); }
 
 /* HSKF 바로찾기: 도구 창 모양 (홈은 링크, 글 목록은 거르기 버튼). 분류색은 --hk-tile/--hk-bg/--hk-fg로 받음 */
 .hk-panel {
-  background: #1f2124;
-  border: 1px solid #2b2d30;
+  background: rgb(var(--rgb-card));
+  border: 1px solid rgb(var(--rgb-line));
   border-radius: 12px;
   padding: 4px;
 }
@@ -402,12 +513,12 @@ html[data-tree="open"] .tree-toggle { background: #484a4d; color: #fff; }
   height: 30px;
   padding: 0 10px 0 9px;
   margin-bottom: 2px;
-  border-bottom: 1px solid #26282b;
+  border-bottom: 1px solid rgb(var(--rgb-border-subtle));
   @apply font-mono;
   font-size: 11.5px;
-  color: #868a91;
+  color: rgb(var(--rgb-fg-muted));
 }
-.hk-head-title { display: flex; align-items: center; gap: 6px; color: #bcbec4; }
+.hk-head-title { display: flex; align-items: center; gap: 6px; color: rgb(var(--rgb-fg-2)); }
 .hk-list { display: grid; gap: 2px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .hk-item {
   display: flex;
@@ -418,13 +529,13 @@ html[data-tree="open"] .tree-toggle { background: #484a4d; color: #fff; }
   padding: 0 6px;
   border: 1px solid transparent;
   border-radius: 8px;
-  color: #dfe1e5;
+  color: rgb(var(--rgb-fg));
   font-size: 13.5px;
   font-weight: 500;
   text-align: left;
   transition: background-color 0.12s, border-color 0.12s;
 }
-.hk-item:hover { background: #2a2c30; }
+.hk-item:hover { background: rgb(var(--rgb-secondary)); }
 .hk-item:focus-visible { outline: 2px solid #3574f0; outline-offset: -2px; }
 .hk-icon {
   flex: none;
@@ -454,13 +565,13 @@ html[data-tree="open"] .tree-toggle { background: #484a4d; color: #fff; }
   font-weight: 500;
   line-height: 1;
 }
-.hk-chev { display: none; flex: none; color: #6f737a; margin-left: -2px; transition: transform 0.12s, color 0.12s; }
-.hk-item:hover .hk-chev { color: #bcbec4; transform: translateX(2px); }
+.hk-chev { display: none; flex: none; color: rgb(var(--rgb-fg-faint)); margin-left: -2px; transition: transform 0.12s, color 0.12s; }
+.hk-item:hover .hk-chev { color: rgb(var(--rgb-fg-2)); transform: translateX(2px); }
 /* 글이 없는 분류는 흐리게 (누를 수는 있음) */
 .hk-item.is-empty .hk-icon { opacity: 0.55; }
-.hk-item.is-empty .hk-label { color: #868a91; }
-.hk-item.is-empty .hk-count { background: transparent; color: #868a91; box-shadow: inset 0 0 0 1px #393b40; }
-.hk-item[aria-pressed="true"] { background: #233458; border-color: #3a5282; }
+.hk-item.is-empty .hk-label { color: rgb(var(--rgb-fg-muted)); }
+.hk-item.is-empty .hk-count { background: transparent; color: rgb(var(--rgb-fg-muted)); box-shadow: inset 0 0 0 1px rgb(var(--rgb-border)); }
+.hk-item[aria-pressed="true"] { background: rgb(var(--rgb-tab)); border-color: rgb(var(--rgb-tab-border)); }
 .hk-item[aria-pressed="true"] .hk-count { background: #3574f0; color: #fff; box-shadow: none; }
 .hk-item[aria-pressed="true"] .hk-icon { box-shadow: inset 0 0 0 1px var(--hk-tile); opacity: 1; }
 @media (min-width: 640px) {

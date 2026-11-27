@@ -15,23 +15,28 @@ const { term, mapping = 'pathname' } = Astro.props;
 
   <div class="giscus"></div>
 
-  <script
-    is:inline
-    src="https://giscus.app/client.js"
-    data-repo="Nekonic/Nekonic.github.io"
-    data-repo-id="R_kgDOIgGsMA"
-    data-category="General"
-    data-category-id="DIC_kwDOIgGsMM4DG0Di"
-    data-mapping={mapping}
-    data-term={term}
-    data-strict="0"
-    data-reactions-enabled="1"
-    data-emit-metadata="0"
-    data-input-position="bottom"
-    data-theme="transparent_dark"
-    data-lang="ko"
-    data-loading="lazy"
-    crossorigin="anonymous"
-    async
-  ></script>
+  <!-- 테마에 맞춰 Giscus를 붙이고, 테마를 바꾸면 댓글 창도 바꿈 -->
+  <script is:inline define:vars={{ mapping, term }}>
+    (function() {
+      var theme = function() { return document.documentElement.dataset.theme === 'light' ? 'light' : 'transparent_dark'; };
+      var s = document.createElement('script');
+      s.src = 'https://giscus.app/client.js';
+      var attrs = {
+        'data-repo': 'Nekonic/Nekonic.github.io', 'data-repo-id': 'R_kgDOIgGsMA',
+        'data-category': 'General', 'data-category-id': 'DIC_kwDOIgGsMM4DG0Di',
+        'data-mapping': mapping, 'data-strict': '0', 'data-reactions-enabled': '1', 'data-emit-metadata': '0',
+        'data-input-position': 'bottom', 'data-theme': theme(), 'data-lang': 'ko', 'data-loading': 'lazy',
+      };
+      if (term) attrs['data-term'] = term;
+      for (var k in attrs) s.setAttribute(k, attrs[k]);
+      s.crossOrigin = 'anonymous';
+      s.async = true;
+      document.currentScript.parentNode.appendChild(s);
+      document.addEventListener('nk-theme', function() {
+        document.querySelectorAll('iframe.giscus-frame').forEach(function(f) {
+          f.contentWindow.postMessage({ giscus: { setConfig: { theme: theme() } } }, 'https://giscus.app');
+        });
+      });
+    })();
+  </script>
 </div>

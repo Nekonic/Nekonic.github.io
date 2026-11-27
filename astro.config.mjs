@@ -7,6 +7,7 @@ import remarkPdfEmbed from './src/lib/remark-pdf-embed.mjs';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import jetbrainsDark from './src/lib/shiki-jetbrains-dark.json' with { type: 'json' };
+import jetbrainsLight from './src/lib/shiki-jetbrains-light.json' with { type: 'json' };
 
 export default defineConfig({
   site: 'https://nekonic.github.io',
@@ -15,8 +16,10 @@ export default defineConfig({
   markdown: {
     remarkPlugins: [remarkImageAlign, remarkCodeExtras, remarkPdfEmbed, remarkMath],
     rehypePlugins: [rehypeKatex], // $...$ 수식
+    // 코드 색: 어두운 테마는 JetBrains Dark, 밝은 테마는 JetBrains Light (global.css가 --shiki-light로 바꿈)
     shikiConfig: {
-      theme: jetbrainsDark,
+      themes: { dark: jetbrainsDark, light: jetbrainsLight },
+      defaultColor: 'dark',
     },
   },
 });

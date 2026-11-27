@@ -50,7 +50,7 @@ const tweetTerm = id ? `tweet-${id}` : undefined;
 
       <!-- Tweet text -->
       {content.trim() && (
-        <div class="text-[#e7e9ea] whitespace-pre-wrap text-[15px] leading-relaxed mb-3 break-words font-sans">{content.trim()}</div>
+        <div class="text-text-primary whitespace-pre-wrap text-[15px] leading-relaxed mb-3 break-words font-sans">{content.trim()}</div>
       )}
 
       {pics.length > 0 && (
@@ -153,7 +153,7 @@ const tweetTerm = id ? `tweet-${id}` : undefined;
             </svg>
           </div>
           <!-- Toast tooltip -->
-          <span class="copied-tooltip absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-card border border-borderSubtle text-white text-[11px] rounded shadow-lg opacity-0 pointer-events-none transition-opacity duration-150 whitespace-nowrap font-mono">복사됨!</span>
+          <span class="copied-tooltip absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-card border border-borderSubtle text-text-strong text-[11px] rounded shadow-lg opacity-0 pointer-events-none transition-opacity duration-150 whitespace-nowrap font-mono">복사됨!</span>
         </button>
       </div>
 
